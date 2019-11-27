@@ -11,6 +11,7 @@ from data_loaders import *
 def epoch(loader, size, model, opt, criterion, device, config):
     epoch_acc = 0
     epoch_loss = 0
+
     for x,y in loader:
         
         opt.zero_grad()
@@ -54,6 +55,7 @@ def train(config):
         print('Train - acc: {} loss: {}\nTest - acc: {} loss: {}'.format(
             train_acc, train_loss, test_acc, test_loss
         ))
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--model', type=str)
