@@ -22,8 +22,8 @@ def epoch(loader, size, model, opt, criterion, device, config):
         loss = criterion(out, y)
         if model.training:
             loss.backward()
+            model.apply_mask()
             opt.step()
-
         preds = out.argmax(dim=1, keepdim=True).squeeze()
         correct = preds.eq(y).sum().item()
         
@@ -48,6 +48,7 @@ def train(config):
         model = LeNet5().to(device)
 
     model = MasterWrapper(model)
+    print('Model has {} total params, including biases.'.format(model.get_total_params()))
 
     opt = optim.Adam(model.parameters(), lr=config['lr'])
     criterion = nn.CrossEntropyLoss()
@@ -70,6 +71,9 @@ def train(config):
             train_acc, train_loss, test_acc, test_loss
         ))
 
+        # if epoch_num%config['prune_freq'] == 0:
+        #     model.update_mask(0.2)
+        
         writer.add_scalar('acc/train', train_acc, epoch_num)
         writer.add_scalar('acc/test', test_acc, epoch_num)
         writer.add_scalar('loss/train', train_loss, epoch_num)
@@ -86,6 +90,9 @@ def main():
     parser.add_argument('--lr', type=float, default=3e-3)
     parser.add_argument('--device', type=str, default='cuda')
     parser.add_argument('--seed', type=int, default=42)
+    # Pruning
+    parser.add_argument('--prune_rate', type=float, default=0.2)
+    parser.add_argument('--prune_freq', type=int, default=2)
 
     config = vars(parser.parse_args())
 
