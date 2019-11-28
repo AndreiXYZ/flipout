@@ -1,8 +1,7 @@
-import torch
+import torch, argparse
 import numpy as np
-import argparse
 import torch.optim as optim
-
+from torch.utils.tensorboard import SummaryWriter
 from torch.backends import cudnn
 from utils import *
 from models import *
@@ -37,29 +36,51 @@ def epoch(loader, size, model, opt, criterion, device, config):
     return epoch_acc, epoch_loss 
 
 def train(config):
+    
+    comment = construct_run_name(config)
+    writer = SummaryWriter(comment=comment)
+
     device = config['device']
-    model = LeNet_300_100().to(device)
+
+    if config['model'] == 'lenet300':
+        model = LeNet_300_100().to(device)
+    elif config['model'] == 'lenet5':
+        model = LeNet5().to(device)
+
+    model = MasterWrapper(model)
+
     opt = optim.Adam(model.parameters(), lr=config['lr'])
     criterion = nn.CrossEntropyLoss()
 
     train_loader, train_size, test_loader, test_size = get_mnist_loaders(config)
 
     for epoch_num in range(config['epochs']):
+        print('='*10 + ' Epoch ' + str(epoch_num) + ' ' + '='*10)
+
         model.train()
         train_acc, train_loss = epoch(train_loader, train_size, model, opt, criterion, device, config)
+
+        flips = model.get_flips()
 
         model.eval()
         with torch.no_grad():
             test_acc, test_loss = epoch(test_loader, test_size, model, opt, criterion, device, config)   
 
-        print('Train - acc: {} loss: {}\nTest - acc: {} loss: {}'.format(
+        print('Train - acc: {:>20} loss: {:>20}\nTest - acc: {:>21} loss: {:>21}'.format(
             train_acc, train_loss, test_acc, test_loss
         ))
 
+        writer.add_scalar('acc/train', train_acc, epoch_num)
+        writer.add_scalar('acc/test', test_acc, epoch_num)
+        writer.add_scalar('loss/train', train_loss, epoch_num)
+        writer.add_scalar('loss/test', test_loss, epoch_num)
+        writer.add_scalar('flips/absolute', flips,epoch_num)
+        writer.add_scalar('flips/percentage', float(flips)/model.total_params, epoch_num)
+
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--model', type=str)
-    parser.add_argument('--dataset', type=str)
+    parser.add_argument('--model', type=str, choices=['lenet300', 'lenet5'], default='lenet300')
+    parser.add_argument('--dataset', type=str, choices=['mnist', 'cifar10'], default='mnist')
     parser.add_argument('--batch_size', type=int, default=32)
     parser.add_argument('--epochs', type=int, default=100)
     parser.add_argument('--lr', type=float, default=3e-3)
@@ -68,7 +89,8 @@ def main():
 
     config = vars(parser.parse_args())
 
-    # Ensure experiment is reproducible
+    # Ensure experiment is reproducible.
+    # Results may vary across machines!
     set_seed(config['seed'])
 
 
