@@ -41,30 +41,33 @@ class MasterModel(nn.Module):
     
     def apply_mask(self):
         for weights, layer_mask in zip(self.parameters(), self.mask):
-            weights.data = weights*layer_mask
+            weights.grad.data = weights.grad.data*layer_mask
+            weights.data = weights.data*layer_mask
 
     def update_mask(self, rate):
         # Prune parameters of the network according to a criterion
         # Criterion is a func by which the weights are sorted
-        for idx, layer in enumerate(self.parameters()):
+        for layer, layer_mask in zip(self.parameters(), self.mask):
             flat_layer = layer.view(-1)
-            num_pruned = (flat_layer==0).sum().item()
-            num_elems = flat_layer.numel()
-            num_unpruned = num_elems - num_pruned
+
+            num_pruned = (layer_mask==0).sum().item()
+            num_unpruned = layer_mask.numel() - num_pruned
             to_prune = num_pruned + int(rate*num_unpruned)
 
             inds = flat_layer.abs().argsort(descending=False)[:to_prune]
+            mask = layer_mask.view(-1).clone()
+            mask[inds] = 0
+            layer_mask.data = mask.view_as(layer_mask)
+            layer.data = layer.data*layer_mask
+    
 
-            new_mask = torch.ones(self.mask[idx].numel())
-            new_mask[inds] = 0
-            new_mask = new_mask.view_as(self.mask[idx])
-            new_mask = new_mask.to(self.mask[idx].get_device())
-            self.mask[idx] = self.mask[idx]*new_mask
-            # curr_mask = self.mask[idx]
+    def get_sparsity(self):
+        # Get the global sparsity rate
+        sparsity = 0
+        for layer in self.parameters():
+            sparsity += (layer==0).sum().item()
+        return float(sparsity)/self.total_params
 
-            # inds = inds[:to_prune]
-
-            # self.mask[idx][inds] = 0
     def get_flips(self):
     # Retrieves how many params have flipped compared to previously saved weights
         num_flips = 0

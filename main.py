@@ -24,6 +24,7 @@ def epoch(loader, size, model, opt, criterion, device, config):
             loss.backward()
             model.apply_mask()
             opt.step()
+        
         preds = out.argmax(dim=1, keepdim=True).squeeze()
         correct = preds.eq(y).sum().item()
         
@@ -50,12 +51,12 @@ def train(config):
     model = MasterWrapper(model).to(device)
     print('Model has {} total params, including biases.'.format(model.get_total_params()))
 
-    opt = optim.Adam(model.parameters(), lr=config['lr'])
+    opt = optim.RMSprop(model.parameters(), lr=config['lr'])
     criterion = nn.CrossEntropyLoss()
 
     train_loader, train_size, test_loader, test_size = get_mnist_loaders(config)
 
-    for epoch_num in range(config['epochs']):
+    for epoch_num in range(1,config['epochs']+1):
         print('='*10 + ' Epoch ' + str(epoch_num) + ' ' + '='*10)
 
         model.train()
@@ -71,15 +72,16 @@ def train(config):
             train_acc, train_loss, test_acc, test_loss
         ))
 
-        model.update_mask(0.2)
-        print(model.get_sparsity())
-        
+        if epoch_num%config['prune_freq'] == 0:
+            model.update_mask(config['prune_rate'])
+
         writer.add_scalar('acc/train', train_acc, epoch_num)
         writer.add_scalar('acc/test', test_acc, epoch_num)
         writer.add_scalar('loss/train', train_loss, epoch_num)
         writer.add_scalar('loss/test', test_loss, epoch_num)
         writer.add_scalar('flips/absolute', flips,epoch_num)
         writer.add_scalar('flips/percentage', float(flips)/model.total_params, epoch_num)
+        writer.add_scalar('sparsity', model.get_sparsity(), epoch_num)
 
 def main():
     parser = argparse.ArgumentParser()
@@ -87,7 +89,7 @@ def main():
     parser.add_argument('--dataset', type=str, choices=['mnist', 'cifar10'], default='mnist')
     parser.add_argument('--batch_size', type=int, default=32)
     parser.add_argument('--epochs', type=int, default=100)
-    parser.add_argument('--lr', type=float, default=3e-3)
+    parser.add_argument('--lr', type=float, default=1e-4)
     parser.add_argument('--device', type=str, default='cuda')
     parser.add_argument('--seed', type=int, default=42)
     # Pruning
