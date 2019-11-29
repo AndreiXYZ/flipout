@@ -30,9 +30,11 @@ def epoch(epoch_num, loader, size, model, opt, criterion, device, writer, config
             model.apply_mask()
             opt.step()
             # Monitor wegiths for flips
-            flips = model.get_flips()
-            writer.add_scalar('flips/absolute', flips, update_num)
-            writer.add_scalar('flips/percentage', float(flips)/model.total_params, update_num)
+            flips_since_last = model.get_flips_since_last()
+            flips_total = model.get_flips_total()
+            writer.add_scalar('flips/absolute_since_last', flips_since_last, update_num)
+            writer.add_scalar('flips/percentage_since_last', float(flips_since_last)/model.total_params, update_num)
+            writer.add_scalar('flips/absolute_total', flips_total, update_num)
         preds = out.argmax(dim=1, keepdim=True).squeeze()
         correct = preds.eq(y).sum().item()
         
@@ -82,6 +84,13 @@ def train(config, writer):
         writer.add_scalar('loss/train', train_loss, epoch_num)
         writer.add_scalar('loss/test', test_loss, epoch_num)
         writer.add_scalar('sparsity', model.get_sparsity(), epoch_num)
+        # Add 2nd layer for visualisation
+        fig = model.flip_counts[3].clone().cpu().numpy()
+        layer_0_flips = model.flip_counts[3].flatten()
+        print(layer_0_flips.shape)
+        print(layer_0_flips.mean())
+        writer.add_image('layer 0 flips fig.', fig, epoch_num, dataformats='CHW')
+        writer.add_histogram('layer 0 flips hist.', model.flip_counts[0].flatten(), epoch_num, max_bins=10)
 
 def main():
     parser = argparse.ArgumentParser()

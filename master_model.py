@@ -71,7 +71,7 @@ class MasterModel(nn.Module):
             sparsity += (layer==0).sum().item()
         return float(sparsity)/self.total_params
 
-    def get_flips(self):
+    def get_flips_since_last(self):
     # Retrieves how many params have flipped compared to previously saved weights
         num_flips = 0
         
@@ -82,3 +82,9 @@ class MasterModel(nn.Module):
             layer_flips += flipped
             num_flips += flipped.sum()
         return num_flips
+    
+    def get_flips_total(self):
+        flips_total = 0
+        for layer_flips in self.flip_counts:
+            flips_total += layer_flips.sum().item()
+        return flips_total
