@@ -1,30 +1,37 @@
 import torch, argparse
 import numpy as np
+import math
 import torch.optim as optim
 from torch.utils.tensorboard import SummaryWriter
 from torch.backends import cudnn
 from utils import *
 from models import *
 from data_loaders import *
+from master_model import MasterWrapper
 
-def epoch(loader, size, model, opt, criterion, device, config):
+def epoch(epoch_num, loader, size, model, opt, criterion, device, writer, config):
     epoch_acc = 0
     epoch_loss = 0
 
-    for x,y in loader:
+    for batch_num, (x,y) in enumerate(loader):
         
+        update_num = epoch_num*size/math.ceil(config['batch_size']) + batch_num
         opt.zero_grad()
-
         x = x.float().to(device)
         y = y.to(device)
 
         out = model.forward(x).squeeze()
         loss = criterion(out, y)
         if model.training:
+            model.save_weights()
             loss.backward()
             model.apply_mask()
             opt.step()
-        
+            # Monitor wegiths for flips
+            flips = model.get_flips()
+            writer.add_scalar('flips/absolute', flips, update_num)
+            writer.add_scalar('flips/percentage', float(flips)/model.total_params, update_num)
+
         preds = out.argmax(dim=1, keepdim=True).squeeze()
         correct = preds.eq(y).sum().item()
         
@@ -36,11 +43,7 @@ def epoch(loader, size, model, opt, criterion, device, config):
 
     return epoch_acc, epoch_loss 
 
-def train(config):
-    
-    comment = construct_run_name(config)
-    writer = SummaryWriter(comment=comment)
-
+def train(config, writer):
     device = config['device']
 
     if config['model'] == 'lenet300':
@@ -56,31 +59,29 @@ def train(config):
 
     train_loader, train_size, test_loader, test_size = get_mnist_loaders(config)
 
-    for epoch_num in range(1,config['epochs']+1):
+    for epoch_num in range(config['epochs']):
         print('='*10 + ' Epoch ' + str(epoch_num) + ' ' + '='*10)
 
         model.train()
-        train_acc, train_loss = epoch(train_loader, train_size, model, opt, criterion, device, config)
+        train_acc, train_loss = epoch(epoch_num, train_loader, train_size, model, opt, criterion, device, writer, config)
 
-        flips = model.get_flips()
 
         model.eval()
         with torch.no_grad():
-            test_acc, test_loss = epoch(test_loader, test_size, model, opt, criterion, device, config)   
+            test_acc, test_loss = epoch(epoch_num, test_loader, test_size, model, opt, criterion, device, writer, config)   
 
         print('Train - acc: {:>20} loss: {:>20}\nTest - acc: {:>21} loss: {:>21}'.format(
             train_acc, train_loss, test_acc, test_loss
         ))
 
-        if epoch_num%config['prune_freq'] == 0:
+        if (epoch_num+1)%config['prune_freq'] == 0:
             model.update_mask(config['prune_rate'])
 
         writer.add_scalar('acc/train', train_acc, epoch_num)
         writer.add_scalar('acc/test', test_acc, epoch_num)
         writer.add_scalar('loss/train', train_loss, epoch_num)
         writer.add_scalar('loss/test', test_loss, epoch_num)
-        writer.add_scalar('flips/absolute', flips,epoch_num)
-        writer.add_scalar('flips/percentage', float(flips)/model.total_params, epoch_num)
+
         writer.add_scalar('sparsity', model.get_sparsity(), epoch_num)
 
 def main():
@@ -92,6 +93,7 @@ def main():
     parser.add_argument('--lr', type=float, default=1e-4)
     parser.add_argument('--device', type=str, default='cuda')
     parser.add_argument('--seed', type=int, default=42)
+    parser.add_argument('--save_every', type=int, default=-1)
     # Pruning
     parser.add_argument('--prune_rate', type=float, default=0.2)
     parser.add_argument('--prune_freq', type=int, default=2)
@@ -102,8 +104,10 @@ def main():
     # Results may vary across machines!
     set_seed(config['seed'])
 
-
-    train(config)
+    comment = construct_run_name(config)
+    writer = SummaryWriter(comment=comment)
+    writer.add_text('config', comment)
+    train(config, writer)
 
 if __name__ == "__main__":
     main()
