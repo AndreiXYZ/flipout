@@ -1,5 +1,6 @@
 import torch.nn as nn
 import torch
+import math
 
 class MasterWrapper(object):
     def __init__(self, obj):
@@ -45,22 +46,25 @@ class MasterModel(nn.Module):
     def update_mask(self, rate):
         # Prune parameters of the network according to a criterion
         # Criterion is a func by which the weights are sorted
-        for layer_params,layer_mask in zip(self.parameters(),self.mask):
-            # Calc how many weights to prune
-            flattened_params = layer_params.view(-1)
-            
-            num_zero = (flattened_params==0).sum().item()
-            num_elems = flattened_params.numel()
-            num_nonzero = num_elems - num_zero
+        for idx, layer in enumerate(self.parameters()):
+            flat_layer = layer.view(-1)
+            num_pruned = (flat_layer==0).sum().item()
+            num_elems = flat_layer.numel()
+            num_unpruned = num_elems - num_pruned
+            to_prune = num_pruned + int(rate*num_unpruned)
 
-            num_to_prune = num_zero + int(rate*num_nonzero)
-            # Get indices of weights that are pruned
-            indices = flattened_params.abs().argsort(descending=False)
-            indices = indices[:num_to_prune]
-            
-            layer_mask.data[indices] = 0
-            layer_params.data = layer_params*layer_mask
+            inds = flat_layer.abs().argsort(descending=False)[:to_prune]
 
+            new_mask = torch.ones(self.mask[idx].numel())
+            new_mask[inds] = 0
+            new_mask = new_mask.view_as(self.mask[idx])
+            new_mask = new_mask.to(self.mask[idx].get_device())
+            self.mask[idx] = self.mask[idx]*new_mask
+            # curr_mask = self.mask[idx]
+
+            # inds = inds[:to_prune]
+
+            # self.mask[idx][inds] = 0
     def get_flips(self):
     # Retrieves how many params have flipped compared to previously saved weights
         num_flips = 0

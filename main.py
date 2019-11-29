@@ -43,11 +43,11 @@ def train(config):
     device = config['device']
 
     if config['model'] == 'lenet300':
-        model = LeNet_300_100().to(device)
+        model = LeNet_300_100()
     elif config['model'] == 'lenet5':
-        model = LeNet5().to(device)
+        model = LeNet5()
 
-    model = MasterWrapper(model)
+    model = MasterWrapper(model).to(device)
     print('Model has {} total params, including biases.'.format(model.get_total_params()))
 
     opt = optim.Adam(model.parameters(), lr=config['lr'])
@@ -71,8 +71,8 @@ def train(config):
             train_acc, train_loss, test_acc, test_loss
         ))
 
-        # if epoch_num%config['prune_freq'] == 0:
-        #     model.update_mask(0.2)
+        if epoch_num%config['prune_freq'] == 0:
+            model.update_mask(0.2)
         
         writer.add_scalar('acc/train', train_acc, epoch_num)
         writer.add_scalar('acc/test', test_acc, epoch_num)
