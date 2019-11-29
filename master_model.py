@@ -10,6 +10,7 @@ class MasterWrapper(object):
         self.obj.sparsity = 0
         self.obj.save_weights()
         self.obj.instantiate_mask()
+        self.obj.flip_counts = [torch.zeros_like(layer).to('cuda') for layer in self.parameters()]
 
     def __getattr__(self, name):
         # Override getattr such that it calls the wrapped object's attrs
@@ -41,10 +42,10 @@ class MasterModel(nn.Module):
     
     def apply_mask(self):
         for weights, layer_mask in zip(self.parameters(), self.mask):
-            weights.grad.data = weights.grad.data*layer_mask
-            weights.data = weights.data*layer_mask
+            weights.grad = weights.grad*layer_mask
+            weights = weights*layer_mask
 
-    def update_mask(self, rate):
+    def update_mask_magnitudes(self, rate):
         # Prune parameters of the network according to a criterion
         # Criterion is a func by which the weights are sorted
         for layer, layer_mask in zip(self.parameters(), self.mask):
@@ -58,8 +59,10 @@ class MasterModel(nn.Module):
             mask = layer_mask.view(-1).clone()
             mask[inds] = 0
             layer_mask.data = mask.view_as(layer_mask)
-            layer.data = layer.data*layer_mask
+            layer.data = layer*layer_mask
     
+    def update_mask_flips(self, threshold):
+        pass
 
     def get_sparsity(self):
         # Get the global sparsity rate
@@ -72,9 +75,10 @@ class MasterModel(nn.Module):
     # Retrieves how many params have flipped compared to previously saved weights
         num_flips = 0
         
-        for curr_weights, prev_weights in zip(self.parameters(), self.saved_weights):
+        for curr_weights, prev_weights, layer_flips in zip(self.parameters(), self.saved_weights, self.flip_counts):
             curr_signs = curr_weights.sign()
             prev_signs = prev_weights.sign()
             flipped = ~curr_signs.eq(prev_signs)
+            layer_flips += flipped
             num_flips += flipped.sum()
         return num_flips

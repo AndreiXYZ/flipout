@@ -2,6 +2,8 @@ import torch, argparse
 import numpy as np
 import math
 import torch.optim as optim
+import matplotlib.pyplot as plt
+
 from torch.utils.tensorboard import SummaryWriter
 from torch.backends import cudnn
 from utils import *
@@ -31,7 +33,6 @@ def epoch(epoch_num, loader, size, model, opt, criterion, device, writer, config
             flips = model.get_flips()
             writer.add_scalar('flips/absolute', flips, update_num)
             writer.add_scalar('flips/percentage', float(flips)/model.total_params, update_num)
-
         preds = out.argmax(dim=1, keepdim=True).squeeze()
         correct = preds.eq(y).sum().item()
         
@@ -65,7 +66,6 @@ def train(config, writer):
         model.train()
         train_acc, train_loss = epoch(epoch_num, train_loader, train_size, model, opt, criterion, device, writer, config)
 
-
         model.eval()
         with torch.no_grad():
             test_acc, test_loss = epoch(epoch_num, test_loader, test_size, model, opt, criterion, device, writer, config)   
@@ -75,13 +75,12 @@ def train(config, writer):
         ))
 
         if (epoch_num+1)%config['prune_freq'] == 0:
-            model.update_mask(config['prune_rate'])
+            model.update_mask_magnitudes(config['prune_rate'])
 
         writer.add_scalar('acc/train', train_acc, epoch_num)
         writer.add_scalar('acc/test', test_acc, epoch_num)
         writer.add_scalar('loss/train', train_loss, epoch_num)
         writer.add_scalar('loss/test', test_loss, epoch_num)
-
         writer.add_scalar('sparsity', model.get_sparsity(), epoch_num)
 
 def main():
