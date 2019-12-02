@@ -8,4 +8,4 @@ def set_seed(seed):
     np.random.seed(seed)
 
 def construct_run_name(config):
-    return ''.join('_'+str(key)+'_'+str(value) for key,value in config.items())
+    return ''.join(['_'+str(key)+'_'+str(value) if key!='comment' else '' for key,value in config.items()])

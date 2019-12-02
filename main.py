@@ -84,7 +84,7 @@ def train(config, writer):
                 model.update_mask_magnitudes(config['prune_rate'])
             elif config['prune_criterion'] == 'flip':
                 model.update_mask_flips(config['flip_prune_threshold'])
-            model.rewind()
+            # model.rewind()
                 
         writer.add_scalar('acc/train', train_acc, epoch_num)
         writer.add_scalar('acc/test', test_acc, epoch_num)
@@ -110,15 +110,19 @@ def main():
     parser.add_argument('--prune_rate', type=float, default=0.2) # for magnitude pruning
     parser.add_argument('--flip_prune_threshold', type=int, default=1) # for flip pruning
     parser.add_argument('--rewind_to', type=int, default=3) # for rewinding the weights
+    # Run comment
+    parser.add_argument('--comment', type=str, default=None,
+                        help='Comment to add to tensorboard text ')
     config = vars(parser.parse_args())
-
+    
     # Ensure experiment is reproducible.
     # Results may vary across machines!
     set_seed(config['seed'])
 
-    comment = construct_run_name(config)
-    writer = SummaryWriter(comment=comment)
-    writer.add_text('config', comment)
+    run_hparams = construct_run_name(config)
+    writer = SummaryWriter(comment=run_hparams)
+    writer.add_text('config', run_hparams)
+    writer.add_text('comment', config['comment'])
     train(config, writer)
 
 if __name__ == "__main__":
