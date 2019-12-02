@@ -77,20 +77,18 @@ def train(config, writer):
         ))
 
         if (epoch_num+1)%config['prune_freq'] == 0:
-            model.update_mask_magnitudes(config['prune_rate'])
+            if config['prune_criterion'] == 'magnitude':
+                model.update_mask_magnitudes(config['prune_rate'])
+            elif config['prune_criterion'] == 'flip':
+                model.update_mask_flips(config['prune_threshold'])
 
         writer.add_scalar('acc/train', train_acc, epoch_num)
         writer.add_scalar('acc/test', test_acc, epoch_num)
         writer.add_scalar('loss/train', train_loss, epoch_num)
         writer.add_scalar('loss/test', test_loss, epoch_num)
         writer.add_scalar('sparsity', model.get_sparsity(), epoch_num)
-        # Add 2nd layer for visualisation
-        fig = model.flip_counts[3].clone().cpu().numpy()
-        layer_0_flips = model.flip_counts[3].flatten()
-        print(layer_0_flips.shape)
-        print(layer_0_flips.mean())
-        writer.add_image('layer 0 flips fig.', fig, epoch_num, dataformats='CHW')
-        writer.add_histogram('layer 0 flips hist.', model.flip_counts[0].flatten(), epoch_num, max_bins=10)
+        # Visualise histogram of flips
+        writer.add_histogram('layer 0 flips hist.', model.flip_counts[0].flatten(), epoch_num)
 
 def main():
     parser = argparse.ArgumentParser()
@@ -103,8 +101,10 @@ def main():
     parser.add_argument('--seed', type=int, default=42)
     parser.add_argument('--save_every', type=int, default=-1)
     # Pruning
-    parser.add_argument('--prune_rate', type=float, default=0.2)
+    parser.add_argument('--prune_criterion', type=str, choices=['magnitude', 'flip'])
     parser.add_argument('--prune_freq', type=int, default=2)
+    parser.add_argument('--prune_rate', type=float, default=0.2) # for magnitude pruning
+    parser.add_argument('--flip_prune_threshold', type=int, default=1) # for flip pruning
 
     config = vars(parser.parse_args())
 

@@ -46,8 +46,7 @@ class MasterModel(nn.Module):
             weights = weights*layer_mask
 
     def update_mask_magnitudes(self, rate):
-        # Prune parameters of the network according to a criterion
-        # Criterion is a func by which the weights are sorted
+        # Prune parameters of the network according to lowest magnitude
         for layer, layer_mask in zip(self.parameters(), self.mask):
             flat_layer = layer.view(-1)
 
@@ -62,7 +61,12 @@ class MasterModel(nn.Module):
             layer.data = layer*layer_mask
     
     def update_mask_flips(self, threshold):
-        pass
+        # Prune parameters based on sign flips
+        for layer, layer_flips, layer_mask in zip(self.parameters(), self.flip_counts, self.mask()):
+            # Get parameters whose flips are above a threshold and invert for masking
+            flip_mask = ~(layer_flips > threshold)
+            layer_mask = flip_mask*layer_mask
+            layer.data = layer*layer_mask
 
     def get_sparsity(self):
         # Get the global sparsity rate
