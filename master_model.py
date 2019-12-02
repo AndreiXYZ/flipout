@@ -62,7 +62,7 @@ class MasterModel(nn.Module):
     
     def update_mask_flips(self, threshold):
         # Prune parameters based on sign flips
-        for layer, layer_flips, layer_mask in zip(self.parameters(), self.flip_counts, self.mask()):
+        for layer, layer_flips, layer_mask in zip(self.parameters(), self.flip_counts, self.mask):
             # Get parameters whose flips are above a threshold and invert for masking
             flip_mask = ~(layer_flips > threshold)
             layer_mask = flip_mask*layer_mask

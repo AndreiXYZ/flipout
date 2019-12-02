@@ -80,7 +80,7 @@ def train(config, writer):
             if config['prune_criterion'] == 'magnitude':
                 model.update_mask_magnitudes(config['prune_rate'])
             elif config['prune_criterion'] == 'flip':
-                model.update_mask_flips(config['prune_threshold'])
+                model.update_mask_flips(config['flip_prune_threshold'])
 
         writer.add_scalar('acc/train', train_acc, epoch_num)
         writer.add_scalar('acc/test', test_acc, epoch_num)
