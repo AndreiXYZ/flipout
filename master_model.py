@@ -44,9 +44,9 @@ class MasterModel(nn.Module):
                                 for weights in self.parameters()]
 
     def rewind(self):
-        for layer_weights, layer_rewind_weights in zip(self.parameters(), self.rewind_weights):
-            layer_weights.data = layer_rewind_weights.data
-        
+        for weights, rewind_weights, layer_mask in zip(self.parameters(), self.rewind_weights, self.mask):
+            weights.data = rewind_weights.data*layer_mask
+    
     def apply_mask(self):
         for weights, layer_mask in zip(self.parameters(), self.mask):
             weights.grad = weights.grad*layer_mask

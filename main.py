@@ -72,7 +72,7 @@ def train(config, writer):
         with torch.no_grad():
             test_acc, test_loss = epoch(epoch_num, test_loader, test_size, model, opt, criterion, device, writer, config)   
 
-        print('Train - acc: {:>20} loss: {:>20}\nTest - acc: {:>21} loss: {:>21}'.format(
+        print('Train - acc: {:>20.8f} loss: {:>20.8f}\nTest - acc: {:>21.8f} loss: {:>21.8f}'.format(
             train_acc, train_loss, test_acc, test_loss
         ))
 
@@ -84,8 +84,7 @@ def train(config, writer):
                 model.update_mask_magnitudes(config['prune_rate'])
             elif config['prune_criterion'] == 'flip':
                 model.update_mask_flips(config['flip_prune_threshold'])
-            # model.rewind()
-            model.apply_mask()
+            model.rewind()
                 
         writer.add_scalar('acc/train', train_acc, epoch_num)
         writer.add_scalar('acc/test', test_acc, epoch_num)
