@@ -64,8 +64,8 @@ class MasterModel(nn.Module):
         # Prune parameters based on sign flips
         for layer, layer_flips, layer_mask in zip(self.parameters(), self.flip_counts, self.mask):
             # Get parameters whose flips are above a threshold and invert for masking
-            flip_mask = ~(layer_flips > threshold)
-            layer_mask = flip_mask*layer_mask
+            flip_mask = ~(layer_flips >= threshold)
+            layer_mask.data = flip_mask*layer_mask
             layer.data = layer*layer_mask
 
     def get_sparsity(self):
@@ -75,7 +75,7 @@ class MasterModel(nn.Module):
             sparsity += (layer==0).sum().item()
         return float(sparsity)/self.total_params
 
-    def get_flips_since_last(self):
+    def store_flips_since_last(self):
     # Retrieves how many params have flipped compared to previously saved weights
         num_flips = 0
         
