@@ -76,16 +76,16 @@ def train(config, writer):
             train_acc, train_loss, test_acc, test_loss
         ))
 
-        if (epoch_num+1)%config['rewind_to'] == 0:
+        if (epoch_num+1)==config['rewind_to']:
             model.save_rewind_weights()
         
         if (epoch_num+1)%config['prune_freq'] == 0:
             if config['prune_criterion'] == 'magnitude':
                 model.update_mask_magnitudes(config['prune_rate'])
-                model.rewind()
             elif config['prune_criterion'] == 'flip':
                 model.update_mask_flips(config['flip_prune_threshold'])
-                model.rewind()
+            # model.rewind()
+            model.apply_mask()
                 
         writer.add_scalar('acc/train', train_acc, epoch_num)
         writer.add_scalar('acc/test', test_acc, epoch_num)

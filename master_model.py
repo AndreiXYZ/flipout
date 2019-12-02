@@ -7,7 +7,8 @@ class MasterWrapper(object):
         self.obj = obj
         self.obj.total_params = self.obj.get_total_params()
         self.obj.save_weights()
-        self.obj.mask = [torch.ones_like(layer).to('cuda') for layer in self.parameters()]
+        self.obj.save_rewind_weights()
+        self.obj.instantiate_mask()
         self.obj.flip_counts = [torch.zeros_like(layer).to('cuda') for layer in self.parameters()]
 
     def __getattr__(self, name):
@@ -29,6 +30,10 @@ class MasterModel(nn.Module):
     def get_total_params(self):
         return sum([weights.numel() for weights in self.parameters()
                                 if weights.requires_grad])
+    
+    def instantiate_mask(self):
+        self.mask = [torch.ones_like(weights).to('cuda')
+                        for weights in self.parameters()]
     
     def save_weights(self):
         self.saved_weights = [weights.clone().detach().to('cuda')
