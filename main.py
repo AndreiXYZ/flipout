@@ -1,29 +1,40 @@
 import torch, argparse
 import numpy as np
+import math
 import torch.optim as optim
+import matplotlib.pyplot as plt
+
 from torch.utils.tensorboard import SummaryWriter
 from torch.backends import cudnn
 from utils import *
 from models import *
 from data_loaders import *
+from master_model import MasterWrapper
 
-def epoch(loader, size, model, opt, criterion, device, config):
+def epoch(epoch_num, loader, size, model, opt, criterion, device, writer, config):
     epoch_acc = 0
     epoch_loss = 0
 
-    for x,y in loader:
+    for batch_num, (x,y) in enumerate(loader):
         
+        update_num = epoch_num*size/math.ceil(config['batch_size']) + batch_num
         opt.zero_grad()
-
         x = x.float().to(device)
         y = y.to(device)
 
         out = model.forward(x).squeeze()
         loss = criterion(out, y)
         if model.training:
+            model.save_weights()
             loss.backward()
             model.apply_mask()
             opt.step()
+            # Monitor wegiths for flips
+            flips_since_last = model.get_flips_since_last()
+            flips_total = model.get_flips_total()
+            writer.add_scalar('flips/absolute_since_last', flips_since_last, update_num)
+            writer.add_scalar('flips/percentage_since_last', float(flips_since_last)/model.total_params, update_num)
+            writer.add_scalar('flips/absolute_total', flips_total, update_num)
         preds = out.argmax(dim=1, keepdim=True).squeeze()
         correct = preds.eq(y).sum().item()
         
@@ -35,22 +46,18 @@ def epoch(loader, size, model, opt, criterion, device, config):
 
     return epoch_acc, epoch_loss 
 
-def train(config):
-    
-    comment = construct_run_name(config)
-    writer = SummaryWriter(comment=comment)
-
+def train(config, writer):
     device = config['device']
 
     if config['model'] == 'lenet300':
-        model = LeNet_300_100().to(device)
+        model = LeNet_300_100()
     elif config['model'] == 'lenet5':
-        model = LeNet5().to(device)
+        model = LeNet5()
 
-    model = MasterWrapper(model)
+    model = MasterWrapper(model).to(device)
     print('Model has {} total params, including biases.'.format(model.get_total_params()))
 
-    opt = optim.Adam(model.parameters(), lr=config['lr'])
+    opt = optim.RMSprop(model.parameters(), lr=config['lr'])
     criterion = nn.CrossEntropyLoss()
 
     train_loader, train_size, test_loader, test_size = get_mnist_loaders(config)
@@ -59,27 +66,31 @@ def train(config):
         print('='*10 + ' Epoch ' + str(epoch_num) + ' ' + '='*10)
 
         model.train()
-        train_acc, train_loss = epoch(train_loader, train_size, model, opt, criterion, device, config)
-
-        flips = model.get_flips()
+        train_acc, train_loss = epoch(epoch_num, train_loader, train_size, model, opt, criterion, device, writer, config)
 
         model.eval()
         with torch.no_grad():
-            test_acc, test_loss = epoch(test_loader, test_size, model, opt, criterion, device, config)   
+            test_acc, test_loss = epoch(epoch_num, test_loader, test_size, model, opt, criterion, device, writer, config)   
 
         print('Train - acc: {:>20} loss: {:>20}\nTest - acc: {:>21} loss: {:>21}'.format(
             train_acc, train_loss, test_acc, test_loss
         ))
 
-        if epoch_num%config['prune_freq'] == 0:
-            model.update_mask(0.2)
-        
+        if (epoch_num+1)%config['prune_freq'] == 0:
+            model.update_mask_magnitudes(config['prune_rate'])
+
         writer.add_scalar('acc/train', train_acc, epoch_num)
         writer.add_scalar('acc/test', test_acc, epoch_num)
         writer.add_scalar('loss/train', train_loss, epoch_num)
         writer.add_scalar('loss/test', test_loss, epoch_num)
-        writer.add_scalar('flips/absolute', flips,epoch_num)
-        writer.add_scalar('flips/percentage', float(flips)/model.total_params, epoch_num)
+        writer.add_scalar('sparsity', model.get_sparsity(), epoch_num)
+        # Add 2nd layer for visualisation
+        fig = model.flip_counts[3].clone().cpu().numpy()
+        layer_0_flips = model.flip_counts[3].flatten()
+        print(layer_0_flips.shape)
+        print(layer_0_flips.mean())
+        writer.add_image('layer 0 flips fig.', fig, epoch_num, dataformats='CHW')
+        writer.add_histogram('layer 0 flips hist.', model.flip_counts[0].flatten(), epoch_num, max_bins=10)
 
 def main():
     parser = argparse.ArgumentParser()
@@ -87,9 +98,10 @@ def main():
     parser.add_argument('--dataset', type=str, choices=['mnist', 'cifar10'], default='mnist')
     parser.add_argument('--batch_size', type=int, default=32)
     parser.add_argument('--epochs', type=int, default=100)
-    parser.add_argument('--lr', type=float, default=3e-3)
+    parser.add_argument('--lr', type=float, default=1e-4)
     parser.add_argument('--device', type=str, default='cuda')
     parser.add_argument('--seed', type=int, default=42)
+    parser.add_argument('--save_every', type=int, default=-1)
     # Pruning
     parser.add_argument('--prune_rate', type=float, default=0.2)
     parser.add_argument('--prune_freq', type=int, default=2)
@@ -100,8 +112,10 @@ def main():
     # Results may vary across machines!
     set_seed(config['seed'])
 
-
-    train(config)
+    comment = construct_run_name(config)
+    writer = SummaryWriter(comment=comment)
+    writer.add_text('config', comment)
+    train(config, writer)
 
 if __name__ == "__main__":
     main()
