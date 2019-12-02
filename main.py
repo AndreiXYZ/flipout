@@ -76,12 +76,17 @@ def train(config, writer):
             train_acc, train_loss, test_acc, test_loss
         ))
 
+        if (epoch_num+1)%config['rewind_to'] == 0:
+            model.save_rewind_weights()
+        
         if (epoch_num+1)%config['prune_freq'] == 0:
             if config['prune_criterion'] == 'magnitude':
                 model.update_mask_magnitudes(config['prune_rate'])
+                model.rewind()
             elif config['prune_criterion'] == 'flip':
                 model.update_mask_flips(config['flip_prune_threshold'])
-
+                model.rewind()
+                
         writer.add_scalar('acc/train', train_acc, epoch_num)
         writer.add_scalar('acc/test', test_acc, epoch_num)
         writer.add_scalar('loss/train', train_loss, epoch_num)
@@ -105,7 +110,7 @@ def main():
     parser.add_argument('--prune_freq', type=int, default=2)
     parser.add_argument('--prune_rate', type=float, default=0.2) # for magnitude pruning
     parser.add_argument('--flip_prune_threshold', type=int, default=1) # for flip pruning
-
+    parser.add_argument('--rewind_to', type=int, default=3) # for rewinding the weights
     config = vars(parser.parse_args())
 
     # Ensure experiment is reproducible.

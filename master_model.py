@@ -6,10 +6,8 @@ class MasterWrapper(object):
     def __init__(self, obj):
         self.obj = obj
         self.obj.total_params = self.obj.get_total_params()
-        self.obj.pruned = 0
-        self.obj.sparsity = 0
         self.obj.save_weights()
-        self.obj.instantiate_mask()
+        self.obj.mask = [torch.ones_like(layer).to('cuda') for layer in self.parameters()]
         self.obj.flip_counts = [torch.zeros_like(layer).to('cuda') for layer in self.parameters()]
 
     def __getattr__(self, name):
@@ -36,10 +34,14 @@ class MasterModel(nn.Module):
         self.saved_weights = [weights.clone().detach().to('cuda')
                                 for weights in self.parameters()]
     
-    def instantiate_mask(self):
-        self.mask = [torch.ones_like(weights).to('cuda')
-                        for weights in self.parameters()]
-    
+    def save_rewind_weights(self):
+        self.rewind_weights = [weights.clone().detach().to('cuda')
+                                for weights in self.parameters()]
+
+    def rewind(self):
+        for layer_weights, layer_rewind_weights in zip(self.parameters(), self.rewind_weights):
+            layer_weights.data = layer_rewind_weights.data
+        
     def apply_mask(self):
         for weights, layer_mask in zip(self.parameters(), self.mask):
             weights.grad = weights.grad*layer_mask
