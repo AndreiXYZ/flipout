@@ -48,9 +48,9 @@ class MasterModel(nn.Module):
         for layer_params,layer_mask in zip(self.parameters(),self.mask):
             # Calc how many weights to prune
             flattened_params = layer_params.view(-1)
-            
-            num_zero = (flattened_params==0).sum().item()
-            num_elems = flattened_params.numel()
+            breakpoint()
+            num_zero = (flattened_params==0).sum().float()
+            num_elems = flattened_params.numel().float()
             num_nonzero = num_elems - num_zero
 
             num_to_prune = num_zero + int(rate*num_nonzero)

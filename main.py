@@ -71,8 +71,8 @@ def train(config):
             train_acc, train_loss, test_acc, test_loss
         ))
 
-        # if epoch_num%config['prune_freq'] == 0:
-        #     model.update_mask(0.2)
+        if epoch_num%config['prune_freq'] == 0:
+            model.update_mask(0.2)
         
         writer.add_scalar('acc/train', train_acc, epoch_num)
         writer.add_scalar('acc/test', test_acc, epoch_num)
