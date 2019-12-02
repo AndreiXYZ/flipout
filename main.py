@@ -72,7 +72,7 @@ def train(config, writer):
         with torch.no_grad():
             test_acc, test_loss = epoch(epoch_num, test_loader, test_size, model, opt, criterion, device, writer, config)   
 
-        print('Train - acc: {:>20.8f} loss: {:>20.8f}\nTest - acc: {:>21.8f} loss: {:>21.8f}'.format(
+        print('Train - acc: {:>15.8f} loss: {:>15.8f}\nTest - acc: {:>16.8f} loss: {:>15.8f}'.format(
             train_acc, train_loss, test_acc, test_loss
         ))
 
