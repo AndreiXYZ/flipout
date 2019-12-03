@@ -48,32 +48,37 @@ class MasterModel(nn.Module):
             weights.data = rewind_weights.data*layer_mask
     
     def apply_mask(self):
-        for weights, layer_mask in zip(self.parameters(), self.mask):
-            weights.grad = weights.grad*layer_mask
-            weights = weights*layer_mask
+        with torch.no_grad():
+            for weights, layer_mask in zip(self.parameters(), self.mask):
+                weights.grad = weights.grad*layer_mask
+                weights = weights*layer_mask
 
     def update_mask_magnitudes(self, rate):
         # Prune parameters of the network according to lowest magnitude
-        for layer, layer_mask in zip(self.parameters(), self.mask):
-            flat_layer = layer.view(-1)
+        with torch.no_grad():
+            for layer, layer_mask in zip(self.parameters(), self.mask):
+                flat_layer = layer.view(-1)
+                indices = flat_layer.abs().argsort(descending=False)
 
-            num_pruned = (layer_mask==0).sum().item()
-            num_unpruned = layer_mask.numel() - num_pruned
-            to_prune = num_pruned + int(rate*num_unpruned)
+                num_pruned = (layer_mask==0).sum().item()
+                num_unpruned = layer_mask.numel() - num_pruned
+                to_prune = num_pruned + int(rate*num_unpruned)
+                
+                indices = indices[:to_prune]
+                mask = layer_mask.view(-1).clone()
+                mask[indices] = 0
+                layer_mask.data = mask.view_as(layer_mask)
+                
+                layer.data = layer*layer_mask
 
-            inds = flat_layer.abs().argsort(descending=False)[:to_prune]
-            mask = layer_mask.view(-1).clone()
-            mask[inds] = 0
-            layer_mask.data = mask.view_as(layer_mask)
-            layer.data = layer*layer_mask
-    
     def update_mask_flips(self, threshold):
+        with torch.no_grad():
         # Prune parameters based on sign flips
-        for layer, layer_flips, layer_mask in zip(self.parameters(), self.flip_counts, self.mask):
-            # Get parameters whose flips are above a threshold and invert for masking
-            flip_mask = ~(layer_flips >= threshold)
-            layer_mask.data = flip_mask*layer_mask
-            layer.data = layer*layer_mask
+            for layer, layer_flips, layer_mask in zip(self.parameters(), self.flip_counts, self.mask):
+                # Get parameters whose flips are above a threshold and invert for masking
+                flip_mask = ~(layer_flips >= threshold)
+                layer_mask.data = flip_mask*layer_mask
+                layer.data = layer*layer_mask
 
     def get_sparsity(self):
         # Get the global sparsity rate
@@ -102,7 +107,7 @@ class MasterModel(nn.Module):
 
     def fuse_neurons(self):
         # Fuze neurons of the network. Use naive fusion for now
-        
+        pass
         
     def checkpoint(self, path):
         torch.save(self.state_dict(), path)
