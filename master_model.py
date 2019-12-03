@@ -99,3 +99,10 @@ class MasterModel(nn.Module):
         for layer_flips in self.flip_counts:
             flips_total += layer_flips.sum().item()
         return flips_total
+
+    def fuse_neurons(self):
+        # Fuze neurons of the network. Use naive fusion for now
+        
+        
+    def checkpoint(self, path):
+        torch.save(self.state_dict(), path)

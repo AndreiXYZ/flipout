@@ -54,6 +54,9 @@ def train(config, writer):
     elif config['model'] == 'lenet5':
         model = LeNet5()
 
+    for layer in model.parameters():
+        print(layer.shape)
+    
     model = MasterWrapper(model).to(device)
     print('Model has {} total params, including biases.'.format(model.get_total_params()))
 
@@ -76,7 +79,7 @@ def train(config, writer):
             train_acc, train_loss, test_acc, test_loss
         ))
 
-        if (epoch_num+1)==config['rewind_to']:
+        if config['rewind_to'] > 1 and (epoch_num+1)==config['rewind_to']:
             model.save_rewind_weights()
         
         if (epoch_num+1)%config['prune_freq'] == 0:
@@ -84,7 +87,7 @@ def train(config, writer):
                 model.update_mask_magnitudes(config['prune_rate'])
             elif config['prune_criterion'] == 'flip':
                 model.update_mask_flips(config['flip_prune_threshold'])
-            # model.rewind()
+            model.rewind()
                 
         writer.add_scalar('acc/train', train_acc, epoch_num)
         writer.add_scalar('acc/test', test_acc, epoch_num)
@@ -92,7 +95,7 @@ def train(config, writer):
         writer.add_scalar('loss/test', test_loss, epoch_num)
         writer.add_scalar('sparsity', model.get_sparsity(), epoch_num)
         # Visualise histogram of flips
-        # writer.add_histogram('layer 0 flips hist.', model.flip_counts[0].flatten(), epoch_num)
+        writer.add_histogram('layer 0 flips hist.', model.flip_counts[0].flatten(), epoch_num)
 
 def main():
     parser = argparse.ArgumentParser()
