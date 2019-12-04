@@ -2,6 +2,7 @@ import torch, argparse
 import numpy as np
 import math
 import torch.optim as optim
+import torch.optim.lr_scheduler as lr_scheduler
 import matplotlib.pyplot as plt
 
 from torch.utils.tensorboard import SummaryWriter
@@ -11,18 +12,18 @@ from models import *
 from data_loaders import *
 from master_model import MasterWrapper
 
-def epoch(epoch_num, loader, size, model, opt, criterion, device, writer, config):
+def epoch(epoch_num, loader, size, model, opt, scheduler, criterion, writer, config):
     epoch_acc = 0
     epoch_loss = 0
     temperature = (config['lr']/2)*(10**-12)
     scaling_factor = math.sqrt(2*config['lr']*temperature)*(1/config['lr'])
-    print(scaling_factor)
+
     for batch_num, (x,y) in enumerate(loader):
         
         update_num = epoch_num*size/math.ceil(config['batch_size']) + batch_num
         opt.zero_grad()
-        x = x.float().to(device)
-        y = y.to(device)
+        x = x.float().to(config['device'])
+        y = y.to(config['device'])
 
         out = model.forward(x).squeeze()
         loss = criterion(out, y)
@@ -63,20 +64,25 @@ def train(config, writer):
     model = MasterWrapper(model).to(device)
     print('Model has {} total params, including biases.'.format(model.get_total_params()))
 
-    opt = optim.RMSprop(model.parameters(), lr=config['lr'], weight_decay=1e-5)
-    criterion = nn.CrossEntropyLoss()
-
     train_loader, train_size, test_loader, test_size = get_mnist_loaders(config)
+
+    opt = optim.RMSprop(model.parameters(), lr=config['lr'], weight_decay=1e-5)
+
+    scheduler = lr_shceduler.CyclicLR(opt, initial_lr=config['lr'], max_lr=3e-1,
+                                    step_size_up = train_size/2.0,
+                                    )
+
+    criterion = nn.CrossEntropyLoss()
 
     for epoch_num in range(config['epochs']):
         print('='*10 + ' Epoch ' + str(epoch_num) + ' ' + '='*10)
 
         model.train()
-        train_acc, train_loss = epoch(epoch_num, train_loader, train_size, model, opt, criterion, device, writer, config)
+        train_acc, train_loss = epoch(epoch_num, train_loader, train_size, model, opt, scheduler, criterion, writer, config)
 
         model.eval()
         with torch.no_grad():
-            test_acc, test_loss = epoch(epoch_num, test_loader, test_size, model, opt, criterion, device, writer, config)   
+            test_acc, test_loss = epoch(epoch_num, test_loader, test_size, model, opt, scheduler, criterion, writer, config)   
 
         print('Train - acc: {:>15.8f} loss: {:>15.8f}\nTest - acc: {:>16.8f} loss: {:>15.8f}'.format(
             train_acc, train_loss, test_acc, test_loss
