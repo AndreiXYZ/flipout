@@ -124,7 +124,7 @@ class MasterModel(nn.Module):
     # Inject Gaussian noise scaled by a factor into the gradients
         for layer in self.parameters():
             noise = torch.randn_like(layer)
-            layer.data.grad += noise*scaling_factor
+            layer.grad += noise*scaling_factor
     
     def checkpoint(self, path):
         torch.save(self.state_dict(), path)

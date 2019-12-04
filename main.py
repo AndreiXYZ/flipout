@@ -14,7 +14,8 @@ from master_model import MasterWrapper
 def epoch(epoch_num, loader, size, model, opt, criterion, device, writer, config):
     epoch_acc = 0
     epoch_loss = 0
-    scaling_factor = torch.sqrt(2*config['lr']*config['temperature'])
+    scaling_factor = math.sqrt(2*config['lr']*config['temperature'])
+    print(scaling_factor)
     for batch_num, (x,y) in enumerate(loader):
         
         update_num = epoch_num*size/math.ceil(config['batch_size']) + batch_num
@@ -31,11 +32,13 @@ def epoch(epoch_num, loader, size, model, opt, criterion, device, writer, config
             model.apply_mask()
             opt.step()
             # Monitor wegiths for flips
-            # flips_since_last = model.store_flips_since_last()
-            # flips_total = model.get_flips_total()
-            # writer.add_scalar('flips/absolute_since_last', flips_since_last, update_num)
-            # writer.add_scalar('flips/percentage_since_last', float(flips_since_last)/model.total_params, update_num)
-            # writer.add_scalar('flips/absolute_total', flips_total, update_num)
+            flips_since_last = model.store_flips_since_last()
+            flips_total = model.get_flips_total()
+            flipped_total = model.get_total_flipped()
+            writer.add_scalar('flips/absolute_since_last', flips_since_last, update_num)
+            writer.add_scalar('flips/percentage_since_last', float(flips_since_last)/model.total_params, update_num)
+            writer.add_scalar('flips/absolute_total', flipped_total, update_num)
+
         preds = out.argmax(dim=1, keepdim=True).squeeze()
         correct = preds.eq(y).sum().item()
         
@@ -55,8 +58,6 @@ def train(config, writer):
     elif config['model'] == 'lenet5':
         model = LeNet5()
 
-    for layer in model.parameters():
-        print(layer.shape)
     
     model = MasterWrapper(model).to(device)
     print('Model has {} total params, including biases.'.format(model.get_total_params()))
