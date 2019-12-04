@@ -24,8 +24,8 @@ def load_model(config):
 
 def load_dataset(config):
     if config['dataset'] == 'mnist':
-        train_loader, train_size, test_loader, test_size = get_mnist_loaders(config)
+        train_loader, test_loader = get_mnist_loaders(config)
     elif config['dataset'] == 'cifar10':
-        train_loader, train_size, test_loader, test_size = get_cifar10_loaders(config)
+        train_loader, test_loader = get_cifar10_loaders(config)
     
-    return train_loader, train_size, test_loader, test_size
+    return train_loader, test_loader
