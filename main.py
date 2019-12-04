@@ -53,26 +53,11 @@ def epoch(epoch_num, loader, size, model, opt, criterion, writer, config):
 
 def train(config, writer):
     device = config['device']
-
-    if config['model'] == 'lenet300':
-        model = LeNet_300_100()
-    elif config['model'] == 'lenet5':
-        model = LeNet5()
-
-    
-    model = MasterWrapper(model).to(device)
+    model = load_model(config)
+    train_loader, train_size, test_loader, test_size = load_dataset(config)
     print('Model has {} total params, including biases.'.format(model.get_total_params()))
 
-    if config['dataset']=='mnist':
-        train_loader, train_size, test_loader, test_size = get_mnist_loaders(config)
-    elif config['dataset'] == 'cifar10':
-        train_loader, train_size, test_loader, test_size = get_cifar10_loaders(config)
-
     opt = optim.RMSprop(model.parameters(), lr=config['lr'], weight_decay=1e-5)
-
-    # scheduler = lr_scheduler.OneCycleLR(opt,
-                                        
-    #                                 )
 
     criterion = nn.CrossEntropyLoss()
 
@@ -121,7 +106,6 @@ def main():
     parser.add_argument('--lr', type=float, default=1e-4)
     parser.add_argument('--device', type=str, default='cuda')
     parser.add_argument('--seed', type=int, default=42)
-    parser.add_argument('--save_every', type=int, default=-1)
     # Pruning
     parser.add_argument('--prune_criterion', type=str, choices=['magnitude', 'flip'])
     parser.add_argument('--prune_freq', type=int, default=2)
