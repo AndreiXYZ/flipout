@@ -9,3 +9,4 @@ def set_seed(seed):
 
 def construct_run_name(config):
     return ''.join(['_'+str(key)+'_'+str(value) if key!='comment' else '' for key,value in config.items()])
+

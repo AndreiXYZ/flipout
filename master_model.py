@@ -100,14 +100,31 @@ class MasterModel(nn.Module):
         return num_flips
     
     def get_flips_total(self):
+        # Get total number of flips
         flips_total = 0
         for layer_flips in self.flip_counts:
             flips_total += layer_flips.sum().item()
         return flips_total
-
-    def fuse_neurons(self):
-        # Fuze neurons of the network. Use naive fusion for now
-        pass
-        
+    
+    def get_total_flipped(self):
+        # Get number of weights that flipped at least once
+        total_flipped = 0
+        for layer_flips in self.flip_counts:
+            total_flipped += layer_flips[layer_flips >= 1].sum().item()
+        return total_flipped
+    
+    def fuse_neurons(self, layer):
+        # Fuze neurons of the network. Only do it on fc, without biases
+        # for now
+        layers = [layer for name,layer in self.named_parameters()
+                    if 'weight' in name]
+        # Fuse neurons in current layer and neurons in next layer
+    
+    def inject_noise(self, scaling_factor):
+    # Inject Gaussian noise scaled by a factor into the gradients
+        for layer in self.parameters():
+            noise = torch.randn_like(layer)
+            layer.data.grad += noise*scaling_factor
+    
     def checkpoint(self, path):
         torch.save(self.state_dict(), path)

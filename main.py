@@ -14,7 +14,7 @@ from master_model import MasterWrapper
 def epoch(epoch_num, loader, size, model, opt, criterion, device, writer, config):
     epoch_acc = 0
     epoch_loss = 0
-
+    scaling_factor = torch.sqrt(2*config['lr']*config['temperature'])
     for batch_num, (x,y) in enumerate(loader):
         
         update_num = epoch_num*size/math.ceil(config['batch_size']) + batch_num
@@ -27,10 +27,11 @@ def epoch(epoch_num, loader, size, model, opt, criterion, device, writer, config
         if model.training:
             model.save_weights()
             loss.backward()
+            model.inject_noise(scaling_factor)
             model.apply_mask()
             opt.step()
             # Monitor wegiths for flips
-            flips_since_last = model.store_flips_since_last()
+            # flips_since_last = model.store_flips_since_last()
             # flips_total = model.get_flips_total()
             # writer.add_scalar('flips/absolute_since_last', flips_since_last, update_num)
             # writer.add_scalar('flips/percentage_since_last', float(flips_since_last)/model.total_params, update_num)
@@ -83,11 +84,15 @@ def train(config, writer):
             model.save_rewind_weights()
         
         if (epoch_num+1)%config['prune_freq'] == 0:
+
             if config['prune_criterion'] == 'magnitude':
                 model.update_mask_magnitudes(config['prune_rate'])
             elif config['prune_criterion'] == 'flip':
                 model.update_mask_flips(config['flip_prune_threshold'])
-            model.rewind()
+
+            if config['rewind_to'] > 1:
+                model.rewind()
+        
                 
         writer.add_scalar('acc/train', train_acc, epoch_num)
         writer.add_scalar('acc/test', test_acc, epoch_num)
@@ -112,10 +117,13 @@ def main():
     parser.add_argument('--prune_freq', type=int, default=2)
     parser.add_argument('--prune_rate', type=float, default=0.2) # for magnitude pruning
     parser.add_argument('--flip_prune_threshold', type=int, default=1) # for flip pruning
-    parser.add_argument('--rewind_to', type=int, default=3) # for rewinding the weights
+    parser.add_argument('--rewind_to', type=int, default=-1) # for rewinding the weights
     # Run comment
     parser.add_argument('--comment', type=str, default=None,
                         help='Comment to add to tensorboard text ')
+    # Stochastic noise temperature parameter
+    parser.add_argument('--temperature', type=float, default=0,
+                        help='Temperature parameter used for injecting noise to the gradient.')
     config = vars(parser.parse_args())
     
     # Ensure experiment is reproducible.
