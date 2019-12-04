@@ -5,12 +5,8 @@ from torch.utils.data import DataLoader
 
 def get_mnist_loaders(config):
     
-    transf = [transforms.ToTensor()]
-    if config['model'] == 'lenet5':
-        transf.insert(0, transforms.Resize((32,32)))
-    
-    train_set = datasets.MNIST(root='./data', train=True, download=True, transform=transforms.Compose(transf))
-    test_set = datasets.MNIST(root='./data', train=False, download=True, transform=transforms.Compose(transf))
+    train_set = datasets.MNIST(root='./data', train=True, download=True, transform=transforms.ToTensor())
+    test_set = datasets.MNIST(root='./data', train=False, download=True, transform=transforms.ToTensor())
     train_size = len(train_set)
     test_size = len(test_set)
     train_loader = DataLoader(train_set, 

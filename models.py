@@ -29,7 +29,7 @@ class LeNet5(MasterModel):
 
         # Not exactly like the paper, yet
         self.conv_layers = nn.Sequential(
-            nn.Conv2d(in_channels=1, out_channels=6, kernel_size=(5,5)),
+            nn.Conv2d(in_channels=3, out_channels=6, kernel_size=(5,5)),
             nn.ReLU(),
             nn.MaxPool2d(kernel_size=(2,2), stride=2),
             nn.Conv2d(6, 16, kernel_size=(5,5)),

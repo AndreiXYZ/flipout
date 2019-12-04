@@ -12,7 +12,7 @@ from models import *
 from data_loaders import *
 from master_model import MasterWrapper
 
-def epoch(epoch_num, loader, size, model, opt, scheduler, criterion, writer, config):
+def epoch(epoch_num, loader, size, model, opt, criterion, writer, config):
     epoch_acc = 0
     epoch_loss = 0
     temperature = (config['lr']/2)*(10**-12)
@@ -24,7 +24,6 @@ def epoch(epoch_num, loader, size, model, opt, scheduler, criterion, writer, con
         opt.zero_grad()
         x = x.float().to(config['device'])
         y = y.to(config['device'])
-
         out = model.forward(x).squeeze()
         loss = criterion(out, y)
         if model.training:
@@ -64,13 +63,16 @@ def train(config, writer):
     model = MasterWrapper(model).to(device)
     print('Model has {} total params, including biases.'.format(model.get_total_params()))
 
-    train_loader, train_size, test_loader, test_size = get_mnist_loaders(config)
+    if config['dataset']=='mnist':
+        train_loader, train_size, test_loader, test_size = get_mnist_loaders(config)
+    elif config['dataset'] == 'cifar10':
+        train_loader, train_size, test_loader, test_size = get_cifar10_loaders(config)
 
     opt = optim.RMSprop(model.parameters(), lr=config['lr'], weight_decay=1e-5)
 
-    scheduler = lr_shceduler.CyclicLR(opt, initial_lr=config['lr'], max_lr=3e-1,
-                                    step_size_up = train_size/2.0,
-                                    )
+    # scheduler = lr_scheduler.OneCycleLR(opt,
+                                        
+    #                                 )
 
     criterion = nn.CrossEntropyLoss()
 
@@ -78,11 +80,11 @@ def train(config, writer):
         print('='*10 + ' Epoch ' + str(epoch_num) + ' ' + '='*10)
 
         model.train()
-        train_acc, train_loss = epoch(epoch_num, train_loader, train_size, model, opt, scheduler, criterion, writer, config)
+        train_acc, train_loss = epoch(epoch_num, train_loader, train_size, model, opt, criterion, writer, config)
 
         model.eval()
         with torch.no_grad():
-            test_acc, test_loss = epoch(epoch_num, test_loader, test_size, model, opt, scheduler, criterion, writer, config)   
+            test_acc, test_loss = epoch(epoch_num, test_loader, test_size, model, opt, criterion, writer, config)   
 
         print('Train - acc: {:>15.8f} loss: {:>15.8f}\nTest - acc: {:>16.8f} loss: {:>15.8f}'.format(
             train_acc, train_loss, test_acc, test_loss
