@@ -14,7 +14,8 @@ from master_model import MasterWrapper
 def epoch(epoch_num, loader, size, model, opt, criterion, device, writer, config):
     epoch_acc = 0
     epoch_loss = 0
-    scaling_factor = math.sqrt(2*config['lr']*config['temperature'])
+    temperature = (config['lr']/2)*(10**-12)
+    scaling_factor = math.sqrt(2*config['lr']*temperature)*(1/config['lr'])
     print(scaling_factor)
     for batch_num, (x,y) in enumerate(loader):
         
@@ -35,9 +36,9 @@ def epoch(epoch_num, loader, size, model, opt, criterion, device, writer, config
             flips_since_last = model.store_flips_since_last()
             flips_total = model.get_flips_total()
             flipped_total = model.get_total_flipped()
-            writer.add_scalar('flips/absolute_since_last', flips_since_last, update_num)
+            writer.add_scalar('flips/flips_since_last', flips_since_last, update_num)
             writer.add_scalar('flips/percentage_since_last', float(flips_since_last)/model.total_params, update_num)
-            writer.add_scalar('flips/absolute_total', flipped_total, update_num)
+            writer.add_scalar('flips/flipped_total', flipped_total, update_num)
 
         preds = out.argmax(dim=1, keepdim=True).squeeze()
         correct = preds.eq(y).sum().item()
@@ -62,7 +63,7 @@ def train(config, writer):
     model = MasterWrapper(model).to(device)
     print('Model has {} total params, including biases.'.format(model.get_total_params()))
 
-    opt = optim.RMSprop(model.parameters(), lr=config['lr'])
+    opt = optim.RMSprop(model.parameters(), lr=config['lr'], weight_decay=1e-5)
     criterion = nn.CrossEntropyLoss()
 
     train_loader, train_size, test_loader, test_size = get_mnist_loaders(config)
@@ -123,8 +124,8 @@ def main():
     parser.add_argument('--comment', type=str, default=None,
                         help='Comment to add to tensorboard text ')
     # Stochastic noise temperature parameter
-    parser.add_argument('--temperature', type=float, default=0,
-                        help='Temperature parameter used for injecting noise to the gradient.')
+    # parser.add_argument('--temperature', type=float, default=0,
+    #                     help='Temperature parameter used for injecting noise to the gradient.')
     config = vars(parser.parse_args())
     
     # Ensure experiment is reproducible.
