@@ -25,8 +25,13 @@ def get_mnist_loaders(config):
 
 
 def get_cifar10_loaders(config):
-    train_set = datasets.CIFAR10(root='./data', train=True, download=True, transform=transforms.ToTensor())
-    test_set = datasets.CIFAR10(root='./data', train=False, download=True, transform=transforms.ToTensor())
+    normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406],
+                                 std=[0.229, 0.224, 0.225])
+    
+    train_set = datasets.CIFAR10(root='./data', train=True, download=True, transform=transforms.Compose([transforms.ToTensor(),
+                                                                                                        normalize]))
+    test_set = datasets.CIFAR10(root='./data', train=False, download=True, transform=transforms.Compose([transforms.ToTensor(),
+                                                                                                        normalize]))
 
     train_loader = DataLoader(train_set,
                               batch_size = config['batch_size'],
@@ -41,5 +46,14 @@ def get_cifar10_loaders(config):
                              pin_memory = True,
                              num_workers = 8,
                              drop_last = False)
+    
+    return train_loader, test_loader
+
+
+def load_dataset(config):
+    if config['dataset'] == 'mnist':
+        train_loader, test_loader = get_mnist_loaders(config)
+    elif config['dataset'] == 'cifar10':
+        train_loader, test_loader = get_cifar10_loaders(config)
     
     return train_loader, test_loader

@@ -1,7 +1,8 @@
 import torch.nn as nn
 import torch
 import math
-from master_model import MasterModel
+import torchvision.models as models
+from master_model import MasterModel, MasterWrapper
 
 class LeNet_300_100(MasterModel):
     def __init__(self):
@@ -51,3 +52,61 @@ class LeNet5(MasterModel):
         conv_out = conv_out.flatten(start_dim=1)
         fc_out = self.fc_layers(conv_out)
         return fc_out
+
+class ResNet18(MasterModel):
+    def __init__(self):
+        super(ResNet18, self).__init__()
+        self.model = models.resnet18(pretrained=False)
+
+    def forward(self, x):
+        for module in self.model.modules():
+            if type(module) is not nn.Sequential:
+                print(module)
+        breakpoint()
+        out = self.model.features(x)
+        print(out.shape)
+
+class VGG11(MasterModel):
+    def __init__(self):
+        super(VGG11, self).__init__()
+        self.model = models.vgg11(pretrained=False)
+    
+    def forward(self, x):
+        out = self.model.features(x)
+        out = self.model.avgpool(out)
+        out = out.flatten(start_dim=1)
+        out = self.model.classifier(out)
+        return out
+
+class ResNet18(MasterModel):
+    def __init__(self):
+        super(ResNet18, self).__init__()
+        self.model = models.resnet18(pretrained=False)
+
+    def forward(self, x):
+        out = self.model.conv1(x)
+        out = self.model.bn1(out)
+        out = self.model.relu(out)
+        out = self.model.maxpool(out)
+        out = self.model.layer1(out)
+        out = self.model.layer2(out)
+        out = self.model.layer3(out)
+        out = self.model.layer4(out)
+        out = self.model.avgpool(out)
+        out = out.flatten(start_dim=1)
+        out = self.model.fc(out)
+
+        return out
+
+def load_model(config):
+    if config['model'] == 'lenet300':
+        model = LeNet_300_100()
+    elif config['model'] == 'lenet5':
+        model = LeNet5() 
+    elif config['model'] == 'resnet18':
+        model = ResNet18()
+    elif config['model'] == 'vgg11':
+        model = VGG11()
+    
+    model = MasterWrapper(model).to(config['device'])
+    return model
