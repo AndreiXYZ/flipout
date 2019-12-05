@@ -69,7 +69,7 @@ class ResNet18(MasterModel):
 class VGG11(MasterModel):
     def __init__(self):
         super(VGG11, self).__init__()
-        self.model = models.vgg11(pretrained=False)
+        self.model = models.vgg11(pretrained=False, num_classes=10)
     
     def forward(self, x):
         out = self.model.features(x)
@@ -81,7 +81,7 @@ class VGG11(MasterModel):
 class ResNet18(MasterModel):
     def __init__(self):
         super(ResNet18, self).__init__()
-        self.model = models.resnet18(pretrained=False)
+        self.model = models.resnet18(pretrained=False, num_classes=10)
 
     def forward(self, x):
         out = self.model.conv1(x)
@@ -95,7 +95,7 @@ class ResNet18(MasterModel):
         out = self.model.avgpool(out)
         out = out.flatten(start_dim=1)
         out = self.model.fc(out)
-
+        
         return out
 
 def load_model(config):

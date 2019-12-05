@@ -19,8 +19,9 @@ def epoch(epoch_num, loader,  model, opt, scheduler, criterion, writer, config):
 
     temperature = (config['lr']/2)*(10**-12)
     scaling_factor = math.sqrt(2*config['lr']*temperature)*(1/config['lr'])
-    print('Scaling factor :', scaling_factor)
+    scaling_factor = 0
 
+    print('Scaling factor :', scaling_factor)
     
     for batch_num, (x,y) in enumerate(loader):
         
@@ -33,7 +34,7 @@ def epoch(epoch_num, loader,  model, opt, scheduler, criterion, writer, config):
         if model.training:
             model.save_weights()
             loss.backward()
-            model.inject_noise(scaling_factor)
+            # model.inject_noise(scaling_factor)
             model.apply_mask()
             opt.step()
             scheduler.step()
