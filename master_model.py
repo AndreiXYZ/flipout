@@ -80,6 +80,14 @@ class MasterModel(nn.Module):
                 layer.data = layer*layer_mask
                 layer.grad.data = layer.grad.data*layer_mask
 
+    def update_mask_grad_flips(self, threshold):
+        with torch.no_grad():
+            for layer, grad_flips, layer_mask in zip(self.parameters(), self.grad_flip_counts, self.mask):
+                flip_mask = ~(grad_flips >= threshold)
+                layer_mask.data = flip_mask*layer_mask
+                layer.data = layer*layer_mask
+                layer.grad.data = layer.grad.data*layer_mask
+
     def get_sparsity(self):
         # Get the global sparsity rate
         sparsity = 0
