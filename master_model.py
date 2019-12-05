@@ -50,8 +50,8 @@ class MasterModel(nn.Module):
     def apply_mask(self):
         with torch.no_grad():
             for weights, layer_mask in zip(self.parameters(), self.mask):
-                weights.grad = weights.grad*layer_mask
-                weights = weights*layer_mask
+                # weights.grad.data = weights.grad*layer_mask
+                weights.data = weights.data*layer_mask
 
     def update_mask_magnitudes(self, rate):
         # Prune parameters of the network according to lowest magnitude
@@ -68,7 +68,6 @@ class MasterModel(nn.Module):
                 mask = layer_mask.view(-1).clone()
                 mask[indices] = 0
                 layer_mask.data = mask.view_as(layer_mask)
-                
                 layer.data = layer*layer_mask
 
     def update_mask_flips(self, threshold):
@@ -79,6 +78,7 @@ class MasterModel(nn.Module):
                 flip_mask = ~(layer_flips >= threshold)
                 layer_mask.data = flip_mask*layer_mask
                 layer.data = layer*layer_mask
+                layer.grad.data = layer.grad.data*layer_mask
 
     def get_sparsity(self):
         # Get the global sparsity rate

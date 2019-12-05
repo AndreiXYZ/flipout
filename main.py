@@ -19,7 +19,7 @@ def epoch(epoch_num, loader,  model, opt, scheduler, criterion, writer, config):
 
     temperature = (config['lr']/2)*(10**-12)
     scaling_factor = math.sqrt(2*config['lr']*temperature)*(1/config['lr'])
-    scaling_factor = 0
+    # scaling_factor = 0
 
     print('Scaling factor :', scaling_factor)
     
@@ -31,13 +31,14 @@ def epoch(epoch_num, loader,  model, opt, scheduler, criterion, writer, config):
         y = y.to(config['device'])
         out = model.forward(x).squeeze()
         loss = criterion(out, y)
+
         if model.training:
             model.save_weights()
             loss.backward()
-            # model.inject_noise(scaling_factor)
-            model.apply_mask()
+            model.inject_noise(scaling_factor)
             opt.step()
             scheduler.step()
+            model.apply_mask()
             # Monitor wegiths for flips
             flips_since_last = model.store_flips_since_last()
             flips_total = model.get_flips_total()
