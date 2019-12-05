@@ -63,8 +63,12 @@ def train(config, writer):
     model = load_model(config)
     train_loader, test_loader = load_dataset(config)
     print('Model has {} total params, including biases.'.format(model.get_total_params()))
+    
     opt = optim.RMSprop(model.parameters(), lr=config['lr'], weight_decay=1e-4)
-    scheduler = lr_scheduler.OneCycleLR(opt, max_lr=0.01, steps_per_epoch=len(train_loader.dataset), epochs=config['epochs'])
+    scheduler = lr_scheduler.OneCycleLR(opt, 
+                                        max_lr=0.01, 
+                                        steps_per_epoch=math.ceil(len(train_loader.dataset)/config['batch_size']),
+                                        epochs=config['epochs'])
 
     criterion = nn.CrossEntropyLoss()
 
