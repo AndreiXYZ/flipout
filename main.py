@@ -20,7 +20,7 @@ def epoch(epoch_num, loader,  model, opt, scheduler, criterion, writer, config):
     # temperature = (config['lr']/2)*(10**-12)
     # scaling_factor = math.sqrt(2*config['lr']*temperature)*(1/config['lr']) # One used in Deep Rewiring paper
     scaling_factor = config['lr']/((1+epoch_num)**0.55) # One used in Hinton paper
-    scaling_factor = 0
+    # scaling_factor = 0
     print('Scaling factor :', scaling_factor)
     
     for batch_num, (x,y) in enumerate(loader):
@@ -35,7 +35,7 @@ def epoch(epoch_num, loader,  model, opt, scheduler, criterion, writer, config):
         if model.training:
             model.save_weights()
             loss.backward()
-            # model.inject_noise(scaling_factor)
+            model.inject_noise(scaling_factor)
             opt.step()
             scheduler.step()
             model.apply_mask()
@@ -65,6 +65,7 @@ def train(config, writer):
     print('Model has {} total params, including biases.'.format(model.get_total_params()))
     opt = optim.RMSprop(model.parameters(), lr=config['lr'], weight_decay=1e-4)
     scheduler = lr_scheduler.OneCycleLR(opt, max_lr=0.01, steps_per_epoch=len(train_loader.dataset), epochs=config['epochs'])
+
     criterion = nn.CrossEntropyLoss()
 
     for epoch_num in range(config['epochs']):
