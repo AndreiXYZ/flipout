@@ -98,8 +98,8 @@ class MasterModel(nn.Module):
         # Sample to_prune times from the nonzero elemnets
         for layer, layer_mask, to_prune_layer in zip(self.parameters(), self.mask, distribution):
             valid_idxs = layer_mask.data.nonzero()
-            choice = torch.multinomial(torch.ones(valid_idxs.size(0)), to_prune_layer.item())
-            selected_indices = a[valid_idxs[choice].squeeze().chunk(2)]
+            choice = torch.randperm(valid_idxs.size(0))[:to_prune_layer]
+            selected_indices = valid_idxs[choice].chunk(2,dim=1)
             layer_mask.data[selected_indices] = 0 
             layer.data = layer*layer_mask
 
