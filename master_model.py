@@ -50,7 +50,7 @@ class MasterModel(nn.Module):
     def apply_mask(self):
         with torch.no_grad():
             for weights, layer_mask in zip(self.parameters(), self.mask):
-                # weights.grad.data = weights.grad*layer_mask
+                weights.grad.data = weights.grad.data*layer_mask
                 weights.data = weights.data*layer_mask
 
     def update_mask_magnitudes(self, rate):
@@ -78,7 +78,6 @@ class MasterModel(nn.Module):
                 flip_mask = ~(layer_flips >= threshold)
                 layer_mask.data = flip_mask*layer_mask
                 layer.data = layer*layer_mask
-                layer.grad.data = layer.grad.data*layer_mask
 
     def update_mask_grad_flips(self, threshold):
         with torch.no_grad():
@@ -90,22 +89,24 @@ class MasterModel(nn.Module):
 
     def get_sparsity(self):
         # Get the global sparsity rate
-        sparsity = 0
-        for layer in self.parameters():
-            sparsity += (layer==0).sum().item()
-        return float(sparsity)/self.total_params
+        with torch.no_grad():
+            sparsity = 0
+            for layer in self.parameters():
+                sparsity += (layer==0).sum().item()
+            return float(sparsity)/self.total_params
 
     def store_flips_since_last(self):
     # Retrieves how many params have flipped compared to previously saved weights
-        num_flips = 0
-        
-        for curr_weights, prev_weights, layer_flips in zip(self.parameters(), self.saved_weights, self.flip_counts):
-            curr_signs = curr_weights.sign()
-            prev_signs = prev_weights.sign()
-            flipped = ~curr_signs.eq(prev_signs)
-            layer_flips += flipped
-            num_flips += flipped.sum()
-        return num_flips
+        with torch.no_grad():
+            num_flips = 0
+            
+            for curr_weights, prev_weights, layer_flips in zip(self.parameters(), self.saved_weights, self.flip_counts):
+                curr_signs = curr_weights.sign()
+                prev_signs = prev_weights.sign()
+                flipped = ~curr_signs.eq(prev_signs)
+                layer_flips += flipped
+                num_flips += flipped.sum()
+            return num_flips
     
     def get_flips_total(self):
         # Get total number of flips

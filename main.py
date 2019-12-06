@@ -1,4 +1,4 @@
-import torch, argparse
+import torch, argparse, sys
 import numpy as np
 import math
 import torch.optim as optim
@@ -35,7 +35,7 @@ def epoch(epoch_num, loader,  model, opt, scheduler, criterion, writer, config):
         if model.training:
             model.save_weights()
             loss.backward()
-            model.inject_noise(scaling_factor)
+            # model.inject_noise(scaling_factor)
             opt.step()
             scheduler.step()
             model.apply_mask()
@@ -66,7 +66,7 @@ def train(config, writer):
     
     opt = optim.RMSprop(model.parameters(), lr=config['lr'], weight_decay=1e-4)
     scheduler = lr_scheduler.OneCycleLR(opt, 
-                                        max_lr=0.01, 
+                                        max_lr=0.001, 
                                         steps_per_epoch=math.ceil(len(train_loader.dataset)/config['batch_size']),
                                         epochs=config['epochs'])
 
@@ -74,12 +74,19 @@ def train(config, writer):
 
     for epoch_num in range(config['epochs']):
         print('='*10 + ' Epoch ' + str(epoch_num) + ' ' + '='*10)
-
+        # Update mask
+        if (epoch_num+1)%config['prune_freq'] == 0:
+            if config['prune_criterion'] == 'magnitude':
+                model.update_mask_magnitudes(config['prune_rate'])
+            elif config['prune_criterion'] == 'flip':
+                model.update_mask_flips(config['flip_prune_threshold'])
+        
         model.train()
         train_acc, train_loss = epoch(epoch_num, train_loader, model, opt, scheduler, criterion, writer, config)
         
         model.eval()
         with torch.no_grad():
+            print('Sparsity:', model.get_sparsity())
             test_acc, test_loss = epoch(epoch_num, test_loader, model, opt, scheduler, criterion, writer, config)   
 
         print('Train - acc: {:>15.8f} loss: {:>15.8f}\nTest - acc: {:>16.8f} loss: {:>15.8f}'.format(
@@ -89,25 +96,20 @@ def train(config, writer):
         if config['rewind_to'] > 1 and (epoch_num+1)==config['rewind_to']:
             model.save_rewind_weights()
         
-        if (epoch_num+1)%config['prune_freq'] == 0:
 
-            if config['prune_criterion'] == 'magnitude':
-                model.update_mask_magnitudes(config['prune_rate'])
-            elif config['prune_criterion'] == 'flip':
-                model.update_mask_flips(config['flip_prune_threshold'])
-
-            if config['rewind_to'] > 1:
-                model.rewind()
-        
-                
+         
         writer.add_scalar('acc/train', train_acc, epoch_num)
         writer.add_scalar('acc/test', test_acc, epoch_num)
         writer.add_scalar('loss/train', train_loss, epoch_num)
         writer.add_scalar('loss/test', test_loss, epoch_num)
-        writer.add_scalar('sparsity', model.get_sparsity(), epoch_num)
+        writer.add_scalar('sparsity/sparsity', model.get_sparsity(), epoch_num)
         writer.add_scalar('lr', opt.param_groups[0]['lr'], epoch_num)
         # Visualise histogram of flips
         writer.add_histogram('layer 0 flips hist.', model.flip_counts[0].flatten(), epoch_num)
+        
+    print('FINAL MODEL HAS SPARSITY ', model.get_sparsity())
+    test_acc, test_loss = epoch(epoch_num, test_loader, model, opt, scheduler, criterion, writer, config)   
+    print('Test acc: {}, test loss: {}'.format(test_acc, test_loss))
 
 def main():
     parser = argparse.ArgumentParser()
