@@ -1,6 +1,7 @@
 import torch.nn as nn
 import torch
 import math
+import numpy as np
 
 class MasterWrapper(object):
     def __init__(self, obj):
@@ -79,13 +80,15 @@ class MasterModel(nn.Module):
                 layer_mask.data = flip_mask*layer_mask
                 layer.data = layer*layer_mask
 
-    def update_mask_grad_flips(self, threshold):
-        with torch.no_grad():
-            for layer, grad_flips, layer_mask in zip(self.parameters(), self.grad_flip_counts, self.mask):
-                flip_mask = ~(grad_flips >= threshold)
-                layer_mask.data = flip_mask*layer_mask
-                layer.data = layer*layer_mask
-                layer.grad.data = layer.grad.data*layer_mask
+    def update_mask_random(self, rate):
+        # Get prob distribution
+        distribution = torch.Tensor([layer.numel() for layer in self.parameters()
+                                    if layer.requires_grad])
+        
+        distribution /= distribution.sum()
+        to_prune = (1-self.get_sparsity())*rate
+        to_prune_absolute = self.get_total_params()*to_prune
+        
 
     def get_sparsity(self):
         # Get the global sparsity rate

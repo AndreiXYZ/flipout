@@ -19,7 +19,7 @@ def epoch(epoch_num, loader,  model, opt, scheduler, criterion, writer, config):
 
     # temperature = (config['lr']/2)*(10**-12)
     # scaling_factor = math.sqrt(2*config['lr']*temperature)*(1/config['lr']) # One used in Deep Rewiring paper
-    scaling_factor = config['lr']/((1+epoch_num)**0.55) # One used in Hinton paper
+    scaling_factor = scheduler.get_lr()[0]/((1+epoch_num)**0.55) # One used in Hinton paper
     # scaling_factor = 0
     print('Scaling factor :', scaling_factor)
     
@@ -35,7 +35,7 @@ def epoch(epoch_num, loader,  model, opt, scheduler, criterion, writer, config):
         if model.training:
             model.save_weights()
             loss.backward()
-            # model.inject_noise(scaling_factor)
+            model.inject_noise(scaling_factor)
             opt.step()
             scheduler.step()
             model.apply_mask()
@@ -74,13 +74,7 @@ def train(config, writer):
 
     for epoch_num in range(config['epochs']):
         print('='*10 + ' Epoch ' + str(epoch_num) + ' ' + '='*10)
-        # Update mask
-        if (epoch_num+1)%config['prune_freq'] == 0:
-            if config['prune_criterion'] == 'magnitude':
-                model.update_mask_magnitudes(config['prune_rate'])
-            elif config['prune_criterion'] == 'flip':
-                model.update_mask_flips(config['flip_prune_threshold'])
-        
+
         model.train()
         train_acc, train_loss = epoch(epoch_num, train_loader, model, opt, scheduler, criterion, writer, config)
         
@@ -96,8 +90,14 @@ def train(config, writer):
         if config['rewind_to'] > 1 and (epoch_num+1)==config['rewind_to']:
             model.save_rewind_weights()
         
-
+        if (epoch_num+1)%config['prune_freq'] == 0:
+            if config['prune_criterion'] == 'magnitude':
+                model.update_mask_magnitudes(config['prune_rate'])
+            elif config['prune_criterion'] == 'flip':
+                print('Update mask by flips')
+                model.update_mask_flips(config['flip_prune_threshold'])
          
+        
         writer.add_scalar('acc/train', train_acc, epoch_num)
         writer.add_scalar('acc/test', test_acc, epoch_num)
         writer.add_scalar('loss/train', train_loss, epoch_num)
@@ -106,10 +106,6 @@ def train(config, writer):
         writer.add_scalar('lr', opt.param_groups[0]['lr'], epoch_num)
         # Visualise histogram of flips
         writer.add_histogram('layer 0 flips hist.', model.flip_counts[0].flatten(), epoch_num)
-        
-    print('FINAL MODEL HAS SPARSITY ', model.get_sparsity())
-    test_acc, test_loss = epoch(epoch_num, test_loader, model, opt, scheduler, criterion, writer, config)   
-    print('Test acc: {}, test loss: {}'.format(test_acc, test_loss))
 
 def main():
     parser = argparse.ArgumentParser()
