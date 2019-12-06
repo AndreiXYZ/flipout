@@ -2,6 +2,7 @@ import torch.nn as nn
 import torch
 import math
 import numpy as np
+from torch.distributions import Categorical
 
 class MasterWrapper(object):
     def __init__(self, obj):
@@ -82,13 +83,25 @@ class MasterModel(nn.Module):
 
     def update_mask_random(self, rate):
         # Get prob distribution
+        breakpoint()
         distribution = torch.Tensor([layer.numel() for layer in self.parameters()
                                     if layer.requires_grad])
-        
         distribution /= distribution.sum()
+
         to_prune = (1-self.get_sparsity())*rate
-        to_prune_absolute = self.get_total_params()*to_prune
+        to_prune_absolute = math.ceil(self.get_total_params()*to_prune)
         
+        # Get how many params to remove per layer
+        distribution *= to_prune_absolute
+        distribution = distribution.int()
+
+        # Sample to_prune times from the nonzero elemnets
+        for layer, layer_mask, to_prune_layer in zip(self.parameters(), self.mask, distribution):
+            valid_idxs = layer_mask.data.nonzero()
+            choice = torch.multinomial(torch.ones(valid_idxs.size(0)), to_prune_layer.item())
+            selected_indices = a[valid_idxs[choice].squeeze().chunk(2)]
+            layer_mask.data[selected_indices] = 0 
+            layer.data = layer*layer_mask
 
     def get_sparsity(self):
         # Get the global sparsity rate

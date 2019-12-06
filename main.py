@@ -94,8 +94,9 @@ def train(config, writer):
             if config['prune_criterion'] == 'magnitude':
                 model.update_mask_magnitudes(config['prune_rate'])
             elif config['prune_criterion'] == 'flip':
-                print('Update mask by flips')
                 model.update_mask_flips(config['flip_prune_threshold'])
+            elif config['prune_criterion'] == 'random':
+                model.update_mask_random(config['prune_rate'])
          
         
         writer.add_scalar('acc/train', train_acc, epoch_num)
@@ -117,7 +118,7 @@ def main():
     parser.add_argument('--device', type=str, default='cuda')
     parser.add_argument('--seed', type=int, default=42)
     # Pruning
-    parser.add_argument('--prune_criterion', type=str, choices=['magnitude', 'flip'])
+    parser.add_argument('--prune_criterion', type=str, choices=['magnitude', 'flip', 'random'])
     parser.add_argument('--prune_freq', type=int, default=2)
     parser.add_argument('--prune_rate', type=float, default=0.2) # for magnitude pruning
     parser.add_argument('--flip_prune_threshold', type=int, default=1) # for flip pruning
