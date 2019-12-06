@@ -83,7 +83,6 @@ class MasterModel(nn.Module):
 
     def update_mask_random(self, rate):
         # Get prob distribution
-        breakpoint()
         distribution = torch.Tensor([layer.numel() for layer in self.parameters()
                                     if layer.requires_grad])
         distribution /= distribution.sum()
