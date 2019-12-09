@@ -36,6 +36,7 @@ def epoch(epoch_num, loader,  model, opt, scheduler, criterion, writer, config):
             model.save_weights()
             loss.backward()
             model.inject_noise(scaling_factor)
+            
             opt.step()
             scheduler.step()
             model.apply_mask()

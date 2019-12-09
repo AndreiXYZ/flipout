@@ -52,7 +52,6 @@ class MasterModel(nn.Module):
     def apply_mask(self):
         with torch.no_grad():
             for weights, layer_mask in zip(self.parameters(), self.mask):
-                weights.grad.data = weights.grad.data*layer_mask
                 weights.data = weights.data*layer_mask
 
     def update_mask_magnitudes(self, rate):
@@ -71,6 +70,15 @@ class MasterModel(nn.Module):
                 mask[indices] = 0
                 layer_mask.data = mask.view_as(layer_mask)
                 layer.data = layer*layer_mask
+
+    def update_mask_magnitude_global(self, rate):
+        with torch.no_grad():
+            num_els = self.get_total_params()
+            curr_sparsity = self.get_sparsity()
+            num_unpruned = 1 - num_els*curr_sparsity
+            num_to_prune = rate*num_unpruned
+
+
 
     def update_mask_flips(self, threshold):
         with torch.no_grad():
@@ -149,6 +157,3 @@ class MasterModel(nn.Module):
         for layer in self.parameters():
             noise = torch.randn_like(layer)
             layer.grad += noise*scaling_factor
-    
-    def checkpoint(self, path):
-        torch.save(self.state_dict(), path)
