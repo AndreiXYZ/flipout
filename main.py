@@ -12,15 +12,15 @@ from models import *
 from data_loaders import *
 from master_model import MasterWrapper
 
-def epoch(epoch_num, loader,  model, opt, scheduler, criterion, writer, config):
+def epoch(epoch_num, loader,  model, opt, criterion, writer, config):
     epoch_acc = 0
     epoch_loss = 0
     size = len(loader.dataset)
 
     # temperature = (config['lr']/2)*(10**-12)
     # scaling_factor = math.sqrt(2*config['lr']*temperature)*(1/config['lr']) # One used in Deep Rewiring paper
-    scaling_factor = scheduler.get_lr()[0]/((1+epoch_num)**0.55) # One used in Hinton paper
-    # scaling_factor = 0
+    # scaling_factor = scheduler.get_lr()[0]/((1+epoch_num)**0.55) # One used in Hinton paper
+    scaling_factor = 0
     print('Scaling factor :', scaling_factor)
     
     for batch_num, (x,y) in enumerate(loader):
@@ -33,13 +33,16 @@ def epoch(epoch_num, loader,  model, opt, scheduler, criterion, writer, config):
         loss = criterion(out, y)
 
         if model.training:
+            writer.add_scalar('sparsity/sparsity_before_step', model.get_sparsity(), update_num)
             model.save_weights()
             loss.backward()
+            
             model.inject_noise(scaling_factor)
+            model.apply_mask()
             
             opt.step()
-            scheduler.step()
-            model.apply_mask()
+            # scheduler.step()
+            writer.add_scalar('sparsity/sparsity_after_step', model.get_sparsity(), update_num)
             # Monitor wegiths for flips
             flips_since_last = model.store_flips_since_last()
             flips_total = model.get_flips_total()
@@ -66,10 +69,10 @@ def train(config, writer):
     print('Model has {} total params, including biases.'.format(model.get_total_params()))
     
     opt = optim.RMSprop(model.parameters(), lr=config['lr'], weight_decay=1e-4)
-    scheduler = lr_scheduler.OneCycleLR(opt, 
-                                        max_lr=0.001, 
-                                        steps_per_epoch=math.ceil(len(train_loader.dataset)/config['batch_size']),
-                                        epochs=config['epochs'])
+    # scheduler = lr_scheduler.OneCycleLR(opt, 
+    #                                     max_lr=0.001, 
+    #                                     steps_per_epoch=math.ceil(len(train_loader.dataset)/config['batch_size']),
+    #                                     epochs=config['epochs'])
 
     criterion = nn.CrossEntropyLoss()
 
@@ -77,12 +80,12 @@ def train(config, writer):
         print('='*10 + ' Epoch ' + str(epoch_num) + ' ' + '='*10)
 
         model.train()
-        train_acc, train_loss = epoch(epoch_num, train_loader, model, opt, scheduler, criterion, writer, config)
+        train_acc, train_loss = epoch(epoch_num, train_loader, model, opt, criterion, writer, config)
         
         model.eval()
         with torch.no_grad():
             print('Sparsity:', model.get_sparsity())
-            test_acc, test_loss = epoch(epoch_num, test_loader, model, opt, scheduler, criterion, writer, config)   
+            test_acc, test_loss = epoch(epoch_num, test_loader, model, opt, criterion, writer, config)   
 
         print('Train - acc: {:>15.8f} loss: {:>15.8f}\nTest - acc: {:>16.8f} loss: {:>15.8f}'.format(
             train_acc, train_loss, test_acc, test_loss

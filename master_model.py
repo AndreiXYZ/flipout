@@ -2,17 +2,19 @@ import torch.nn as nn
 import torch
 import math
 import numpy as np
+
 from torch.distributions import Categorical
+from utils import *
 
 class MasterWrapper(object):
     def __init__(self, obj):
         self.obj = obj
         self.obj.total_params = self.obj.get_total_params()
         self.obj.save_weights()
-        self.obj.save_rewind_weights()
         self.obj.instantiate_mask()
-        self.obj.flip_counts = [torch.zeros_like(layer).to('cuda') for layer in self.parameters()]
-
+        self.obj.flip_counts = [torch.zeros_like(layer, dtype=torch.short).to('cuda') for layer in self.parameters()]
+        # print_gc_memory_usage()
+        
     def __getattr__(self, name):
         # Override getattr such that it calls the wrapped object's attrs
         func = getattr(self.__dict__['obj'], name)
@@ -34,12 +36,11 @@ class MasterModel(nn.Module):
                                 if weights.requires_grad])
     
     def instantiate_mask(self):
-        self.mask = [torch.ones_like(weights).to('cuda')
-                        for weights in self.parameters()]
+        self.mask = [torch.ones_like(layer, dtype=torch.bool).to('cuda') for layer in self.parameters()]
     
     def save_weights(self):
-        self.saved_weights = [weights.clone().detach().to('cuda')
-                                for weights in self.parameters()]
+        self.saved_weights = [layer.clone().detach().to('cuda')
+                                for layer in self.parameters()]
     
     def save_rewind_weights(self):
         self.rewind_weights = [weights.clone().detach().to('cuda')
@@ -52,7 +53,7 @@ class MasterModel(nn.Module):
     def apply_mask(self):
         with torch.no_grad():
             for weights, layer_mask in zip(self.parameters(), self.mask):
-                weights.data = weights.data*layer_mask
+                weights.grad.data = weights.grad.data*layer_mask
 
     def update_mask_magnitudes(self, rate):
         # Prune parameters of the network according to lowest magnitude
@@ -77,7 +78,7 @@ class MasterModel(nn.Module):
             curr_sparsity = self.get_sparsity()
             num_unpruned = 1 - num_els*curr_sparsity
             num_to_prune = rate*num_unpruned
-
+            # TODO
 
 
     def update_mask_flips(self, threshold):

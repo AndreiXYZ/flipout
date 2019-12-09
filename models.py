@@ -109,4 +109,5 @@ def load_model(config):
         model = VGG11()
     
     model = MasterWrapper(model).to(config['device'])
+    print(model.mask)
     return model
