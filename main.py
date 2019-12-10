@@ -68,12 +68,12 @@ def train(config, writer):
     print('Model has {} total params, including biases.'.format(model.get_total_params()))
     
     opt = optim.RMSprop(model.parameters(), lr=config['lr'], weight_decay=config['wdecay'], alpha=config['alpha'],
-                        )
+                        momentum=config['momentum'])
     
     scheduler = lr_scheduler.CosineAnnealingWarmRestarts(opt, 
-                                        T_0=5, 
+                                        T_0=10, 
                                         T_mult=1,
-                                        eta_min=0)
+                                        eta_min=1e-4)
 
     criterion = nn.CrossEntropyLoss()
 
