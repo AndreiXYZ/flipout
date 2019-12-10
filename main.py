@@ -16,11 +16,12 @@ def epoch(epoch_num, loader,  model, opt, criterion, writer, config):
     epoch_acc = 0
     epoch_loss = 0
     size = len(loader.dataset)
+    
+    current_lr = opt.param_groups[0]['lr']
+    temperature = (current_lr/2)*(10**-12)
+    scaling_factor = math.sqrt(2*current_lr*temperature)*(1/current_lr) # One used in Deep Rewiring paper
+    # scaling_factor = config['lr'] / (1+epoch_num)**0.55 # One used in Hinton paper
 
-    # temperature = (config['lr']/2)*(10**-12)
-    # scaling_factor = math.sqrt(2*config['lr']*temperature)*(1/config['lr']) # One used in Deep Rewiring paper
-    scaling_factor = config['lr'] / (1+epoch_num)**0.55 # One used in Hinton paper
-    # scaling_factor = 0
     writer.add_scalar('noise/scaling_factor', scaling_factor, epoch_num)
 
     for batch_num, (x,y) in enumerate(loader):
@@ -76,6 +77,7 @@ def train(config, writer):
                                         T_mult=config['t_mult'],
                                         eta_min=config['min_lr'])
 
+    
     criterion = nn.CrossEntropyLoss()
 
     for epoch_num in range(config['epochs']):
@@ -105,7 +107,7 @@ def train(config, writer):
                 model.update_mask_flips(config['flip_prune_threshold'])
             elif config['prune_criterion'] == 'random':
                 model.update_mask_random(config['prune_rate'])
-         
+        
         
         writer.add_scalar('acc/train', train_acc, epoch_num)
         writer.add_scalar('acc/test', test_acc, epoch_num)
@@ -143,6 +145,7 @@ def main():
     parser.add_argument('--t_mult', type=int)
     parser.add_argument('--min_lr', type=float)
     config = vars(parser.parse_args())
+    
     
     # Ensure experiment is reproducible.
     # Results may vary across machines!
