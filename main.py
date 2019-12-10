@@ -19,9 +19,8 @@ def epoch(epoch_num, loader,  model, opt, criterion, writer, config):
 
     # temperature = (config['lr']/2)*(10**-12)
     # scaling_factor = math.sqrt(2*config['lr']*temperature)*(1/config['lr']) # One used in Deep Rewiring paper
-    # scaling_factor = scheduler.get_lr()[0]/((1+epoch_num)**0.55) # One used in Hinton paper
-    scaling_factor = 0
-    print('Scaling factor :', scaling_factor)
+    scaling_factor = config['lr'] / (1+epoch_num)**0.55 # One used in Hinton paper
+    # scaling_factor = 0
     
     for batch_num, (x,y) in enumerate(loader):
         
@@ -41,7 +40,7 @@ def epoch(epoch_num, loader,  model, opt, criterion, writer, config):
             model.apply_mask()
             
             opt.step()
-            # scheduler.step()
+
             writer.add_scalar('sparsity/sparsity_after_step', model.get_sparsity(), update_num)
             # Monitor wegiths for flips
             flips_since_last = model.store_flips_since_last()
@@ -68,11 +67,13 @@ def train(config, writer):
     train_loader, test_loader = load_dataset(config)
     print('Model has {} total params, including biases.'.format(model.get_total_params()))
     
-    opt = optim.RMSprop(model.parameters(), lr=config['lr'], weight_decay=1e-4)
-    # scheduler = lr_scheduler.OneCycleLR(opt, 
-    #                                     max_lr=0.001, 
-    #                                     steps_per_epoch=math.ceil(len(train_loader.dataset)/config['batch_size']),
-    #                                     epochs=config['epochs'])
+    opt = optim.RMSprop(model.parameters(), lr=config['lr'], weight_decay=config['wdecay'], alpha=config['alpha'],
+                        )
+    
+    scheduler = lr_scheduler.CosineAnnealingWarmRestarts(opt, 
+                                        T_0=5, 
+                                        T_mult=1,
+                                        eta_min=0)
 
     criterion = nn.CrossEntropyLoss()
 
@@ -84,9 +85,10 @@ def train(config, writer):
         
         model.eval()
         with torch.no_grad():
-            print('Sparsity:', model.get_sparsity())
             test_acc, test_loss = epoch(epoch_num, test_loader, model, opt, criterion, writer, config)   
-
+        
+        scheduler.step()
+        
         print('Train - acc: {:>15.8f} loss: {:>15.8f}\nTest - acc: {:>16.8f} loss: {:>15.8f}'.format(
             train_acc, train_loss, test_acc, test_loss
         ))
@@ -133,6 +135,9 @@ def main():
     # Stochastic noise temperature parameter
     # parser.add_argument('--temperature', type=float, default=0,
     #                     help='Temperature parameter used for injecting noise to the gradient.')
+    parser.add_argument('--wdecay', type=float, default=0)
+    parser.add_argument('--alpha', type=float, default=0)
+    parser.add_argument('--momentum', type=float, default=0)
     config = vars(parser.parse_args())
     
     # Ensure experiment is reproducible.

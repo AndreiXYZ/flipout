@@ -1,5 +1,6 @@
 import torch
 import numpy as np
+import gc
 
 def set_seed(seed):
     torch.manual_seed(seed)
@@ -11,7 +12,6 @@ def construct_run_name(config):
     return ''.join(['_'+str(key)+'_'+str(value) if key!='comment' else '' for key,value in config.items()])
 
 def print_gc_memory_usage():
-    import gc
     total_usage = 0
     for obj in gc.get_objects():
         try:
@@ -21,14 +21,3 @@ def print_gc_memory_usage():
         except:
             pass
     print('Total usage in bytes = ', total_usage)
-
-def cpuStats():
-        import sys
-        import psutil
-        print(sys.version)
-        print(psutil.cpu_percent())
-        print(psutil.virtual_memory())  # physical memory usage
-        pid = os.getpid()
-        py = psutil.Process(pid)
-        memoryUse = py.memory_info()[0] / 2. ** 30  # memory use in GB...I think
-        print('memory GB:', memoryUse)
