@@ -21,7 +21,8 @@ def epoch(epoch_num, loader,  model, opt, criterion, writer, config):
     # scaling_factor = math.sqrt(2*config['lr']*temperature)*(1/config['lr']) # One used in Deep Rewiring paper
     scaling_factor = config['lr'] / (1+epoch_num)**0.55 # One used in Hinton paper
     # scaling_factor = 0
-    
+    writer.add_scalar('noise/scaling_factor', scaling_factor, epoch_num)
+
     for batch_num, (x,y) in enumerate(loader):
         
         update_num = epoch_num*size/math.ceil(config['batch_size']) + batch_num
@@ -71,9 +72,9 @@ def train(config, writer):
                         momentum=config['momentum'])
     
     scheduler = lr_scheduler.CosineAnnealingWarmRestarts(opt, 
-                                        T_0=10, 
-                                        T_mult=1,
-                                        eta_min=1e-4)
+                                        T_0=config['t0'], 
+                                        T_mult=config['t_mult'],
+                                        eta_min=config['min_lr'])
 
     criterion = nn.CrossEntropyLoss()
 
@@ -89,9 +90,10 @@ def train(config, writer):
         
         scheduler.step()
         
-        print('Train - acc: {:>15.8f} loss: {:>15.8f}\nTest - acc: {:>16.8f} loss: {:>15.8f}'.format(
+        print('Train - acc: {:>15.6f} loss: {:>15.6f}\nTest - acc: {:>16.6f} loss: {:>15.6f}'.format(
             train_acc, train_loss, test_acc, test_loss
         ))
+        print('Sparsity : {:>10.4f}'.format(model.get_sparsity()))
 
         if config['rewind_to'] > 1 and (epoch_num+1)==config['rewind_to']:
             model.save_rewind_weights()
@@ -132,12 +134,14 @@ def main():
     # Run comment
     parser.add_argument('--comment', type=str, default=None,
                         help='Comment to add to tensorboard text ')
-    # Stochastic noise temperature parameter
-    # parser.add_argument('--temperature', type=float, default=0,
-    #                     help='Temperature parameter used for injecting noise to the gradient.')
+    # Optimizer args
     parser.add_argument('--wdecay', type=float, default=0)
     parser.add_argument('--alpha', type=float, default=0)
     parser.add_argument('--momentum', type=float, default=0)
+    # LR schedule args
+    parser.add_argument('--t0', type=int)
+    parser.add_argument('--t_mult', type=int)
+    parser.add_argument('--min_lr', type=float)
     config = vars(parser.parse_args())
     
     # Ensure experiment is reproducible.
