@@ -32,8 +32,9 @@ class MasterModel(nn.Module):
         super(MasterModel, self).__init__()
 
     def get_total_params(self):
-        return sum([weights.numel() for weights in self.parameters()
-                                if weights.requires_grad])
+        with torch.no_grad():
+            return sum([weights.numel() for weights in self.parameters()
+                                    if weights.requires_grad])
     
     def instantiate_mask(self):
         self.mask = [torch.ones_like(layer, dtype=torch.bool).to('cuda') for layer in self.parameters()]
@@ -117,7 +118,7 @@ class MasterModel(nn.Module):
             sparsity = 0
             for layer in self.parameters():
                 sparsity += (layer==0).sum().item()
-            return float(sparsity)/self.total_params
+        return float(sparsity)/self.total_params
 
     def store_flips_since_last(self):
     # Retrieves how many params have flipped compared to previously saved weights
@@ -130,35 +131,29 @@ class MasterModel(nn.Module):
                 flipped = ~curr_signs.eq(prev_signs)
                 layer_flips += flipped
                 num_flips += flipped.sum()
-            return num_flips
+        return num_flips
     
     def get_flips_total(self):
         # Get total number of flips
-        flips_total = 0
-        for layer_flips in self.flip_counts:
-            flips_total += layer_flips.sum().item()
+        with torch.no_grad():
+            flips_total = 0
+            for layer_flips in self.flip_counts:
+                flips_total += layer_flips.sum().item()
         return flips_total
     
     def get_total_flipped(self):
         # Get number of weights that flipped at least once
-        total_flipped = 0
-        for layer_flips in self.flip_counts:
-            total_flipped += layer_flips[layer_flips >= 1].sum().item()
+        with torch.no_grad():
+            total_flipped = 0
+            for layer_flips in self.flip_counts:
+                total_flipped += layer_flips[layer_flips >= 1].sum().item()
         return total_flipped
-    
-    def fuse_neurons(self, layer):
-        # Fuze neurons of the network. Only do it on fc, without biases
-        # for now
-        layers = [layer for name,layer in self.named_parameters()
-                    if 'weight' in name]
-        # Fuse neurons in current layer and neurons in next layer
     
     def inject_noise(self):
     # Inject Gaussian noise scaled by a factor into the gradients
         with torch.no_grad():
-            for layer in self.parameters():
-                noise = torch.randn_like(layer)
-                # Noise has variance equal to layer-wise l2 norm divided by num of nonzeros
-                num_nonzeros = layer[layer!=0].numel()
-                scaling_factor = layer.grad.norm()/num_nonzeros
+            for layer, layer_mask in zip(self.parameters(),self.mask):
+                # Noise has variance equal to layer-wise l2 norm divided by num of elements
+                noise = torch.randn_like(layer)*layer_mask
+                scaling_factor = layer.grad.norm(p=2)/layer.numel()
                 layer.grad.data += noise*scaling_factor

@@ -32,10 +32,10 @@ def epoch(epoch_num, loader,  model, opt, criterion, writer, config):
             model.save_weights()
             loss.backward()
             
-            model.inject_noise()
             model.apply_mask()
-
-            nn.utils.clip_grad_norm_(model.parameters(), 5.0)
+            model.inject_noise()
+            
+            # nn.utils.clip_grad_norm_(model.parameters(), 5.0)
             
             opt.step()
 
@@ -127,7 +127,7 @@ def main():
     parser.add_argument('--wdecay', type=float, default=0)
     parser.add_argument('--alpha', type=float, default=0)
     parser.add_argument('--momentum', type=float, default=0)
-    
+
     config = vars(parser.parse_args())
     
     
