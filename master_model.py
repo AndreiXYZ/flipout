@@ -43,6 +43,10 @@ class MasterModel(nn.Module):
         self.saved_weights = [layer.clone().detach().to('cuda')
                                 for layer in self.parameters()]
     
+    def save_grads(self):
+        self.saved_grads = [layer.grad.clone().to('cuda')
+                            for layer in self.parameters()]
+    
     def save_rewind_weights(self):
         self.rewind_weights = [weights.clone().detach().to('cuda')
                                 for weights in self.parameters()]
@@ -132,7 +136,7 @@ class MasterModel(nn.Module):
                 layer_flips += flipped
                 num_flips += flipped.sum()
         return num_flips
-    
+
     def get_flips_total(self):
         # Get total number of flips
         with torch.no_grad():

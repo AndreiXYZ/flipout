@@ -29,13 +29,14 @@ def epoch(epoch_num, loader,  model, opt, criterion, writer, config):
 
         if model.training:
             writer.add_scalar('sparsity/sparsity_before_step', model.get_sparsity(), update_num)
-            model.save_weights()
+            
             loss.backward()
+            model.save_weights()
             
             model.apply_mask()
             model.inject_noise()
             
-            # nn.utils.clip_grad_norm_(model.parameters(), 5.0)
+            # nn.utils.clip_grad_norm_(model.parameters(), 2.0)
             
             opt.step()
 
@@ -65,7 +66,7 @@ def train(config, writer):
     train_loader, test_loader = load_dataset(config)
     print('Model has {} total params, including biases.'.format(model.get_total_params()))
     
-    opt = optim.RMSprop(model.parameters(), lr=config['lr'], weight_decay=config['wdecay'])
+    opt = optim.SGD(model.parameters(), lr=config['lr'], weight_decay=config['wdecay'])
 
     criterion = nn.CrossEntropyLoss()
 
