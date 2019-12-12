@@ -4,6 +4,7 @@ import math
 import torch.optim as optim
 import torch.optim.lr_scheduler as lr_scheduler
 import matplotlib.pyplot as plt
+import torch.nn as nn
 
 from torch.utils.tensorboard import SummaryWriter
 from torch.backends import cudnn
@@ -17,13 +18,6 @@ def epoch(epoch_num, loader,  model, opt, criterion, writer, config):
     epoch_loss = 0
     size = len(loader.dataset)
     
-    current_lr = opt.param_groups[0]['lr']
-    temperature = (current_lr/2)*(10**-12)
-    scaling_factor = math.sqrt(2*current_lr*temperature)*(1/current_lr) # One used in Deep Rewiring paper
-    # scaling_factor = config['lr'] / (1+epoch_num)**0.55 # One used in Hinton paper
-
-    writer.add_scalar('noise/scaling_factor', scaling_factor, epoch_num)
-
     for batch_num, (x,y) in enumerate(loader):
         
         update_num = epoch_num*size/math.ceil(config['batch_size']) + batch_num
@@ -38,8 +32,10 @@ def epoch(epoch_num, loader,  model, opt, criterion, writer, config):
             model.save_weights()
             loss.backward()
             
-            model.inject_noise(scaling_factor)
+            model.inject_noise()
             model.apply_mask()
+
+            nn.utils.clip_grad_norm_(model.parameters(), 5.0)
             
             opt.step()
 
@@ -69,15 +65,8 @@ def train(config, writer):
     train_loader, test_loader = load_dataset(config)
     print('Model has {} total params, including biases.'.format(model.get_total_params()))
     
-    opt = optim.RMSprop(model.parameters(), lr=config['lr'], weight_decay=config['wdecay'], alpha=config['alpha'],
-                        momentum=config['momentum'])
-    
-    scheduler = lr_scheduler.CosineAnnealingWarmRestarts(opt, 
-                                        T_0=config['t0'], 
-                                        T_mult=config['t_mult'],
-                                        eta_min=config['min_lr'])
+    opt = optim.RMSprop(model.parameters(), lr=config['lr'], weight_decay=config['wdecay'])
 
-    
     criterion = nn.CrossEntropyLoss()
 
     for epoch_num in range(config['epochs']):
@@ -89,8 +78,6 @@ def train(config, writer):
         model.eval()
         with torch.no_grad():
             test_acc, test_loss = epoch(epoch_num, test_loader, model, opt, criterion, writer, config)   
-        
-        scheduler.step()
         
         print('Train - acc: {:>15.6f} loss: {:>15.6f}\nTest - acc: {:>16.6f} loss: {:>15.6f}'.format(
             train_acc, train_loss, test_acc, test_loss
@@ -140,10 +127,7 @@ def main():
     parser.add_argument('--wdecay', type=float, default=0)
     parser.add_argument('--alpha', type=float, default=0)
     parser.add_argument('--momentum', type=float, default=0)
-    # LR schedule args
-    parser.add_argument('--t0', type=int)
-    parser.add_argument('--t_mult', type=int)
-    parser.add_argument('--min_lr', type=float)
+    
     config = vars(parser.parse_args())
     
     

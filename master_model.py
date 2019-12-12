@@ -153,8 +153,12 @@ class MasterModel(nn.Module):
                     if 'weight' in name]
         # Fuse neurons in current layer and neurons in next layer
     
-    def inject_noise(self, scaling_factor):
+    def inject_noise(self):
     # Inject Gaussian noise scaled by a factor into the gradients
-        for layer in self.parameters():
-            noise = torch.randn_like(layer)
-            layer.grad += noise*scaling_factor
+        with torch.no_grad():
+            for layer in self.parameters():
+                noise = torch.randn_like(layer)
+                # Noise has variance equal to layer-wise l2 norm divided by num of nonzeros
+                num_nonzeros = layer[layer!=0].numel()
+                scaling_factor = layer.grad.norm()/num_nonzeros
+                layer.grad.data += noise*scaling_factor
