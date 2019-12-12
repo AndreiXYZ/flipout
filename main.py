@@ -30,8 +30,9 @@ def epoch(epoch_num, loader,  model, opt, criterion, writer, config):
         if model.training:
             writer.add_scalar('sparsity/sparsity_before_step', model.get_sparsity(), update_num)
             
-            loss.backward()
             model.save_weights()
+            loss.backward()
+            
             
             model.apply_mask()
             model.inject_noise()
