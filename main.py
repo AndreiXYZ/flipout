@@ -8,7 +8,7 @@ import torch.nn as nn
 
 from torch.utils.tensorboard import SummaryWriter
 from torch.backends import cudnn
-from utils import *
+from utils import set_seed, get_opt, construct_run_name
 from models import *
 from data_loaders import *
 from master_model import MasterWrapper
@@ -19,7 +19,6 @@ def epoch(epoch_num, loader,  model, opt, criterion, writer, config):
     size = len(loader.dataset)
     
     for batch_num, (x,y) in enumerate(loader):
-        
         update_num = epoch_num*size/math.ceil(config['batch_size']) + batch_num
         opt.zero_grad()
         x = x.float().to(config['device'])
@@ -29,18 +28,14 @@ def epoch(epoch_num, loader,  model, opt, criterion, writer, config):
 
         if model.training:
             writer.add_scalar('sparsity/sparsity_before_step', model.get_sparsity(), update_num)
-            
             model.save_weights()
             loss.backward()
             
-            
-            model.apply_mask()
-            model.inject_noise()
-            
-            # nn.utils.clip_grad_norm_(model.parameters(), 2.0)
-            
-            opt.step()
+            # model.apply_mask()
+            # model.inject_noise()
 
+            opt.step()
+            
             writer.add_scalar('sparsity/sparsity_after_step', model.get_sparsity(), update_num)
             # Monitor wegiths for flips
             flips_since_last = model.store_flips_since_last()
@@ -67,7 +62,7 @@ def train(config, writer):
     train_loader, test_loader = load_dataset(config)
     print('Model has {} total params, including biases.'.format(model.get_total_params()))
     
-    opt = optim.SGD(model.parameters(), lr=config['lr'], weight_decay=config['wdecay'])
+    opt = get_opt(config, model.parameters())
 
     criterion = nn.CrossEntropyLoss()
 
@@ -85,9 +80,6 @@ def train(config, writer):
             train_acc, train_loss, test_acc, test_loss
         ))
         print('Sparsity : {:>10.4f}'.format(model.get_sparsity()))
-
-        if config['rewind_to'] > 1 and (epoch_num+1)==config['rewind_to']:
-            model.save_rewind_weights()
         
         if (epoch_num+1)%config['prune_freq'] == 0:
             if config['prune_criterion'] == 'magnitude':
@@ -107,6 +99,10 @@ def train(config, writer):
         # Visualise histogram of flips
         writer.add_histogram('layer 0 flips hist.', model.flip_counts[0].flatten(), epoch_num)
 
+        
+        for name,layer in model.named_parameters():
+            writer.add_histogram(name, layer.clone().detach().flatten(), epoch_num)
+        
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--model', type=str, choices=['lenet300', 'lenet5', 'resnet18', 'vgg11'], default='lenet300')
@@ -121,14 +117,12 @@ def main():
     parser.add_argument('--prune_freq', type=int, default=2)
     parser.add_argument('--prune_rate', type=float, default=0.2) # for magnitude pruning
     parser.add_argument('--flip_prune_threshold', type=int, default=1) # for flip pruning
-    parser.add_argument('--rewind_to', type=int, default=-1) # for rewinding the weights
     # Run comment
     parser.add_argument('--comment', type=str, default=None,
                         help='Comment to add to tensorboard text ')
     # Optimizer args
+    parser.add_argument('--opt', type=str, choices=['sgd', 'rmsprop', 'adam'])
     parser.add_argument('--wdecay', type=float, default=0)
-    parser.add_argument('--alpha', type=float, default=0)
-    parser.add_argument('--momentum', type=float, default=0)
 
     config = vars(parser.parse_args())
     

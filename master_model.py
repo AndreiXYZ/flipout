@@ -40,7 +40,7 @@ class MasterModel(nn.Module):
         self.mask = [torch.ones_like(layer, dtype=torch.bool).to('cuda') for layer in self.parameters()]
     
     def save_weights(self):
-        self.saved_weights = [layer.clone().detach().to('cuda')
+        self.saved_weights = [layer.data.clone().detach().to('cuda')
                                 for layer in self.parameters()]
     
     def save_grads(self):
@@ -156,8 +156,16 @@ class MasterModel(nn.Module):
     def inject_noise(self):
     # Inject Gaussian noise scaled by a factor into the gradients
         with torch.no_grad():
-            for layer, layer_mask in zip(self.parameters(),self.mask):
-                # Noise has variance equal to layer-wise l2 norm divided by num of elements
-                noise = torch.randn_like(layer)*layer_mask
-                scaling_factor = layer.grad.norm(p=2)/layer.numel()
+            all_params = torch.cat([layer.clone().detach().flatten() for layer in self.parameters()])
+            scaling_factor = (all_params.norm(p=2)**2)/all_params.numel()
+            for layer, layer_mask in zip(self.parameters(), self.mask):
+                noise = torch.randn_like(layer)
                 layer.grad.data += noise*scaling_factor
+                layer.grad.data *= layer_mask
+            
+            # for layer, layer_mask in zip(self.parameters(),self.mask):
+            #     # Noise has variance equal to layer-wise l2 norm divided by num of elements
+            #     noise = torch.randn_like(layer)
+            #     scaling_factor = layer.grad.norm(p=2)/layer.numel()
+            #     layer.grad.data += noise*scaling_factor
+            #     layer.grad.data *= layer_mask
