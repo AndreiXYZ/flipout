@@ -32,10 +32,11 @@ def epoch(epoch_num, loader,  model, opt, criterion, writer, config):
             loss.backward()
             
             # model.apply_mask()
-            # model.inject_noise()
-
+            scaling_factor =  model.get_global_scaling_factor()
+            model.inject_noise(mode='global', scaling_factor=scaling_factor)
             opt.step()
             
+            writer.add_scalar('noise/scaling_factor', scaling_factor, update_num)
             writer.add_scalar('sparsity/sparsity_after_step', model.get_sparsity(), update_num)
             # Monitor wegiths for flips
             flips_since_last = model.store_flips_since_last()
