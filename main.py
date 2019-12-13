@@ -31,7 +31,7 @@ def epoch(epoch_num, loader,  model, opt, criterion, writer, config):
             model.save_weights()
             loss.backward()
             
-            # model.apply_mask()
+            model.apply_mask()
             scaling_factor =  model.get_global_scaling_factor()
             model.inject_noise(mode='global', scaling_factor=scaling_factor)
             opt.step()
