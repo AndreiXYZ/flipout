@@ -23,7 +23,7 @@ def epoch(epoch_num, loader,  model, opt, criterion, writer, config):
         opt.zero_grad()
         x = x.float().to(config['device'])
         y = y.to(config['device'])
-        out = model.forward(x).squeeze()
+        out = model.forward(x)
         loss = criterion(out, y)
 
         if model.training:
@@ -32,11 +32,9 @@ def epoch(epoch_num, loader,  model, opt, criterion, writer, config):
             loss.backward()
             
             model.apply_mask()
-            scaling_factor =  model.get_global_scaling_factor()
-            model.inject_noise(mode='global', scaling_factor=scaling_factor)
+            model.inject_noise()
             opt.step()
             
-            writer.add_scalar('noise/scaling_factor', scaling_factor, update_num)
             writer.add_scalar('sparsity/sparsity_after_step', model.get_sparsity(), update_num)
             # Monitor wegiths for flips
             flips_since_last = model.store_flips_since_last()
@@ -102,7 +100,14 @@ def train(config, writer):
 
         
         for name,layer in model.named_parameters():
-            writer.add_histogram(name, layer.clone().detach().flatten(), epoch_num)
+            if layer.requires_grad:
+                layer_histogram = layer.clone().detach().flatten()
+                # Get only nonzeros for visibility
+                layer = layer[layer!=0]
+                if 'weight' in name:
+                    writer.add_histogram('weights/'+name, layer.clone().detach().flatten(), epoch_num)
+                elif 'bias' in name:
+                    writer.add_histogram('biases/'+name, layer.clone().detach().flatten(), epoch_num)
         
 def main():
     parser = argparse.ArgumentParser()
