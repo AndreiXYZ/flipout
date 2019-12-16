@@ -26,12 +26,15 @@ def plot_weight_histograms(model, writer, epoch_num):
     for name,layer in model.named_parameters():
         if layer.requires_grad:
             layer_histogram = layer.clone().detach().flatten()
+            # Remove outliers
+            # deviation = (layer_histogram - layer_histogram.mean()).abs()
+            # layer_histogram = layer_histogram[deviation < layer_histogram.std()]
             # Get only nonzeros for visibility
             layer = layer[layer!=0]
-            if 'weight' in name:
-                writer.add_histogram('weights/'+name, layer.clone().detach().flatten(), epoch_num)
-            elif 'bias' in name:
-                writer.add_histogram('biases/'+name, layer.clone().detach().flatten(), epoch_num)
+            if 'weight' in name and 'bn' not in weight:
+                writer.add_histogram('weights/'+name, layer_histogram, epoch_num, bins='fd', max_bins=50)
+            # elif 'bias' in name:
+            #     writer.add_histogram('biases/'+name, layer.clone().detach().flatten(), epoch_num, bins=50)
 
 
 def plot_stats(train_acc, train_loss, test_acc, test_loss, model, writer, epoch_num):
