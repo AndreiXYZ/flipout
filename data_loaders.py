@@ -4,9 +4,13 @@ from torchvision import transforms, datasets
 from torch.utils.data import DataLoader
 
 def get_mnist_loaders(config):
-    
-    train_set = datasets.MNIST(root='./data', train=True, download=True, transform=transforms.ToTensor())
-    test_set = datasets.MNIST(root='./data', train=False, download=True, transform=transforms.ToTensor())
+    normalize = transforms.Normalize(mean=[0.5], std=[0.5])
+
+    train_set = datasets.MNIST(root='./data', train=True, download=True, transform=transforms.Compose([transforms.ToTensor(),
+                                                                                                        normalize]))
+                                                                                                        
+    test_set = datasets.MNIST(root='./data', train=False, download=True, transform=transforms.Compose([transforms.ToTensor(),
+                                                                                                        normalize]))
 
     train_loader = DataLoader(train_set, 
                               batch_size = config['batch_size'],
@@ -25,8 +29,8 @@ def get_mnist_loaders(config):
 
 
 def get_cifar10_loaders(config):
-    normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406],
-                                 std=[0.229, 0.224, 0.225])
+    normalize = transforms.Normalize(mean=[0.5, 0.5, 0.5],
+                                 std=[0.5, 0.5, 0.5])
     
     train_set = datasets.CIFAR10(root='./data', train=True, download=True, transform=transforms.Compose([transforms.ToTensor(),
                                                                                                         normalize]))
