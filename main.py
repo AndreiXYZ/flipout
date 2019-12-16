@@ -8,7 +8,7 @@ import torch.nn as nn
 
 from torch.utils.tensorboard import SummaryWriter
 from torch.backends import cudnn
-from utils import set_seed, get_opt, construct_run_name
+from utils import *
 from models import *
 from data_loaders import *
 from master_model import MasterWrapper
@@ -32,7 +32,12 @@ def epoch(epoch_num, loader,  model, opt, criterion, writer, config):
             loss.backward()
             
             model.apply_mask()
-            model.inject_noise()
+            
+            if config['add_noise']:
+                noise_per_layer = model.inject_noise()
+                for idx,layer in enumerate(model.parameters()):
+                    writer.add_scalar('noise/'+str(idx), noise_per_layer[idx], update_num)
+            
             opt.step()
             
             writer.add_scalar('sparsity/sparsity_after_step', model.get_sparsity(), update_num)
@@ -89,25 +94,8 @@ def train(config, writer):
                 model.update_mask_random(config['prune_rate'])
         
         
-        writer.add_scalar('acc/train', train_acc, epoch_num)
-        writer.add_scalar('acc/test', test_acc, epoch_num)
-        writer.add_scalar('loss/train', train_loss, epoch_num)
-        writer.add_scalar('loss/test', test_loss, epoch_num)
-        writer.add_scalar('sparsity/sparsity', model.get_sparsity(), epoch_num)
-        writer.add_scalar('lr', opt.param_groups[0]['lr'], epoch_num)
-        # Visualise histogram of flips
-        writer.add_histogram('layer 0 flips hist.', model.flip_counts[0].flatten(), epoch_num)
-
-        
-        for name,layer in model.named_parameters():
-            if layer.requires_grad:
-                layer_histogram = layer.clone().detach().flatten()
-                # Get only nonzeros for visibility
-                layer = layer[layer!=0]
-                if 'weight' in name:
-                    writer.add_histogram('weights/'+name, layer.clone().detach().flatten(), epoch_num)
-                elif 'bias' in name:
-                    writer.add_histogram('biases/'+name, layer.clone().detach().flatten(), epoch_num)
+        plot_stats(train_acc, train_loss, test_acc, test_loss, model, writer, epoch_num)
+        plot_weight_histograms(model, writer, epoch_num)
         
 def main():
     parser = argparse.ArgumentParser()
@@ -129,6 +117,9 @@ def main():
     # Optimizer args
     parser.add_argument('--opt', type=str, choices=['sgd', 'rmsprop', 'adam'])
     parser.add_argument('--wdecay', type=float, default=0)
+    # Add noise or not
+    parser.add_argument('--noise', dest='add_noise', action='store_true')
+    parser.add_argument('--no_noise', dest='add_noise', action='store_false')
 
     config = vars(parser.parse_args())
     

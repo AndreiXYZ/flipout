@@ -152,28 +152,17 @@ class MasterModel(nn.Module):
             for layer_flips in self.flip_counts:
                 total_flipped += layer_flips[layer_flips >= 1].sum().item()
         return total_flipped
-    
-    def get_global_scaling_factor(self):
-        # Gets the (global) scaling factor of the noise distribution
-        with torch.no_grad():
-            all_params = torch.cat([layer.clone().detach().flatten()
-                                    for layer in self.parameters()])
-            scaling_factor = (all_params.norm(p=2)**2)/all_params.numel()
 
-        return scaling_factor
-
-    def inject_noise(self, mode, scaling_factor):
+    def inject_noise(self):
     # Inject Gaussian noise scaled by a factor into the gradients
+        noise_per_layer = []
         with torch.no_grad():
-            if mode=='global':
-                for layer, layer_mask in zip(self.parameters(), self.mask):
-                    noise = torch.randn_like(layer)
-                    layer.grad.data += noise*scaling_factor
-                    layer.grad.data *= layer_mask
-            elif mode=='layerwise':
-                for layer, layer_mask in zip(self.parameters(),self.mask):
-                    # Noise has variance equal to layer-wise l2 norm divided by num of elements
-                    noise = torch.randn_like(layer)
-                    scaling_factor = (layer.grad.norm(p=2)**2)/layer.numel()
-                    layer.grad.data += noise*scaling_factor
-                    layer.grad.data *= layer_mask
+            for layer, layer_mask in zip(self.parameters(),self.mask):
+                # Noise has variance equal to layer-wise l2 norm divided by num of elements
+                noise = torch.randn_like(layer)
+                scaling_factor = layer.grad.norm(p=2)/layer.numel()
+                noise_per_layer.append(scaling_factor)
+                layer.grad.data += noise*scaling_factor
+                layer.grad.data *= layer_mask
+        
+        return noise_per_layer

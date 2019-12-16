@@ -9,17 +9,21 @@ class LeNet_300_100(MasterModel):
         super(LeNet_300_100, self).__init__()
         # Not exactly like the paper, yet
         self.layers = nn.Sequential(
-            nn.Linear(784, 512),
+            nn.Linear(28*28, 300),
             nn.ReLU(),
-            nn.Linear(512, 256),
+            nn.Linear(300, 100),
             nn.ReLU(),
-            nn.Linear(256, 10),
+            nn.Linear(100, 10)
         )
+
+        # for layer in self.layers:
+        #     if isinstance(layer, nn.Linear):
+        #         nn.init.xavier_normal_(layer.weight)
         # should maybe used self.named_parameters and check if weight is in 
         # name so as to exclude biases. are biases ok to prune?
 
     def forward(self, x):
-        x = x.flatten(start_dim=2)
+        x = x.view(-1, 28*28)
         out = self.layers(x)
         
         return out
