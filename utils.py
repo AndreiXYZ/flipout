@@ -32,7 +32,7 @@ def plot_weight_histograms(model, writer, epoch_num):
             # Get only nonzeros for visibility
             layer = layer[layer!=0]
             if 'weight' in name:
-                writer.add_histogram('weights/'+name, layer_histogram, epoch_num, bins='fd', max_bins=50)
+                writer.add_histogram('weights/'+name, layer_histogram, epoch_num)
             # elif 'bias' in name:
             #     writer.add_histogram('biases/'+name, layer.clone().detach().flatten(), epoch_num, bins=50)
 
