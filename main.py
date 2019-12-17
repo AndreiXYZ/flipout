@@ -95,7 +95,7 @@ def train(config, writer):
         
         
         plot_stats(train_acc, train_loss, test_acc, test_loss, model, writer, epoch_num)
-        plot_weight_histograms(model, writer, epoch_num)
+        # plot_weight_histograms(model, writer, epoch_num)
         
 def main():
     parser = argparse.ArgumentParser()
