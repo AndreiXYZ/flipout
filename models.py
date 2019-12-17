@@ -2,7 +2,19 @@ import torch.nn as nn
 import torch
 import math
 import torchvision.models as models
+from layers import LinearMasked
 from master_model import MasterModel, MasterWrapper
+
+class LeNet300Custom(MasterModel):
+    def __init__(self):
+        super(Lenet300Custom, self).__init__()
+        self.layers = nn.Sequential(nn.LinearMasked(28*28, 300),
+                                    nn.LinearMasked(300, 100),
+                                    nn.LinearMasked(100,10))
+        
+    def forward(self, x):
+        x = x.view(-1, 28*28)
+        return self.layers(x)
 
 class LeNet_300_100(MasterModel):
     def __init__(self):
