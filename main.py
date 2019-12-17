@@ -28,16 +28,16 @@ def epoch(epoch_num, loader,  model, opt, criterion, writer, config):
 
         if model.training:
             # Get sparsity of custom model
-            if config['model'] == 'custom':
-                #TODO
-                for (name, layer) in zip(model.named_parameters(), self.weights):
-                    if 'weight' in name:
-                        pass
-                for (name, layer) in zip(model.named_parameters(), self.bias):
-                    if 'bias' in name:
-                        pass
-            else:
-                writer.add_scalar('sparsity/sparsity_before_step', model.get_sparsity(), update_num)
+            # if config['model'] == 'custom':
+            #     #TODO
+            #     for (name, layer) in zip(model.named_parameters(), model.weights):
+            #         if 'weight' in name:
+            #             pass
+            #     for (name, layer) in zip(model.named_parameters(), model.bias):
+            #         if 'bias' in name:
+            #             pass
+            # else:
+            #     writer.add_scalar('sparsity/sparsity_before_step', model.get_sparsity(), update_num)
             model.save_weights()
             loss.backward()
             
