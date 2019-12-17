@@ -7,10 +7,12 @@ from master_model import MasterModel, MasterWrapper
 
 class LeNet300Custom(MasterModel):
     def __init__(self):
-        super(Lenet300Custom, self).__init__()
-        self.layers = nn.Sequential(nn.LinearMasked(28*28, 300),
-                                    nn.LinearMasked(300, 100),
-                                    nn.LinearMasked(100,10))
+        super(LeNet300Custom, self).__init__()
+        self.layers = nn.Sequential(LinearMasked(28*28, 300),
+                                    nn.ReLU(),
+                                    LinearMasked(300, 100),
+                                    nn.ReLU(),
+                                    LinearMasked(100,10))
         
     def forward(self, x):
         x = x.view(-1, 28*28)
@@ -123,6 +125,8 @@ def load_model(config):
         model = ResNet18()
     elif config['model'] == 'vgg11':
         model = VGG11()
+    elif config['model'] == 'custom':
+        model = LeNet300Custom()
     
     model = MasterWrapper(model).to(config['device'])
 

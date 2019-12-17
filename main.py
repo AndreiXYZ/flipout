@@ -27,7 +27,17 @@ def epoch(epoch_num, loader,  model, opt, criterion, writer, config):
         loss = criterion(out, y)
 
         if model.training:
-            writer.add_scalar('sparsity/sparsity_before_step', model.get_sparsity(), update_num)
+            # Get sparsity of custom model
+            if config['model'] == 'custom':
+                #TODO
+                for (name, layer) in zip(model.named_parameters(), self.weights):
+                    if 'weight' in name:
+                        pass
+                for (name, layer) in zip(model.named_parameters(), self.bias):
+                    if 'bias' in name:
+                        pass
+            else:
+                writer.add_scalar('sparsity/sparsity_before_step', model.get_sparsity(), update_num)
             model.save_weights()
             loss.backward()
             
@@ -95,11 +105,11 @@ def train(config, writer):
         
         
         plot_stats(train_acc, train_loss, test_acc, test_loss, model, writer, epoch_num)
-        # plot_weight_histograms(model, writer, epoch_num)
+        plot_weight_histograms(model, writer, epoch_num)
         
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--model', type=str, choices=['lenet300', 'lenet5', 'resnet18', 'vgg11'], default='lenet300')
+    parser.add_argument('--model', type=str, choices=['lenet300', 'lenet5', 'resnet18', 'vgg11', 'custom'], default='lenet300')
     parser.add_argument('--dataset', type=str, choices=['mnist', 'cifar10'], default='mnist')
     parser.add_argument('--batch_size', type=int, default=32)
     parser.add_argument('--epochs', type=int, default=100)

@@ -1,6 +1,7 @@
 import torch.nn as nn
+import torch.nn.functional as F
+import torch
 import math
-import torch.functional as F
 
 class LinearMasked(nn.Module):
     def __init__(self, input_features, output_features, bias=True):
@@ -8,7 +9,7 @@ class LinearMasked(nn.Module):
         self.input_features = input_features
         self.output_features = output_features
 
-        self.weight = nn.Parameter(torch.Tensor(input_features, output_features))
+        self.weights = nn.Parameter(torch.Tensor(output_features, input_features))
 
         if 'bias':
             self.bias = nn.Parameter(torch.Tensor(output_features))
@@ -18,16 +19,16 @@ class LinearMasked(nn.Module):
         self.reset_parameters()
 
     def reset_parameters(self):
-        nn.init.kaiming_uniform_(self.weight, a=math.sqrt(5))
-        self.weight_signs = self.weight.clone().detach().sign()
-        self.weight.abs_()
+        nn.init.kaiming_uniform_(self.weights, a=math.sqrt(5))
+        self.weight_signs = self.weights.clone().detach().sign().to('cuda')
+        self.weights.data.abs_()
 
         if self.bias is not None:
-            fan_in, _ = nn.init.calculate_fan_in_and_fan_out(self.weight)
+            fan_in, _ = nn.init._calculate_fan_in_and_fan_out(self.weights)
             bound = 1 / math.sqrt(fan_in)
             nn.init.uniform_(self.bias, -bound, bound)
-            self.bias_signs = self.bias.clone().detach().sign()
-            self.bias.abs_()
+            self.bias_signs = self.bias.clone().detach().sign().to('cuda')
+            self.bias.data.abs_()
             
     def forward(self, input):
         signed_weights = F.relu(self.weights)*self.weight_signs
@@ -36,3 +37,7 @@ class LinearMasked(nn.Module):
             signed_bias = F.relu(self.bias)*self.bias_signs
         
         return F.linear(input, signed_weights, signed_bias)
+
+class ConvMasked(nn.Module):
+    # TODO
+    pass
