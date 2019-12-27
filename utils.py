@@ -12,7 +12,8 @@ def set_seed(seed):
 def construct_run_name(config):
     return ''.join(['_'+str(key)+'_'+str(value) if key!='comment' else '' for key,value in config.items()])
 
-def get_opt(config, params):
+def get_opt(config, model):
+    params = model.parameters()
     if config['opt'] == 'adam':
         opt = optim.Adam(params, lr=config['lr'], weight_decay=config['wdecay'])
     elif config['opt'] == 'sgd':
@@ -21,7 +22,7 @@ def get_opt(config, params):
         opt = optim.RMSprop(params, lr=config['lr'], weight_decay=config['wdecay'])
     
     return opt
-    
+
 def plot_weight_histograms(model, writer, epoch_num):
     for name,layer in model.named_parameters():
         if layer.requires_grad:

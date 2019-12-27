@@ -77,7 +77,7 @@ def train(config, writer):
     train_loader, test_loader = load_dataset(config)
     print('Model has {} total params, including biases.'.format(model.get_total_params()))
     
-    opt = get_opt(config, model.parameters())
+    opt = get_opt(config, model)
 
     criterion = nn.CrossEntropyLoss()
 
