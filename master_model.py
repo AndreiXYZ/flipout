@@ -160,7 +160,7 @@ class MasterModel(nn.Module):
             for layer, layer_mask in zip(self.parameters(),self.mask):
                 # Noise has variance equal to layer-wise l2 norm divided by num of elements
                 noise = torch.randn_like(layer)
-                scaling_factor = layer.grad.norm(p=2)/layer.numel()
+                scaling_factor = layer.grad.norm(p=2)/math.sqrt(layer.numel())
                 noise_per_layer.append(scaling_factor)
                 layer.grad.data += noise*scaling_factor
                 layer.grad.data *= layer_mask
