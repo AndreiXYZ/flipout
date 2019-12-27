@@ -45,8 +45,9 @@ def epoch(epoch_num, loader,  model, opt, criterion, writer, config):
             
             if config['add_noise']:
                 noise_per_layer = model.inject_noise()
-                for idx,layer in enumerate(model.parameters()):
-                    writer.add_scalar('noise/'+str(idx), noise_per_layer[idx], update_num)
+                for idx,(name,layer) in enumerate(model.named_parameters()):
+                    if 'weight' in name:
+                        writer.add_scalar('noise/'+str(idx), noise_per_layer[idx], update_num)
             
             opt.step()
             

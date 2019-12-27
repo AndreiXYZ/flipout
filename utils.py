@@ -57,3 +57,7 @@ def print_gc_memory_usage():
         except:
             pass
     print('Total usage in bytes = ', total_usage)
+
+def sample_log_uniform(a, b, size):
+    uniform_tensor = torch.Tensor(np.random.uniform(np.log(a), np.log(b), size)).exp()
+    return uniform_tensor
