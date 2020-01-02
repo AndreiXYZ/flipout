@@ -1,5 +1,6 @@
 import torch.nn as nn
 import torch
+import torch.nn.functional as F
 import math
 import numpy as np
 
@@ -116,12 +117,22 @@ class MasterModel(nn.Module):
             layer_mask.data[selected_indices] = 0 
             layer.data = layer*layer_mask
 
+    
     def get_sparsity(self):
         # Get the global sparsity rate
         with torch.no_grad():
             sparsity = 0
             for layer in self.parameters():
                 sparsity += (layer==0).sum().item()
+        return float(sparsity)/self.total_params
+
+    def get_sparsity_custom(self):
+        # Same thing as above but for the custom model
+        with torch.no_grad():
+            sparsity = 0
+            for layer in self.parameters():
+                relu_weights = F.relu(layer)
+                sparsity += (layer<=0).sum().item()
         return float(sparsity)/self.total_params
 
     def store_flips_since_last(self):
@@ -166,3 +177,14 @@ class MasterModel(nn.Module):
                 layer.grad.data *= layer_mask
         
         return noise_per_layer
+
+    def inject_noise_custom(self):
+        noise_per_layer = []
+        with torch.no_grad():
+            for layer, layer_mask in zip(self.parameters(), self.mask):
+                noise = torch.randn_like(layer)
+                relu_layer = F.relu(layer)
+                scaling_factor = layer.grad.norm(p=2)/math.sqrt(layer.numel())
+                noise_per_layer.append(scaling_factor)
+                layer.grad.data += noise*scaling_factor
+                layer.grad.data *= layer_mask

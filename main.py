@@ -38,6 +38,9 @@ def epoch(epoch_num, loader,  model, opt, criterion, writer, config):
             #             pass
             # else:
             #     writer.add_scalar('sparsity/sparsity_before_step', model.get_sparsity(), update_num)
+
+
+            
             model.save_weights()
             loss.backward()
             
@@ -94,8 +97,12 @@ def train(config, writer):
         print('Train - acc: {:>15.6f} loss: {:>15.6f}\nTest - acc: {:>16.6f} loss: {:>15.6f}'.format(
             train_acc, train_loss, test_acc, test_loss
         ))
-        print('Sparsity : {:>10.4f}'.format(model.get_sparsity()))
-        
+
+        if config['model'] == 'custom': 
+            print('Sparsity : {:>10.4f}'.format(model.get_sparsity_custom()))
+        else:
+            print('Sparsity : {:>10.4f}'.format(model.get_sparsity()))
+            
         if (epoch_num+1)%config['prune_freq'] == 0:
             if config['prune_criterion'] == 'magnitude':
                 model.update_mask_magnitudes(config['prune_rate'])
