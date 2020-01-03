@@ -5,6 +5,7 @@ import torch.optim as optim
 import torch.optim.lr_scheduler as lr_scheduler
 import matplotlib.pyplot as plt
 import torch.nn as nn
+import torch.nn.functional as F
 
 from torch.utils.tensorboard import SummaryWriter
 from torch.backends import cudnn
@@ -13,7 +14,7 @@ from models import *
 from data_loaders import *
 from master_model import MasterWrapper
 
-def epoch(epoch_num, loader,  model, opt, criterion, writer, config):
+def epoch(epoch_num, loader,  model, opt, writer, config):
     epoch_acc = 0
     epoch_loss = 0
     size = len(loader.dataset)
@@ -24,7 +25,7 @@ def epoch(epoch_num, loader,  model, opt, criterion, writer, config):
         x = x.float().to(config['device'])
         y = y.to(config['device'])
         out = model.forward(x)
-        loss = criterion(out, y)
+        loss = F.cross_entropy(out, y)
 
         if model.training:
             # Get sparsity of custom model
@@ -82,17 +83,15 @@ def train(config, writer):
     
     opt = get_opt(config, model)
 
-    criterion = nn.CrossEntropyLoss()
-
     for epoch_num in range(config['epochs']):
         print('='*10 + ' Epoch ' + str(epoch_num) + ' ' + '='*10)
 
         model.train()
-        train_acc, train_loss = epoch(epoch_num, train_loader, model, opt, criterion, writer, config)
+        train_acc, train_loss = epoch(epoch_num, train_loader, model, opt, writer, config)
         
         model.eval()
         with torch.no_grad():
-            test_acc, test_loss = epoch(epoch_num, test_loader, model, opt, criterion, writer, config)   
+            test_acc, test_loss = epoch(epoch_num, test_loader, model, opt, writer, config)   
         
         print('Train - acc: {:>15.6f} loss: {:>15.6f}\nTest - acc: {:>16.6f} loss: {:>15.6f}'.format(
             train_acc, train_loss, test_acc, test_loss
