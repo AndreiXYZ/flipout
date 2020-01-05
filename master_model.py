@@ -118,21 +118,17 @@ class MasterModel(nn.Module):
             layer.data = layer*layer_mask
 
     
-    def get_sparsity(self):
+    def get_sparsity(self,config):
         # Get the global sparsity rate
         with torch.no_grad():
             sparsity = 0
-            for layer in self.parameters():
-                sparsity += (layer==0).sum().item()
-        return float(sparsity)/self.total_params
-
-    def get_sparsity_custom(self):
-        # Same thing as above but for the custom model
-        with torch.no_grad():
-            sparsity = 0
-            for layer in self.parameters():
-                relu_weights = F.relu(layer)
-                sparsity += (layer<=0).sum().item()
+            if config['model'] == 'custom':
+                for layer in self.parameters():
+                    relu_weights = F.relu(layer)
+                    sparsity += (layer<=0).sum().item()
+            else:
+                for layer in self.parameters():
+                    sparsity += (layer==0).sum().item()
         return float(sparsity)/self.total_params
 
     def store_flips_since_last(self):

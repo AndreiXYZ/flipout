@@ -27,21 +27,7 @@ def epoch(epoch_num, loader,  model, opt, writer, config):
         out = model.forward(x)
         loss = F.cross_entropy(out, y)
 
-        if model.training:
-            # Get sparsity of custom model
-            # if config['model'] == 'custom':
-            #     #TODO
-            #     for (name, layer) in zip(model.named_parameters(), model.weights):
-            #         if 'weight' in name:
-            #             pass
-            #     for (name, layer) in zip(model.named_parameters(), model.bias):
-            #         if 'bias' in name:
-            #             pass
-            # else:
-            #     writer.add_scalar('sparsity/sparsity_before_step', model.get_sparsity(), update_num)
-
-
-            
+        if model.training:            
             model.save_weights()
             loss.backward()
             
@@ -55,7 +41,7 @@ def epoch(epoch_num, loader,  model, opt, writer, config):
             
             opt.step()
             
-            writer.add_scalar('sparsity/sparsity_after_step', model.get_sparsity(), update_num)
+            writer.add_scalar('sparsity/sparsity_after_step', model.get_sparsity(config), update_num)
             # Monitor wegiths for flips
             flips_since_last = model.store_flips_since_last()
             flips_total = model.get_flips_total()
@@ -97,10 +83,7 @@ def train(config, writer):
             train_acc, train_loss, test_acc, test_loss
         ))
 
-        if config['model'] == 'custom': 
-            print('Sparsity : {:>10.4f}'.format(model.get_sparsity_custom()))
-        else:
-            print('Sparsity : {:>10.4f}'.format(model.get_sparsity()))
+        print('Sparsity : {:>10.4f}'.format(model.get_sparsity(config)))
             
         if (epoch_num+1)%config['prune_freq'] == 0:
             if config['prune_criterion'] == 'magnitude':
@@ -111,7 +94,7 @@ def train(config, writer):
                 model.update_mask_random(config['prune_rate'])
         
         
-        plot_stats(train_acc, train_loss, test_acc, test_loss, model, writer, epoch_num)
+        plot_stats(train_acc, train_loss, test_acc, test_loss, model, writer, epoch_num, config)
         plot_weight_histograms(model, writer, epoch_num)
         
 def main():
@@ -146,9 +129,8 @@ def main():
     set_seed(config['seed'])
 
     run_hparams = construct_run_name(config)
-    writer = SummaryWriter(comment=run_hparams)
+    writer = SummaryWriter(comment='_'+config['comment'])
     writer.add_text('config', run_hparams)
-    writer.add_text('comment', config['comment'])
     train(config, writer)
 
 if __name__ == "__main__":
