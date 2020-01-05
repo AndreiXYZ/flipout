@@ -40,4 +40,11 @@ class LinearMasked(nn.Module):
 
 class ConvMasked(nn.Module):
     # TODO
-    pass
+    def __init__(self):
+        pass
+
+    def reset_parameters(self):
+        pass
+
+    def forward(self, input):
+        pass

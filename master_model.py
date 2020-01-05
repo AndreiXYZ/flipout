@@ -175,7 +175,6 @@ class MasterModel(nn.Module):
                 noise_per_layer.append(scaling_factor)
                 layer.grad.data += noise*scaling_factor
                 layer.grad.data *= layer_mask
-        
         return noise_per_layer
 
     def inject_noise_custom(self):
@@ -184,7 +183,9 @@ class MasterModel(nn.Module):
             for layer, layer_mask in zip(self.parameters(), self.mask):
                 noise = torch.randn_like(layer)
                 relu_layer = F.relu(layer)
-                scaling_factor = layer.grad.norm(p=2)/math.sqrt(layer.numel())
+                scaling_factor = relu_layer.grad.norm(p=2)/math.sqrt(relu_layer.numel())
                 noise_per_layer.append(scaling_factor)
-                layer.grad.data += noise*scaling_factor
-                layer.grad.data *= layer_mask
+                # Only add noise to elements which are nonzero
+                noise_mask = relu_layer>0
+                layer.grad.data += noise*scaling_factor*noise_mask
+        return noise_per_layer
