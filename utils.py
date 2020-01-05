@@ -15,11 +15,11 @@ def construct_run_name(config):
 def get_opt(config, model):
     params = model.parameters()
     if config['opt'] == 'adam':
-        opt = optim.Adam(params, lr=config['lr'], weight_decay=config['wdecay'])
+        opt = optim.Adam(params, lr=config['lr'], weight_decay=0)
     elif config['opt'] == 'sgd':
-        opt = optim.SGD(params, lr=config['lr'], weight_decay=config['wdecay'])
+        opt = optim.SGD(params, lr=config['lr'], weight_decay=0)
     elif config['opt'] == 'rmsprop':
-        opt = optim.RMSprop(params, lr=config['lr'], weight_decay=config['wdecay'])
+        opt = optim.RMSprop(params, lr=config['lr'], weight_decay=0)
     
     return opt
 

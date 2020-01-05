@@ -25,7 +25,9 @@ def epoch(epoch_num, loader,  model, opt, writer, config):
         x = x.float().to(config['device'])
         y = y.to(config['device'])
         out = model.forward(x)
-        loss = F.cross_entropy(out, y)
+
+        all_params = model.get_flattened_params()
+        loss = F.cross_entropy(out, y) + all_params.norm(p=2)*config['wdecay'] 
 
         if model.training:            
             model.save_weights()

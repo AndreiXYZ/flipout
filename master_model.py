@@ -37,6 +37,22 @@ class MasterModel(nn.Module):
             return sum([weights.numel() for weights in self.parameters()
                                     if weights.requires_grad])
     
+    def get_sparsity(self,config):
+    # Get the global sparsity rate
+        with torch.no_grad():
+            sparsity = 0
+            if config['model'] == 'custom':
+                for layer in self.parameters():
+                    relu_weights = F.relu(layer)
+                    sparsity += (layer<=0).sum().item()
+            else:
+                for layer in self.parameters():
+                    sparsity += (layer==0).sum().item()
+        return float(sparsity)/self.total_params
+
+    def get_flattened_params(self):
+        return torch.cat([layer.view(-1) for layer in self.parameters()])
+
     def instantiate_mask(self):
         self.mask = [torch.ones_like(layer, dtype=torch.bool).to('cuda') for layer in self.parameters()]
     
@@ -117,19 +133,6 @@ class MasterModel(nn.Module):
             layer_mask.data[selected_indices] = 0 
             layer.data = layer*layer_mask
 
-    
-    def get_sparsity(self,config):
-        # Get the global sparsity rate
-        with torch.no_grad():
-            sparsity = 0
-            if config['model'] == 'custom':
-                for layer in self.parameters():
-                    relu_weights = F.relu(layer)
-                    sparsity += (layer<=0).sum().item()
-            else:
-                for layer in self.parameters():
-                    sparsity += (layer==0).sum().item()
-        return float(sparsity)/self.total_params
 
     def store_flips_since_last(self):
     # Retrieves how many params have flipped compared to previously saved weights
