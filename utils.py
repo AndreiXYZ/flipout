@@ -12,14 +12,14 @@ def set_seed(seed):
 def construct_run_name(config):
     return ''.join(['_'+str(key)+'_'+str(value) if key!='comment' else '' for key,value in config.items()])
 
-def get_opt(config, model):
+def get_opt(config, model, wdecay):
     params = model.parameters()
     if config['opt'] == 'adam':
-        opt = optim.Adam(params, lr=config['lr'], weight_decay=0)
+        opt = optim.Adam(params, lr=config['lr'], weight_decay=wdecay)
     elif config['opt'] == 'sgd':
-        opt = optim.SGD(params, lr=config['lr'], weight_decay=0)
+        opt = optim.SGD(params, lr=config['lr'], weight_decay=wdecay)
     elif config['opt'] == 'rmsprop':
-        opt = optim.RMSprop(params, lr=config['lr'], weight_decay=0)
+        opt = optim.RMSprop(params, lr=config['lr'], weight_decay=wdecay)
     
     return opt
 

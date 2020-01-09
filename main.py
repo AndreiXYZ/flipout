@@ -27,11 +27,7 @@ def epoch(epoch_num, loader,  model, opt, writer, config):
         out = model.forward(x)
 
         # Calc loss function
-        all_params = model.get_flattened_params()
-        weight_penalty = 0
-        for layer in model.parameters():
-            weight_penalty += layer.norm(p=2)
-        loss = F.cross_entropy(out, y) + weight_penalty*config['wdecay'] 
+        loss = F.cross_entropy(out, y)
 
         if model.training:            
             model.save_weights()
@@ -51,8 +47,6 @@ def epoch(epoch_num, loader,  model, opt, writer, config):
 
             writer.add_scalar('signs/remaining_pos', remaining_pos/total_remaining, update_num)
 
-
-            writer.add_scalar('sparsity/sparsity_after_step', model.get_sparsity(config), update_num)
             # Monitor wegiths for flips
             flips_since_last = model.store_flips_since_last()
             flips_total = model.get_flips_total()
@@ -78,7 +72,7 @@ def train(config, writer):
     train_loader, test_loader = load_dataset(config)
     print('Model has {} total params, including biases.'.format(model.get_total_params()))
     
-    opt = get_opt(config, model)
+    opt = get_opt(config, model, wdecay=config['wdecay'])
 
     for epoch_num in range(config['epochs']):
         print('='*10 + ' Epoch ' + str(epoch_num) + ' ' + '='*10)
