@@ -48,6 +48,7 @@ class MasterModel(nn.Module):
             else:
                 for layer in self.parameters():
                     sparsity += (layer==0).sum().item()
+    
         return float(sparsity)/self.total_params
 
     def get_flattened_params(self):
