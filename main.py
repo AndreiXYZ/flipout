@@ -14,7 +14,7 @@ from models import *
 from data_loaders import *
 from master_model import MasterWrapper
 
-def epoch(epoch_num, loader,  model, opt, writer, config):
+def epoch(epoch_num, loader,  model, opt, scheduler, writer, config):
     epoch_acc = 0
     epoch_loss = 0
     size = len(loader.dataset)
@@ -25,7 +25,8 @@ def epoch(epoch_num, loader,  model, opt, writer, config):
         x = x.float().to(config['device'])
         y = y.to(config['device'])
         out = model.forward(x)
-
+        
+        writer.add_scalar('lr', opt.param_groups[0]['lr'], update_num)
         # Calc loss function
         loss = F.cross_entropy(out, y)
 
@@ -42,7 +43,8 @@ def epoch(epoch_num, loader,  model, opt, writer, config):
                         writer.add_scalar('noise/'+str(idx), noise_per_layer[idx], update_num)
             
             opt.step()
-            
+            scheduler.step()
+
             total_remaining, remaining_pos = model.get_sign_percentages()
 
             writer.add_scalar('signs/remaining_pos', remaining_pos/total_remaining, update_num)
@@ -74,15 +76,22 @@ def train(config, writer):
     
     opt = get_opt(config, model, wdecay=config['wdecay'])
 
+    len_train = len(train_loader.dataset)
+    scheduler = lr_scheduler.OneCycleLR(opt, 
+                                        max_lr=0.1, 
+                                        steps_per_epoch=math.ceil(len(train_loader.dataset)/config['batch_size']-20),
+                                        epochs=config['epochs'])
+
+
     for epoch_num in range(config['epochs']):
         print('='*10 + ' Epoch ' + str(epoch_num) + ' ' + '='*10)
 
         model.train()
-        train_acc, train_loss = epoch(epoch_num, train_loader, model, opt, writer, config)
+        train_acc, train_loss = epoch(epoch_num, train_loader, model, opt, scheduler, writer, config)
         
         model.eval()
         with torch.no_grad():
-            test_acc, test_loss = epoch(epoch_num, test_loader, model, opt, writer, config)   
+            test_acc, test_loss = epoch(epoch_num, test_loader, model, opt, scheduler, writer, config)   
         
         print('Train - acc: {:>15.6f} loss: {:>15.6f}\nTest - acc: {:>16.6f} loss: {:>15.6f}'.format(
             train_acc, train_loss, test_acc, test_loss
