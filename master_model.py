@@ -196,7 +196,9 @@ class MasterModel(nn.Module):
         with torch.no_grad():
             for layer in self.parameters():
                 flat_layer = layer.flatten()
-                total_remaining_weights += flat_layer.numel()
-                remaining_pos += flat_layer[flat_layer > 0].numel()
+                remaining = flat_layer[flat_layer != 0]
+
+                total_remaining_weights += remaining.numel()
+                remaining_pos += remaining[remaining > 0].numel()
     
         return total_remaining_weights, remaining_pos
