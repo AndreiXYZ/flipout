@@ -28,7 +28,10 @@ def epoch(epoch_num, loader,  model, opt, writer, config):
 
         # Calc loss function
         all_params = model.get_flattened_params()
-        loss = F.cross_entropy(out, y) + all_params.norm(p=1)*config['wdecay'] 
+        weight_penalty = 0
+        for layer in model.parameters():
+            weight_penalty += layer.norm(p=2)
+        loss = F.cross_entropy(out, y) + weight_penalty*config['wdecay'] 
 
         if model.training:            
             model.save_weights()
@@ -47,8 +50,6 @@ def epoch(epoch_num, loader,  model, opt, writer, config):
             total_remaining, remaining_pos = model.get_sign_percentages()
 
             writer.add_scalar('signs/remaining_pos', remaining_pos/total_remaining, update_num)
-            writer.add_scalar('signs/remaining_total', total_remaining, update_num)
-            writer.add_scalar('signs/reamining_pos_absolute', remaining_pos, update_num)
 
 
             writer.add_scalar('sparsity/sparsity_after_step', model.get_sparsity(config), update_num)
