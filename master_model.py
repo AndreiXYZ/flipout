@@ -188,3 +188,15 @@ class MasterModel(nn.Module):
                 noise_mask = relu_layer>0
                 layer.grad.data += noise*scaling_factor*noise_mask
         return noise_per_layer
+
+    def get_sign_percentages(self):
+        # Get total num of weights
+        total_remaining_weights = 0
+        remaining_pos = 0
+        with torch.no_grad():
+            for layer in self.parameters():
+                flat_layer = layer.flatten()
+                total_remaining_weights += flat_layer.numel()
+                remaining_pos += flat_layer[flat_layer > 0].numel()
+    
+        return total_remaining_weights, remaining_pos

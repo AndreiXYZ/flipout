@@ -43,6 +43,9 @@ def epoch(epoch_num, loader,  model, opt, writer, config):
             
             opt.step()
             
+            total_remaining, remaining_pos = model.get_sign_percentages()
+
+            writer.add_scalar('signs/remaining_pos', remaining_pos/total_remaining, update_num)
             writer.add_scalar('sparsity/sparsity_after_step', model.get_sparsity(config), update_num)
             # Monitor wegiths for flips
             flips_since_last = model.store_flips_since_last()
