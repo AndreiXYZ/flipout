@@ -37,23 +37,22 @@ def epoch(epoch_num, loader,  model, opt, writer, config):
             
             if config['add_noise']:
                 noise_per_layer = model.inject_noise()
-                for idx,(name,layer) in enumerate(model.named_parameters()):
-                    if 'weight' in name:
-                        writer.add_scalar('noise/'+str(idx), noise_per_layer[idx], update_num)
+                # for idx,(name,layer) in enumerate(model.named_parameters()):
+                #     if 'weight' in name amd ('fc' in name or 'conv' in name):
+                #         writer.add_scalar('noise/'+str(idx), noise_per_layer[idx], update_num)
             
             opt.step()
 
             total_remaining, remaining_pos = model.get_sign_percentages()
 
-            writer.add_scalar('signs/remaining_pos', remaining_pos/total_remaining, update_num)
+            # writer.add_scalar('signs/remaining_pos', remaining_pos/total_remaining, update_num)
 
             # Monitor wegiths for flips
             flips_since_last = model.store_flips_since_last()
-            flips_total = model.get_flips_total()
-            flipped_total = model.get_total_flipped()
-            writer.add_scalar('flips/flips_since_last', flips_since_last, update_num)
-            writer.add_scalar('flips/percentage_since_last', float(flips_since_last)/model.total_params, update_num)
-            writer.add_scalar('flips/flipped_total', flipped_total, update_num)
+            # flips_total = model.get_flips_total()
+            # flipped_total = model.get_total_flipped()
+            # writer.add_scalar('flips/flips_since_last', flips_since_last, update_num)
+            # writer.add_scalar('flips/flipped_total', flipped_total, update_num)
 
         preds = out.argmax(dim=1, keepdim=True).squeeze()
         correct = preds.eq(y).sum().item()
@@ -78,8 +77,9 @@ def train(config, writer):
         print('='*10 + ' Epoch ' + str(epoch_num) + ' ' + '='*10)
 
         model.train()
+        # Anneal wdecay
         opt.param_groups[0]['weight_decay'] = config['wdecay']*(1-model.get_sparsity(config))
-        print('Wdecay :', opt.param_groups[0]['weight_decay'])
+
         train_acc, train_loss = epoch(epoch_num, train_loader, model, opt, writer, config)
         
         model.eval()
@@ -90,8 +90,9 @@ def train(config, writer):
             train_acc, train_loss, test_acc, test_loss
         ))
 
-        print('Sparsity : {:>10.4f}'.format(model.get_sparsity(config)))
-            
+        print('Sparsity : {:>15.4f}'.format(model.get_sparsity(config)))
+        print('Wdecay : {:>15.4f}'.format(opt.param_groups[0]['weight_decay']))
+
         if (epoch_num+1)%config['prune_freq'] == 0:
             if config['prune_criterion'] == 'magnitude':
                 model.update_mask_magnitudes(config['prune_rate'])
@@ -102,7 +103,7 @@ def train(config, writer):
         
         
         plot_stats(train_acc, train_loss, test_acc, test_loss, model, writer, epoch_num, config)
-        plot_weight_histograms(model, writer, epoch_num)
+        # plot_weight_histograms(model, writer, epoch_num)
         
 def main():
     parser = argparse.ArgumentParser()

@@ -41,6 +41,7 @@ def plot_weight_histograms(model, writer, epoch_num):
 def plot_stats(train_acc, train_loss, test_acc, test_loss, model, writer, epoch_num, config):
         writer.add_scalar('acc/train', train_acc, epoch_num)
         writer.add_scalar('acc/test', test_acc, epoch_num)
+        writer.add_scalar('acc/generalization_err', train_acc-test_acc, epoch_num)
         writer.add_scalar('loss/train', train_loss, epoch_num)
         writer.add_scalar('loss/test', test_loss, epoch_num)
         writer.add_scalar('sparsity/sparsity', model.get_sparsity(config), epoch_num)
