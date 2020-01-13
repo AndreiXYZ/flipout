@@ -2,7 +2,7 @@ import torch.nn as nn
 import torch
 import math
 import torchvision.models as models
-from layers import LinearMasked
+from layers import LinearMasked, Conv2dMasked
 from master_model import MasterModel, MasterWrapper
 
 class LeNet300Custom(MasterModel):
@@ -73,24 +73,24 @@ class LeNet5(MasterModel):
 
 class LeNet5Custom(MasterModel):
     def __init__(self):
-        super(LeNet5, self).__init__()
+        super(LeNet5Custom, self).__init__()
 
         # Not exactly like the paper, yet
         self.conv_layers = nn.Sequential(
-            nn.Conv2dMasked(in_channels=3, out_channels=6, kernel_size=(5,5)),
+            Conv2dMasked(in_channels=3, out_channels=6, kernel_size=(5,5)),
             nn.ReLU(),
             nn.MaxPool2d(kernel_size=(2,2), stride=2),
-            nn.Conv2dMasked(6, 16, kernel_size=(5,5)),
+            Conv2dMasked(6, 16, kernel_size=(5,5)),
             nn.ReLU(),
             nn.MaxPool2d(kernel_size=(2,2), stride=2),
-            nn.Conv2dMasked(16, 120, kernel_size=(5,5)),
+            Conv2dMasked(16, 120, kernel_size=(5,5)),
             nn.ReLU()
         )
 
         self.fc_layers = nn.Sequential(
-            nn.LinearMasked(120, 84),
+            LinearMasked(120, 84),
             nn.ReLU(),
-            nn.LinearMasked(84, 10)
+            LinearMasked(84, 10)
         )
         
     def forward(self, x):

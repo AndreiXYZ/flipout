@@ -41,7 +41,7 @@ class MasterModel(nn.Module):
     # Get the global sparsity rate
         with torch.no_grad():
             sparsity = 0
-            if config['model'] == 'custom':
+            if 'custom' in config['model']:
                 for layer in self.parameters():
                     relu_weights = F.relu(layer)
                     sparsity += (layer<=0).sum().item()

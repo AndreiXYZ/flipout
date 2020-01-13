@@ -2,6 +2,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch
 import math
+from torch.nn.modules.utils import _pair
 
 class LinearMasked(nn.Module):
     def __init__(self, input_features, output_features, bias=True):
@@ -38,7 +39,7 @@ class LinearMasked(nn.Module):
         
         return F.linear(input, signed_weights, signed_bias)
 
-class Conv2dMasked(nn.Module):
+class Conv2dMasked(nn.modules.conv._ConvNd):
     # TODO
     def __init__(self, in_channels, out_channels, kernel_size, stride=1,
                  padding=0, dilation=1, groups=1, bias=True, padding_mode='zeros'):
@@ -47,19 +48,19 @@ class Conv2dMasked(nn.Module):
         stride = _pair(stride)
         padding = _pair(padding)
         dilation = _pair(dilation)
-        super(Conv2d, self).__init__(
+        super(Conv2dMasked, self).__init__(
             in_channels, out_channels, kernel_size, stride, padding, dilation,
             False, _pair(0), groups, bias, padding_mode)
         
         self.reset_parameters()
 
     def reset_parameters(self):
-        nn.init.kaiming_uniform_(self.weights, a=math.sqrt(5))
-        self.weight_signs = self.weights.clone().detach().sign().to('cuda')
-        self.weights.data.abs_()
+        nn.init.kaiming_uniform_(self.weight, a=math.sqrt(5))
+        self.weight_signs = self.weight.clone().detach().sign().to('cuda')
+        self.weight.data.abs_()
 
         if self.bias is not None:
-            fan_in, _ = nn.init._calculate_fan_in_and_fan_out(self.weights)
+            fan_in, _ = nn.init._calculate_fan_in_and_fan_out(self.weight)
             bound = 1 / math.sqrt(fan_in)
             nn.init.uniform_(self.bias, -bound, bound)
             self.bias_signs = self.bias.clone().detach().sign().to('cuda')
