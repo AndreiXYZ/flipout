@@ -180,14 +180,14 @@ class MasterModel(nn.Module):
     def inject_noise_custom(self):
         noise_per_layer = []
         with torch.no_grad():
-            for layer, layer_mask in zip(self.parameters(), self.mask):
+            for layer in self.parameters():
+                layer_mask = F.relu(layer)>0
                 noise = torch.randn_like(layer)
-                relu_layer = F.relu(layer)
-                scaling_factor = relu_layer.grad.norm(p=2)/math.sqrt(relu_layer.numel())
+                scaling_factor = layer.grad.norm(p=2)/math.sqrt(layer.numel())
                 noise_per_layer.append(scaling_factor)
                 # Only add noise to elements which are nonzero
-                noise_mask = relu_layer>0
-                layer.grad.data += noise*scaling_factor*noise_mask
+                layer.grad.data += noise*scaling_factor
+                layer.grad.data *= layer_mask
         return noise_per_layer
 
     def get_sign_percentages(self):

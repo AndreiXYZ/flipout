@@ -36,7 +36,10 @@ def epoch(epoch_num, loader,  model, opt, writer, config):
             model.apply_mask()
             
             if config['add_noise']:
-                noise_per_layer = model.inject_noise()
+                if 'custom' in config['model']:
+                    noise_per_layer = model.inject_noise_custom()
+                else:
+                    noise_per_layer = model.inject_noise()
                 # for idx,(name,layer) in enumerate(model.named_parameters()):
                 #     if 'weight' in name amd ('fc' in name or 'conv' in name):
                 #         writer.add_scalar('noise/'+str(idx), noise_per_layer[idx], update_num)
