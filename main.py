@@ -107,7 +107,8 @@ def train(config, writer):
         
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--model', type=str, choices=['lenet300', 'lenet5', 'resnet18', 'vgg11', 'custom'], default='lenet300')
+    parser.add_argument('--model', type=str, choices=['lenet300', 'lenet5', 'resnet18', 
+                                                        'vgg11', 'custom', 'lenet5custom'], default='lenet300')
     parser.add_argument('--dataset', type=str, choices=['mnist', 'cifar10'], default='mnist')
     parser.add_argument('--batch_size', type=int, default=32)
     parser.add_argument('--epochs', type=int, default=100)

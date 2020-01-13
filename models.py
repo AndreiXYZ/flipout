@@ -71,6 +71,36 @@ class LeNet5(MasterModel):
         fc_out = self.fc_layers(conv_out)
         return fc_out
 
+class LeNet5Custom(MasterModel):
+    def __init__(self):
+        super(LeNet5, self).__init__()
+
+        # Not exactly like the paper, yet
+        self.conv_layers = nn.Sequential(
+            nn.Conv2dMasked(in_channels=3, out_channels=6, kernel_size=(5,5)),
+            nn.ReLU(),
+            nn.MaxPool2d(kernel_size=(2,2), stride=2),
+            nn.Conv2dMasked(6, 16, kernel_size=(5,5)),
+            nn.ReLU(),
+            nn.MaxPool2d(kernel_size=(2,2), stride=2),
+            nn.Conv2dMasked(16, 120, kernel_size=(5,5)),
+            nn.ReLU()
+        )
+
+        self.fc_layers = nn.Sequential(
+            nn.LinearMasked(120, 84),
+            nn.ReLU(),
+            nn.LinearMasked(84, 10)
+        )
+        
+    def forward(self, x):
+        conv_out = self.conv_layers(x)
+        # Flatten x
+        conv_out = conv_out.flatten(start_dim=1)
+        fc_out = self.fc_layers(conv_out)
+        return fc_out
+
+    
 class ResNet18(MasterModel):
     def __init__(self):
         super(ResNet18, self).__init__()
@@ -127,6 +157,8 @@ def load_model(config):
         model = VGG11()
     elif config['model'] == 'custom':
         model = LeNet300Custom()
+    elif config['model'] == 'lenet5custom':
+        model = LeNet5Custom()
     
     model = MasterWrapper(model).to(config['device'])
 
