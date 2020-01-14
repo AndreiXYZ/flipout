@@ -26,10 +26,21 @@ def epoch(epoch_num, loader,  model, opt, writer, config):
         y = y.to(config['device'])
         out = model.forward(x)
         
-
+        if model.training == False:
+            writer.add_scalar('sparsity/sparsity_on_eval', model.get_sparsity(config), update_num)
         # Calc loss function
-        loss = F.cross_entropy(out, y)
-        if model.training:            
+
+        penalty = None
+        for layer in model.parameters():
+            if penalty is None:
+                penalty = layer.norm(p=2)
+            else:
+                penalty = penalty + layer.norm(p=2)
+
+        loss = F.cross_entropy(out, y) #+ config['wdecay']*penalty
+
+        if model.training:
+            writer.add_scalar('sparsity/sparsity_before_step', model.get_sparsity(config), update_num)      
             model.save_weights()
             loss.backward()
             
@@ -47,7 +58,7 @@ def epoch(epoch_num, loader,  model, opt, writer, config):
             opt.step()
 
             total_remaining, remaining_pos = model.get_sign_percentages()
-
+            writer.add_scalar('sparsity/sparsity_after_step', model.get_sparsity(config), update_num)
             # writer.add_scalar('signs/remaining_pos', remaining_pos/total_remaining, update_num)
 
             # Monitor wegiths for flips
@@ -111,7 +122,7 @@ def train(config, writer):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--model', type=str, choices=['lenet300', 'lenet5', 'resnet18', 
-                                                        'vgg11', 'custom', 'lenet5custom'], default='lenet300')
+                                                        'conv6', 'custom', 'lenet5custom'], default='lenet300')
     parser.add_argument('--dataset', type=str, choices=['mnist', 'cifar10'], default='mnist')
     parser.add_argument('--batch_size', type=int, default=32)
     parser.add_argument('--epochs', type=int, default=100)

@@ -100,31 +100,42 @@ class LeNet5Custom(MasterModel):
         fc_out = self.fc_layers(conv_out)
         return fc_out
 
-    
-class ResNet18(MasterModel):
+class Conv6(MasterModel):
     def __init__(self):
-        super(ResNet18, self).__init__()
-        self.model = models.resnet18(pretrained=False)
+        super(Conv6, self).__init__()
+        self.conv_layers = nn.Sequential(
+            nn.Conv2d(in_channels=3, out_channels=64, kernel_size=(3,3), padding=1),
+            nn.ReLU(),
+            nn.Conv2d(in_channels=64, out_channels=64, kernel_size=(3,3), padding=1),
+            nn.ReLU(),
+            nn.MaxPool2d(kernel_size=2, stride=2),
+
+            nn.Conv2d(in_channels=64, out_channels=128, kernel_size=(3,3), padding=1),
+            nn.ReLU(),
+            nn.Conv2d(in_channels=128, out_channels=128, kernel_size=(3,3), padding=1),
+            nn.ReLU(),
+            nn.MaxPool2d(kernel_size=2, stride=2),
+
+            nn.Conv2d(in_channels=128, out_channels=256, kernel_size=(3,3), padding=1),
+            nn.ReLU(),
+            nn.Conv2d(in_channels=256, out_channels=256, kernel_size=(3,3), padding=1),
+            nn.ReLU(),
+            nn.MaxPool2d(kernel_size=2, stride=2)
+        )
+
+        self.fc_layers = nn.Sequential(
+            nn.Linear(in_features=4096, out_features=256),
+            nn.ReLU(),
+            nn.Linear(in_features=256, out_features=256),
+            nn.ReLU(),
+            nn.Linear(in_features=256, out_features=10)
+        )
 
     def forward(self, x):
-        for module in self.model.modules():
-            if type(module) is not nn.Sequential:
-                print(module)
-        breakpoint()
-        out = self.model.features(x)
-        print(out.shape)
-
-class VGG11(MasterModel):
-    def __init__(self):
-        super(VGG11, self).__init__()
-        self.model = models.vgg11(pretrained=False, num_classes=10)
-    
-    def forward(self, x):
-        out = self.model.features(x)
-        out = self.model.avgpool(out)
-        out = out.flatten(start_dim=1)
-        out = self.model.classifier(out)
-        return out
+        conv_out = self.conv_layers(x)
+        conv_out = conv_out.flatten(start_dim=1)
+        fc_out = self.fc_layers(conv_out)
+        return fc_out
 
 class ResNet18(MasterModel):
     def __init__(self):
@@ -153,13 +164,12 @@ def load_model(config):
         model = LeNet5() 
     elif config['model'] == 'resnet18':
         model = ResNet18()
-    elif config['model'] == 'vgg11':
-        model = VGG11()
     elif config['model'] == 'custom':
         model = LeNet300Custom()
     elif config['model'] == 'lenet5custom':
         model = LeNet5Custom()
-    
+    elif config['model'] == 'conv6':
+        model = Conv6()
     model = MasterWrapper(model).to(config['device'])
 
     return model
