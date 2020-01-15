@@ -25,19 +25,17 @@ def epoch(epoch_num, loader,  model, opt, writer, config):
         x = x.float().to(config['device'])
         y = y.to(config['device'])
         out = model.forward(x)
-        
-        if model.training == False:
-            writer.add_scalar('sparsity/sparsity_on_eval', model.get_sparsity(config), update_num)
+
         # Calc loss function
 
         penalty = None
         for layer in model.parameters():
             if penalty is None:
-                penalty = layer.norm(p=2)
+                penalty = layer.norm(p=1)
             else:
-                penalty = penalty + layer.norm(p=2)
+                penalty = penalty + layer.norm(p=1)
 
-        loss = F.cross_entropy(out, y) #+ config['wdecay']*penalty
+        loss = F.cross_entropy(out, y) + config['wdecay']*penalty
 
         if model.training:
             writer.add_scalar('sparsity/sparsity_before_step', model.get_sparsity(config), update_num)      
@@ -51,15 +49,13 @@ def epoch(epoch_num, loader,  model, opt, writer, config):
                     noise_per_layer = model.inject_noise_custom()
                 else:
                     noise_per_layer = model.inject_noise()
-                # for idx,(name,layer) in enumerate(model.named_parameters()):
-                #     if 'weight' in name amd ('fc' in name or 'conv' in name):
-                #         writer.add_scalar('noise/'+str(idx), noise_per_layer[idx], update_num)
+                for idx,(name,layer) in enumerate(model.named_parameters()):
+                    if 'weight' in name and ('fc' in name or 'conv' in name):
+                        writer.add_scalar('noise/'+str(idx), noise_per_layer[idx], update_num)
+                    break
+            
             
             opt.step()
-
-            total_remaining, remaining_pos = model.get_sign_percentages()
-            writer.add_scalar('sparsity/sparsity_after_step', model.get_sparsity(config), update_num)
-            # writer.add_scalar('signs/remaining_pos', remaining_pos/total_remaining, update_num)
 
             # Monitor wegiths for flips
             flips_since_last = model.store_flips_since_last()
@@ -85,7 +81,7 @@ def train(config, writer):
     train_loader, test_loader = load_dataset(config)
     print('Model has {} total params, including biases.'.format(model.get_total_params()))
     
-    opt = get_opt(config, model, wdecay=config['wdecay'])
+    opt = get_opt(config, model, wdecay=0)
     
     for epoch_num in range(config['epochs']):
         print('='*10 + ' Epoch ' + str(epoch_num) + ' ' + '='*10)
@@ -105,7 +101,7 @@ def train(config, writer):
         ))
 
         print('Sparsity : {:>15.4f}'.format(model.get_sparsity(config)))
-        print('Wdecay : {:>15.4f}'.format(opt.param_groups[0]['weight_decay']))
+        print('Wdecay : {:>15.6f}'.format(opt.param_groups[0]['weight_decay']))
 
         if (epoch_num+1)%config['prune_freq'] == 0:
             if config['prune_criterion'] == 'magnitude':
@@ -122,7 +118,9 @@ def train(config, writer):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--model', type=str, choices=['lenet300', 'lenet5', 'resnet18', 
-                                                        'conv6', 'custom', 'lenet5custom'], default='lenet300')
+                                                        'conv6', 'lenet300custom', 'lenet5custom',
+                                                        'conv6custom'], default='lenet300')
+    
     parser.add_argument('--dataset', type=str, choices=['mnist', 'cifar10'], default='mnist')
     parser.add_argument('--batch_size', type=int, default=32)
     parser.add_argument('--epochs', type=int, default=100)

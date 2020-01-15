@@ -137,6 +137,43 @@ class Conv6(MasterModel):
         fc_out = self.fc_layers(conv_out)
         return fc_out
 
+class Conv6Custom(MasterModel):
+    def __init__(self):
+        super(Conv6, self).__init__()
+        self.conv_layers = nn.Sequential(
+            Conv2dMasked(in_channels=3, out_channels=64, kernel_size=(3,3), padding=1),
+            nn.ReLU(),
+            Conv2dMasked(in_channels=64, out_channels=64, kernel_size=(3,3), padding=1),
+            nn.ReLU(),
+            nn.MaxPool2d(kernel_size=2, stride=2),
+
+            Conv2dMasked(in_channels=64, out_channels=128, kernel_size=(3,3), padding=1),
+            nn.ReLU(),
+            Conv2dMasked(in_channels=128, out_channels=128, kernel_size=(3,3), padding=1),
+            nn.ReLU(),
+            nn.MaxPool2d(kernel_size=2, stride=2),
+
+            Conv2dMasked(in_channels=128, out_channels=256, kernel_size=(3,3), padding=1),
+            nn.ReLU(),
+            Conv2dMasked(in_channels=256, out_channels=256, kernel_size=(3,3), padding=1),
+            nn.ReLU(),
+            nn.MaxPool2d(kernel_size=2, stride=2)
+        )
+
+        self.fc_layers = nn.Sequential(
+            LinearMasked(in_features=4096, out_features=256),
+            nn.ReLU(),
+            LinearMasked(in_features=256, out_features=256),
+            nn.ReLU(),
+            LinearMasked(in_features=256, out_features=10)
+        )
+
+    def forward(self, x):
+        conv_out = self.conv_layers(x)
+        conv_out = conv_out.flatten(start_dim=1)
+        fc_out = self.fc_layers(conv_out)
+        return fc_out
+
 class ResNet18(MasterModel):
     def __init__(self):
         super(ResNet18, self).__init__()
@@ -164,12 +201,14 @@ def load_model(config):
         model = LeNet5() 
     elif config['model'] == 'resnet18':
         model = ResNet18()
-    elif config['model'] == 'custom':
+    elif config['model'] == 'lenet300custom':
         model = LeNet300Custom()
     elif config['model'] == 'lenet5custom':
         model = LeNet5Custom()
     elif config['model'] == 'conv6':
         model = Conv6()
+    elif config['model'] == 'conv6custom':
+        model = Conv6Custom()
     model = MasterWrapper(model).to(config['device'])
 
     return model
