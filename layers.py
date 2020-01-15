@@ -82,6 +82,6 @@ class Conv2dMasked(nn.modules.conv._ConvNd):
 
         return F.conv2d(input, signed_weight, signed_bias, self.stride,
                         self.padding, self.dilation, self.groups)
-        
+
     def forward(self, input):
         return self.conv2d_forward(input, self.weight)
