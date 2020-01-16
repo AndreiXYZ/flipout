@@ -79,7 +79,7 @@ class MasterModel(nn.Module):
         self.mask = [torch.ones_like(layer, dtype=torch.bool).to('cuda') for layer in self.parameters()]
     
     def save_weights(self):
-        self.saved_weights = [layer.data.clone().detach().to('cuda')
+        self.saved_weights = [layer.data.detach().clone().to('cuda')
                                 for layer in self.parameters()]
     
     def save_grads(self):
@@ -87,7 +87,7 @@ class MasterModel(nn.Module):
                             for layer in self.parameters()]
     
     def save_rewind_weights(self):
-        self.rewind_weights = [weights.clone().detach().to('cuda')
+        self.rewind_weights = [weights.detach().clone().to('cuda')
                                 for weights in self.parameters()]
 
     def rewind(self):
