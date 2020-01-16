@@ -194,7 +194,7 @@ class MasterModel(nn.Module):
     # Inject Gaussian noise scaled by a factor into the gradients
         with torch.no_grad():
             noise_per_layer = []
-            if 'custom' in config['model']:
+            if 'custom' not in config['model']:
                 for layer, layer_mask in zip(self.parameters(),self.mask):
                     # Noise has variance equal to layer-wise l2 norm divided by num of elements
                     noise = torch.randn_like(layer)

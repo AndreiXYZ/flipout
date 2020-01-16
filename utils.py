@@ -22,7 +22,7 @@ def get_opt(config, model):
         wdecay = 0
     print('LR = ', lr)
     print('Wdecay = ', wdecay)
-
+    
     if config['opt'] == 'adam':
         opt = optim.Adam(params, lr=lr, weight_decay=wdecay)
     elif config['opt'] == 'sgd':
