@@ -78,7 +78,7 @@ def train(config, writer):
     
     opt = get_opt(config, model)
     # scheduler = lr_scheduler.MultiStepLR(opt, milestones=[30,60], gamma=0.1)
-    for epoch_num in range(config['epochs']):
+    for epoch_num in range(1, config['epochs']):
         print('='*10 + ' Epoch ' + str(epoch_num) + ' ' + '='*10)
 
         model.train()
@@ -91,14 +91,7 @@ def train(config, writer):
         with torch.no_grad():
             test_acc, test_loss = epoch(epoch_num, test_loader, model, opt, writer, config)   
         
-        print('Train - acc: {:>15.6f} loss: {:>15.6f}\nTest - acc: {:>16.6f} loss: {:>15.6f}'.format(
-            train_acc, train_loss, test_acc, test_loss
-        ))
-
-        print('Sparsity : {:>15.4f}'.format(model.get_sparsity(config)))
-        print('Wdecay : {:>15.6f}'.format(opt.param_groups[0]['weight_decay']))
-
-        if (epoch_num+1)%config['prune_freq'] == 0:
+        if epoch_num%config['prune_freq'] == 0:
             if config['prune_criterion'] == 'magnitude':
                 model.update_mask_magnitudes(config['prune_rate'])
             elif config['prune_criterion'] == 'flip':
@@ -106,6 +99,11 @@ def train(config, writer):
             elif config['prune_criterion'] == 'random':
                 model.update_mask_random(config['prune_rate'])
         
+        print('Train - acc: {:>15.6f} loss: {:>15.6f}\nTest - acc: {:>16.6f} loss: {:>15.6f}'.format(
+            train_acc, train_loss, test_acc, test_loss
+        ))
+        print('Sparsity : {:>15.4f}'.format(model.get_sparsity(config)))
+        print('Wdecay : {:>15.6f}'.format(opt.param_groups[0]['weight_decay']))
         
         plot_stats(train_acc, train_loss, test_acc, test_loss, model, writer, epoch_num, config)
         # plot_weight_histograms(model, writer, epoch_num)
