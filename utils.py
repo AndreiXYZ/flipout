@@ -2,6 +2,7 @@ import torch
 import numpy as np
 import gc
 import torch.optim as optim
+from rmspropw import RMSpropW
 
 def set_seed(seed):
     torch.manual_seed(seed)
@@ -19,15 +20,17 @@ def get_opt(config, model):
         wdecay = config['lambda']
     else:
         wdecay = 0
-    
+    print('LR = ', lr)
+    print('Wdecay = ', wdecay)
+
     if config['opt'] == 'adam':
         opt = optim.Adam(params, lr=lr, weight_decay=wdecay)
     elif config['opt'] == 'sgd':
         opt = optim.SGD(params, lr=lr, weight_decay=wdecay)
     elif config['opt'] == 'rmsprop':
         opt = optim.RMSprop(params, lr=lr, weight_decay=wdecay)
-    elif config['opt'] == 'adamw':
-        opt = optim.AdamW(params, lr=lr, weight_decay=wdecay)
+    elif config['opt'] == 'rmspropw':
+        opt = RMSpropW(params, lr=lr, weight_decay=wdecay)
     return opt
 
 def plot_weight_histograms(model, writer, epoch_num):

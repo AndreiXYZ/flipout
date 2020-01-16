@@ -110,6 +110,15 @@ def train(config, writer):
         plot_stats(train_acc, train_loss, test_acc, test_loss, model, writer, epoch_num, config)
         # plot_weight_histograms(model, writer, epoch_num)
 
+def main():
+    config = parse_args()
+    # Ensure experiment is reproducible.
+    # Results may vary across machines!
+    set_seed(config['seed'])
+    run_hparams = construct_run_name(config)
+    writer = SummaryWriter(comment='_'+config['comment'])
+    writer.add_text('config', run_hparams)
+    train(config, writer)
 
 def parse_args():
     parser = argparse.ArgumentParser()
@@ -132,30 +141,16 @@ def parse_args():
     parser.add_argument('--comment', type=str, default=None,
                         help='Comment to add to tensorboard text ')
     # Optimizer args
-    parser.add_argument('--opt', type=str, choices=['sgd', 'rmsprop', 'adam', 'adamw'])
+    parser.add_argument('--opt', type=str, choices=['sgd', 'rmsprop', 'adam', 'rmspropw'])
     parser.add_argument('--reg_type', type=str, choices=['wdecay', 'l1', 'l2'])
     parser.add_argument('--lambda', type=float, default=0)
     # Add noise or not
     parser.add_argument('--noise', dest='add_noise', action='store_true')
     parser.add_argument('--no_noise', dest='add_noise', action='store_false')
 
-    # Whether or not to have the model mask itself
-    parser.add_argument('--selfmask', dest='selfmask', action='store_true')
-    parser.add_argument('--not_selfmask', dest='selfmask', action='store_false')
-
     config = vars(parser.parse_args())
     
     return config
-
-def main():
-    config = parse_args()
-    # Ensure experiment is reproducible.
-    # Results may vary across machines!
-    set_seed(config['seed'])
-    run_hparams = construct_run_name(config)
-    writer = SummaryWriter(comment='_'+config['comment'])
-    writer.add_text('config', run_hparams)
-    train(config, writer)
 
 if __name__ == "__main__":
     main()
