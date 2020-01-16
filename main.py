@@ -109,8 +109,9 @@ def train(config, writer):
         
         plot_stats(train_acc, train_loss, test_acc, test_loss, model, writer, epoch_num, config)
         # plot_weight_histograms(model, writer, epoch_num)
-        
-def main():
+
+
+def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('--model', type=str, choices=['lenet300', 'lenet5', 'resnet18', 
                                                         'conv6', 'lenet300custom', 'lenet5custom',
@@ -144,11 +145,13 @@ def main():
 
     config = vars(parser.parse_args())
     
-    
+    return config
+
+def main():
+    config = parse_args()
     # Ensure experiment is reproducible.
     # Results may vary across machines!
     set_seed(config['seed'])
-
     run_hparams = construct_run_name(config)
     writer = SummaryWriter(comment='_'+config['comment'])
     writer.add_text('config', run_hparams)
