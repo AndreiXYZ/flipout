@@ -12,15 +12,22 @@ def set_seed(seed):
 def construct_run_name(config):
     return ''.join(['_'+str(key)+'_'+str(value) if key!='comment' else '' for key,value in config.items()])
 
-def get_opt(config, model, wdecay):
+def get_opt(config, model):
     params = model.parameters()
-    if config['opt'] == 'adam':
-        opt = optim.Adam(params, lr=config['lr'], weight_decay=wdecay)
-    elif config['opt'] == 'sgd':
-        opt = optim.SGD(params, lr=config['lr'], weight_decay=wdecay)
-    elif config['opt'] == 'rmsprop':
-        opt = optim.RMSprop(params, lr=config['lr'], weight_decay=wdecay)
+    lr = config['lr']
+    if config['reg_type'] == 'wdecay':
+        wdecay = config['lambda']
+    else:
+        wdecay = 0
     
+    if config['opt'] == 'adam':
+        opt = optim.Adam(params, lr=lr, weight_decay=wdecay)
+    elif config['opt'] == 'sgd':
+        opt = optim.SGD(params, lr=lr, weight_decay=wdecay)
+    elif config['opt'] == 'rmsprop':
+        opt = optim.RMSprop(params, lr=lr, weight_decay=wdecay)
+    elif config['opt'] == 'adamw':
+        opt = optim.AdamW(params, lr=lr, weight_decay=wdecay)
     return opt
 
 def plot_weight_histograms(model, writer, epoch_num):

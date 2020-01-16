@@ -139,7 +139,7 @@ class Conv6(MasterModel):
 
 class Conv6Custom(MasterModel):
     def __init__(self):
-        super(Conv6, self).__init__()
+        super(Conv6Custom, self).__init__()
         self.conv_layers = nn.Sequential(
             Conv2dMasked(in_channels=3, out_channels=64, kernel_size=(3,3), padding=1),
             nn.ReLU(),
@@ -161,11 +161,11 @@ class Conv6Custom(MasterModel):
         )
 
         self.fc_layers = nn.Sequential(
-            LinearMasked(in_features=4096, out_features=256),
+            LinearMasked(4096, 256),
             nn.ReLU(),
-            LinearMasked(in_features=256, out_features=256),
+            LinearMasked(256, 256),
             nn.ReLU(),
-            LinearMasked(in_features=256, out_features=10)
+            LinearMasked(256, 10)
         )
 
     def forward(self, x):

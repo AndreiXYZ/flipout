@@ -28,27 +28,22 @@ def epoch(epoch_num, loader,  model, opt, writer, config):
 
         # Calc loss function
 
-        penalty = None
-        for layer in model.parameters():
-            if penalty is None:
-                penalty = layer.norm(p=1)
-            else:
-                penalty = penalty + layer.norm(p=1)
-
-        loss = F.cross_entropy(out, y) + config['wdecay']*penalty
+        sparsity = model.get_sparsity(config)
+        weight_penalty = model.get_weight_penalty(config)
+        loss = F.cross_entropy(out, y) + weight_penalty*config['lambda']
 
         if model.training:
-            writer.add_scalar('sparsity/sparsity_before_step', model.get_sparsity(config), update_num)      
-            model.save_weights()
+            writer.add_scalar('sparsity/sparsity_before_step', sparsity, update_num)      
+
+            if 'custom' not in config['model']:
+                model.save_weights()
             loss.backward()
             
-            model.apply_mask()
+            model.apply_mask(config)
             
             if config['add_noise']:
-                if 'custom' in config['model']:
-                    noise_per_layer = model.inject_noise_custom()
-                else:
-                    noise_per_layer = model.inject_noise()
+                noise_per_layer = model.inject_noise(config)
+
                 for idx,(name,layer) in enumerate(model.named_parameters()):
                     if 'weight' in name and ('fc' in name or 'conv' in name):
                         writer.add_scalar('noise/'+str(idx), noise_per_layer[idx], update_num)
@@ -56,9 +51,9 @@ def epoch(epoch_num, loader,  model, opt, writer, config):
             
             
             opt.step()
-
             # Monitor wegiths for flips
-            flips_since_last = model.store_flips_since_last()
+            if 'custom' not in config['model']: 
+                flips_since_last = model.store_flips_since_last()
             # flips_total = model.get_flips_total()
             # flipped_total = model.get_total_flipped()
             # writer.add_scalar('flips/flips_since_last', flips_since_last, update_num)
@@ -81,14 +76,14 @@ def train(config, writer):
     train_loader, test_loader = load_dataset(config)
     print('Model has {} total params, including biases.'.format(model.get_total_params()))
     
-    opt = get_opt(config, model, wdecay=0)
-    
+    opt = get_opt(config, model)
+    # scheduler = lr_scheduler.MultiStepLR(opt, milestones=[30,60], gamma=0.1)
     for epoch_num in range(config['epochs']):
         print('='*10 + ' Epoch ' + str(epoch_num) + ' ' + '='*10)
 
         model.train()
         # Anneal wdecay
-        opt.param_groups[0]['weight_decay'] = config['wdecay']*(1-model.get_sparsity(config))
+        opt.param_groups[0]['weight_decay'] = config['lambda']*(1-model.get_sparsity(config))
 
         train_acc, train_loss = epoch(epoch_num, train_loader, model, opt, writer, config)
         
@@ -136,11 +131,16 @@ def main():
     parser.add_argument('--comment', type=str, default=None,
                         help='Comment to add to tensorboard text ')
     # Optimizer args
-    parser.add_argument('--opt', type=str, choices=['sgd', 'rmsprop', 'adam'])
-    parser.add_argument('--wdecay', type=float, default=0)
+    parser.add_argument('--opt', type=str, choices=['sgd', 'rmsprop', 'adam', 'adamw'])
+    parser.add_argument('--reg_type', type=str, choices=['wdecay', 'l1', 'l2'])
+    parser.add_argument('--lambda', type=float, default=0)
     # Add noise or not
     parser.add_argument('--noise', dest='add_noise', action='store_true')
     parser.add_argument('--no_noise', dest='add_noise', action='store_false')
+
+    # Whether or not to have the model mask itself
+    parser.add_argument('--selfmask', dest='selfmask', action='store_true')
+    parser.add_argument('--not_selfmask', dest='selfmask', action='store_false')
 
     config = vars(parser.parse_args())
     

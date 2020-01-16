@@ -54,6 +54,27 @@ class MasterModel(nn.Module):
     def get_flattened_params(self):
         return torch.cat([layer.view(-1) for layer in self.parameters()])
 
+    def get_weight_penalty(self, config):
+        penalty = None
+        if config['reg_type'] == 'l1':
+            for layer in model.parameters():
+                if penalty is None:
+                    penalty = layer.norm(p=1)
+                else:
+                    penalty = penalty + layer.norm(p=1)
+        
+        elif config['reg_type'] == 'l2':
+            for layer in model.parameters():
+                if penalty is None:
+                    penalty = layer.norm(p=2)**2
+                else:
+                    penalty = penalty + layer.norm(p==2)**2
+
+        else:
+            penalty = 0
+
+        return penalty
+
     def instantiate_mask(self):
         self.mask = [torch.ones_like(layer, dtype=torch.bool).to('cuda') for layer in self.parameters()]
     
@@ -73,10 +94,15 @@ class MasterModel(nn.Module):
         for weights, rewind_weights, layer_mask in zip(self.parameters(), self.rewind_weights, self.mask):
             weights.data = rewind_weights.data*layer_mask
     
-    def apply_mask(self):
+    def apply_mask(self, config):
         with torch.no_grad():
-            for weights, layer_mask in zip(self.parameters(), self.mask):
-                weights.grad.data = weights.grad.data*layer_mask
+            if 'custom' in config['model']:
+                for weights in self.parameters():
+                    layer_mask = F.relu(weights)>0
+                    weights.grad.data = weights.grad.data*layer_mask
+            else:
+                for weights, layer_mask in zip(self.parameters(), self.mask):
+                    weights.grad.data = weights.grad.data*layer_mask
 
     def update_mask_magnitudes(self, rate):
         # Prune parameters of the network according to lowest magnitude
@@ -164,30 +190,28 @@ class MasterModel(nn.Module):
                 total_flipped += layer_flips[layer_flips >= 1].sum().item()
         return total_flipped
 
-    def inject_noise(self):
+    def inject_noise(self, config):
     # Inject Gaussian noise scaled by a factor into the gradients
-        noise_per_layer = []
         with torch.no_grad():
-            for layer, layer_mask in zip(self.parameters(),self.mask):
-                # Noise has variance equal to layer-wise l2 norm divided by num of elements
-                noise = torch.randn_like(layer)
-                scaling_factor = layer.grad.norm(p=2)/math.sqrt(layer.numel())
-                noise_per_layer.append(scaling_factor)
-                layer.grad.data += noise*scaling_factor
-                layer.grad.data *= layer_mask
-        return noise_per_layer
+            noise_per_layer = []
+            if 'custom' in config['model']:
+                for layer, layer_mask in zip(self.parameters(),self.mask):
+                    # Noise has variance equal to layer-wise l2 norm divided by num of elements
+                    noise = torch.randn_like(layer)
+                    scaling_factor = layer.grad.norm(p=2)/math.sqrt(layer.numel())
+                    noise_per_layer.append(scaling_factor)
+                    layer.grad.data += noise*scaling_factor
+                    layer.grad.data *= layer_mask
+            else:
+                for layer in self.parameters():
+                    layer_mask = F.relu(layer)>0
+                    noise = torch.randn_like(layer)
+                    scaling_factor = layer.grad.norm(p=2)/math.sqrt(layer.numel())
+                    noise_per_layer.append(scaling_factor)
+                    # Only add noise to elements which are nonzero
+                    layer.grad.data += noise*scaling_factor
+                    layer.grad.data *= layer_mask
 
-    def inject_noise_custom(self):
-        noise_per_layer = []
-        with torch.no_grad():
-            for layer in self.parameters():
-                layer_mask = F.relu(layer)>0
-                noise = torch.randn_like(layer)
-                scaling_factor = layer.grad.norm(p=2)/math.sqrt(layer.numel())
-                noise_per_layer.append(scaling_factor)
-                # Only add noise to elements which are nonzero
-                layer.grad.data += noise*scaling_factor
-                layer.grad.data *= layer_mask
         return noise_per_layer
 
     def get_sign_percentages(self):
