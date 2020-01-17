@@ -39,6 +39,22 @@ def epoch(epoch_num, loader,  model, opt, writer, config):
                 model.save_weights()
             loss.backward()
             
+            # Plot avg grads of alive and pruned weights 
+            # (must do this before the apply mask function as that sets
+            # pruned grads to 0).
+            pruned_avg, alive_avg = 0, 0
+            pruned_total, alive_total = 0, 0
+            for layer, mask in zip(model.parameters(), model.mask):
+                alive_grads = layer.grad*mask
+                pruned_grads = layer.grad*(~mask)
+                alive_avg += alive_grads.sum()
+                pruned_avg += pruned_grads.sum()
+                pruned_total += (mask==0).numel()
+                alive_total += (mask==1).numel()
+            
+            writer.add_scalar('avg_grads/pruned', pruned_avg, update_num)
+            writer.add_scalar('avg_grads/alive', alive_avg, update_num)
+
             model.apply_mask(config)
             
             if config['add_noise']:
@@ -48,8 +64,6 @@ def epoch(epoch_num, loader,  model, opt, writer, config):
                     if 'weight' in name and ('fc' in name or 'conv' in name):
                         writer.add_scalar('noise/'+str(idx), noise_per_layer[idx], update_num)
                     break
-            
-            
             opt.step()
             # Monitor wegiths for flips
             if 'custom' not in config['model']: 
@@ -58,6 +72,9 @@ def epoch(epoch_num, loader,  model, opt, writer, config):
             # flipped_total = model.get_total_flipped()
             # writer.add_scalar('flips/flips_since_last', flips_since_last, update_num)
             # writer.add_scalar('flips/flipped_total', flipped_total, update_num)
+
+            # Get average gradient of pruned weights
+
 
         preds = out.argmax(dim=1, keepdim=True).squeeze()
         correct = preds.eq(y).sum().item()
