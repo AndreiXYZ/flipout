@@ -34,5 +34,6 @@ CUDA_VISIBLE_DEVICES=2
 echo "ip address: $SLURM_LAUNCH_NODE_IPADDR"
 
 echo "Slurm job nodelist: $SLURM_JOB_NODELIST"
+echo "Running $@"
 srun python "$@"
 #python -m torch.distributed.launch --nproc_per_node=1 --master_port=2333 ../..
