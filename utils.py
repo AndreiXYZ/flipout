@@ -10,9 +10,6 @@ def set_seed(seed):
     torch.backends.cudnn.benchmark = False
     np.random.seed(seed)
 
-def construct_run_name(config):
-    return ''.join(['_'+str(key)+'_'+str(value) if key!='comment' else '' for key,value in config.items()])
-
 def get_opt(config, model):
     params = model.parameters()
     lr = config['lr']
@@ -55,8 +52,7 @@ def plot_stats(train_acc, train_loss, test_acc, test_loss, model, writer, epoch_
         writer.add_scalar('loss/train', train_loss, epoch_num)
         writer.add_scalar('loss/test', test_loss, epoch_num)
         writer.add_scalar('sparsity/sparsity', model.get_sparsity(config), epoch_num)
-
-
+    
 def print_gc_memory_usage():
     total_usage = 0
     for obj in gc.get_objects():
