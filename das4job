@@ -1,6 +1,6 @@
 #!/bin/bash
 #SBATCH -t 10:00:00
-#SBATCH -n 2
+#SBATCH -n 1
 #SBATCH --mem=24G
 #SBATCH -C TitanX
 #SBATCH --gres=gpu:1
