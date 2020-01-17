@@ -6,6 +6,7 @@ import torch.optim.lr_scheduler as lr_scheduler
 import matplotlib.pyplot as plt
 import torch.nn as nn
 import torch.nn.functional as F
+import json
 
 from torch.utils.tensorboard import SummaryWriter
 from torch.backends import cudnn
@@ -19,6 +20,9 @@ def epoch(epoch_num, loader,  model, opt, writer, config):
     epoch_loss = 0
     size = len(loader.dataset)
     
+    total_grad_pruned = 0
+    total_grad_live = 0
+
     for batch_num, (x,y) in enumerate(loader):
         update_num = epoch_num*size/math.ceil(config['batch_size']) + batch_num
         opt.zero_grad()
@@ -38,22 +42,6 @@ def epoch(epoch_num, loader,  model, opt, writer, config):
             if 'custom' not in config['model']:
                 model.save_weights()
             loss.backward()
-            
-            # Plot avg grads of alive and pruned weights 
-            # (must do this before the apply mask function as that sets
-            # pruned grads to 0).
-            pruned_avg, alive_avg = 0, 0
-            pruned_total, alive_total = 0, 0
-            for layer, mask in zip(model.parameters(), model.mask):
-                alive_grads = layer.grad*mask
-                pruned_grads = layer.grad*(~mask)
-                alive_avg += alive_grads.sum()
-                pruned_avg += pruned_grads.sum()
-                pruned_total += (mask==0).numel()
-                alive_total += (mask==1).numel()
-            
-            writer.add_scalar('avg_grads/pruned', pruned_avg, update_num)
-            writer.add_scalar('avg_grads/alive', alive_avg, update_num)
 
             model.apply_mask(config)
             
@@ -73,14 +61,32 @@ def epoch(epoch_num, loader,  model, opt, writer, config):
             # writer.add_scalar('flips/flips_since_last', flips_since_last, update_num)
             # writer.add_scalar('flips/flipped_total', flipped_total, update_num)
 
-            # Get average gradient of pruned weights
-
+        else:
+            # Calc. avg grads of kept and pruned weights
+            # across one epoch
+            loss.backward()
+            for mask,layer in zip(model.mask, model.parameters()):
+                live_grads = layer.grad*mask
+                pruned_grads = layer.grad*(~mask)
+                total_grad_live += live_grads.sum()
+                total_grad_pruned += pruned_grads.sum()
 
         preds = out.argmax(dim=1, keepdim=True).squeeze()
         correct = preds.eq(y).sum().item()
         
         epoch_acc += correct
         epoch_loss += loss.item()
+
+    if model.training is False:
+        num_pruned = model.get_sparsity(config)*model.total_params
+        num_alive = model.total_params - num_pruned
+        print(num_pruned)
+        print(num_alive)
+        avg_grads_live = total_grad_live/num_alive/size
+        avg_grads_pruned = total_grad_pruned/num_pruned/size
+
+        writer.add_scalar('avg_grads/alive', avg_grads_live, epoch_num)
+        writer.add_scalar('avg_grads/pruned', avg_grads_pruned, epoch_num)
     
     epoch_acc /= size
     epoch_loss /= size
@@ -105,8 +111,9 @@ def train(config, writer):
         train_acc, train_loss = epoch(epoch_num, train_loader, model, opt, writer, config)
         
         model.eval()
-        with torch.no_grad():
-            test_acc, test_loss = epoch(epoch_num, test_loader, model, opt, writer, config)   
+        # Comment this for now so that I can plot gradients
+        # with torch.no_grad():
+        test_acc, test_loss = epoch(epoch_num, test_loader, model, opt, writer, config)   
         
         if epoch_num%config['prune_freq'] == 0:
             if config['prune_criterion'] == 'magnitude':
@@ -130,9 +137,10 @@ def main():
     # Ensure experiment is reproducible.
     # Results may vary across machines!
     set_seed(config['seed'])
-    run_hparams = construct_run_name(config)
+    # Set comment to name and then add hparams to tensorboard text
     writer = SummaryWriter(comment='_'+config['comment'])
-    writer.add_text('config', run_hparams)
+    del config['comment']
+    writer.add_text('config', json.dumps(config))
     train(config, writer)
 
 def parse_args():
