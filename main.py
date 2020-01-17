@@ -138,7 +138,7 @@ def main():
     # Results may vary across machines!
     set_seed(config['seed'])
     # Set comment to name and then add hparams to tensorboard text
-    writer = SummaryWriter(comment='_'+config['comment'])
+    writer = SummaryWriter(log_dir='runs/'+config['logdir'], comment='_'+config['comment'])
     del config['comment']
     writer.add_text('config', json.dumps(config))
     train(config, writer)
@@ -160,9 +160,11 @@ def parse_args():
     parser.add_argument('--prune_freq', type=int, default=2)
     parser.add_argument('--prune_rate', type=float, default=0.2) # for magnitude pruning
     parser.add_argument('--flip_prune_threshold', type=int, default=1) # for flip pruning
-    # Run comment
+    # Tensorboard-related args
     parser.add_argument('--comment', type=str, default=None,
-                        help='Comment to add to tensorboard text ')
+                        help='Comment to add to tensorboard text')
+    parser.add_argument('--logdir', type=str, default=None,
+                        help='Log dir. for tensorboard')
     # Optimizer args
     parser.add_argument('--opt', type=str, choices=['sgd', 'rmsprop', 'adam', 'rmspropw'])
     parser.add_argument('--reg_type', type=str, choices=['wdecay', 'l1', 'l2'])
