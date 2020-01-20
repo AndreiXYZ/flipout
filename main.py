@@ -20,9 +20,6 @@ def epoch(epoch_num, loader,  model, opt, writer, config):
     epoch_acc = 0
     epoch_loss = 0
     size = len(loader.dataset)
-    
-    total_grad_pruned = 0
-    total_grad_live = 0
 
     for batch_num, (x,y) in enumerate(loader):
         update_num = epoch_num*size/math.ceil(config['batch_size']) + batch_num
@@ -67,31 +64,33 @@ def epoch(epoch_num, loader,  model, opt, writer, config):
             # writer.add_scalar('flips/flipped_total', flipped_total, update_num)
 
         else:
-            # Calc. avg grads of kept and pruned weights
-            # across one epoch
+            # Get the gradients, averaged over n, the batch size
+            # Accumulate them for all mini-batches
             loss.backward()
-            for mask,layer in zip(model.mask, model.parameters()):
-                live_grads = layer.grad*mask
-                pruned_grads = layer.grad*(~mask)
-                total_grad_live += live_grads.sum()
-                total_grad_pruned += pruned_grads.sum()
 
+        # When we exit the batch iteration, the .grad param
+        # will have the average gradient across all mini-batches
+        if model.training is False:
+            with torch.no_grad():
+                grads_alive = []
+                grads_pruned = []
+                for layer, layer_mask in zip(model.parameters(), model.mask):
+                    grads_alive.append(layer[layer_mask==1.])
+                    grads_pruned.append(layer[layer_mask==0.])
+                grads_alive = torch.cat(grads_alive)
+                grads_pruned = torch.cat(grads_pruned)
+
+                writer.add_scalar('avg_grads/alive_mean', grads_alive.mean(), epoch_num)
+                writer.add_scalar('avg_grads/alive_var', grads_alive.var(), epoch_num)
+                writer.add_scalar('avg_grads/pruned_mean', grads_pruned.mean(), epoch_num)
+                writer.add_scalar('avg_grads/pruned_var', grads_pruned.var(), epoch_num)
+
+        
         preds = out.argmax(dim=1, keepdim=True).squeeze()
         correct = preds.eq(y).sum().item()
         
         epoch_acc += correct
         epoch_loss += loss.item()
-
-    if model.training is False:
-        num_pruned = model.get_sparsity(config)*model.total_params
-        num_alive = model.total_params - num_pruned
-        print(num_pruned)
-        print(num_alive)
-        avg_grads_live = total_grad_live/num_alive/size
-        avg_grads_pruned = total_grad_pruned/num_pruned/size
-
-        writer.add_scalar('avg_grads/alive', avg_grads_live, epoch_num)
-        writer.add_scalar('avg_grads/pruned', avg_grads_pruned, epoch_num)
     
     epoch_acc /= size
     epoch_loss /= size
@@ -185,7 +184,7 @@ def parse_args():
     parser.add_argument('--noise', dest='add_noise', action='store_true')
     parser.add_argument('--no_noise', dest='add_noise', action='store_false')
     # SNIP params
-    parser.add_argument('--snip_sparsity', type=float, required=False)
+    parser.add_argument('--snip_sparsity', type=float, required=False, default=0.)
     config = vars(parser.parse_args())
     
     return config
