@@ -14,6 +14,7 @@ from utils import *
 from models import *
 from data_loaders import *
 from master_model import MasterWrapper
+from snip import SNIP, apply_prune_mask
 
 def epoch(epoch_num, loader,  model, opt, writer, config):
     epoch_acc = 0
@@ -156,7 +157,7 @@ def parse_args():
     parser.add_argument('--device', type=str, default='cuda')
     parser.add_argument('--seed', type=int, default=42)
     # Pruning
-    parser.add_argument('--prune_criterion', type=str, choices=['magnitude', 'flip', 'random'])
+    parser.add_argument('--prune_criterion', type=str, choices=['magnitude', 'flip', 'random', 'snip'])
     parser.add_argument('--prune_freq', type=int, default=2)
     parser.add_argument('--prune_rate', type=float, default=0.2) # for magnitude pruning
     parser.add_argument('--flip_prune_threshold', type=int, default=1) # for flip pruning
@@ -172,7 +173,8 @@ def parse_args():
     # Add noise or not
     parser.add_argument('--noise', dest='add_noise', action='store_true')
     parser.add_argument('--no_noise', dest='add_noise', action='store_false')
-
+    # SNIP params
+    parser.add_argument('--snip_sparsity', type=float, required=False)
     config = vars(parser.parse_args())
     
     return config
