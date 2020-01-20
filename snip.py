@@ -70,7 +70,7 @@ def SNIP(net, keep_ratio, train_dataloader, device):
     return(keep_masks)
 
 def apply_prune_mask(net, keep_masks):
-
+    model.mask = []
     # Before I can zip() layers and pruning masks I need to make sure they match
     # one-to-one by removing all the irrelevant modules:
     prunable_layers = filter(
@@ -79,6 +79,8 @@ def apply_prune_mask(net, keep_masks):
 
     for layer, keep_mask in zip(prunable_layers, keep_masks):
         assert (layer.weight.shape == keep_mask.shape)
+        
+        model.mask.append(keep_mask)
 
         def hook_factory(keep_mask):
             """
