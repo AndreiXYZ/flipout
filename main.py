@@ -16,10 +16,20 @@ from data_loaders import *
 from master_model import MasterWrapper
 from snip import SNIP, apply_prune_mask
 
+grads_alive_mean = []
+grads_alive_std = []
+grads_pruned_mean = []
+grads_pruned_std = []
+
 def epoch(epoch_num, loader,  model, opt, writer, config):
     epoch_acc = 0
     epoch_loss = 0
     size = len(loader.dataset)
+
+    global grads_alive_mean
+    global grads_alive_std
+    global grads_pruned_mean
+    global grads_pruned_std
 
     for batch_num, (x,y) in enumerate(loader):
         update_num = epoch_num*size/math.ceil(config['batch_size']) + batch_num
@@ -85,6 +95,10 @@ def epoch(epoch_num, loader,  model, opt, writer, config):
             grads_alive = torch.cat(grads_alive)
             grads_pruned = torch.cat(grads_pruned)
 
+            grads_alive_mean.append(grads_alive.mean().item())
+            grads_alive_std.append(grads_alive.std().item())
+            grads_pruned_mean.append(grads_pruned.mean().item())
+            grads_pruned_std.append(grads_pruned.std().item())
             writer.add_scalar('avg_grads/alive_mean', grads_alive.mean(), epoch_num)
             writer.add_scalar('avg_grads/alive_var', grads_alive.var(), epoch_num)
             writer.add_scalar('avg_grads/pruned_mean', grads_pruned.mean(), epoch_num)
@@ -93,7 +107,7 @@ def epoch(epoch_num, loader,  model, opt, writer, config):
     epoch_acc /= size
     epoch_loss /= size
 
-    return epoch_acc, epoch_loss 
+    return epoch_acc, epoch_loss
 
 def train(config, writer):
     device = config['device']
@@ -110,7 +124,7 @@ def train(config, writer):
         keep_masks = SNIP(model, keep_percentage, train_loader, device)
         apply_prune_mask(model, keep_masks)
     
-    for epoch_num in range(1, config['epochs']):
+    for epoch_num in range(1, config['epochs']+1):
         print('='*10 + ' Epoch ' + str(epoch_num) + ' ' + '='*10)
 
         model.train()
@@ -140,6 +154,12 @@ def train(config, writer):
         
         plot_stats(train_acc, train_loss, test_acc, test_loss, model, writer, epoch_num, config)
         # plot_weight_histograms(model, writer, epoch_num)
+
+    plt.errorbar(range(config['epochs']), grads_alive_mean, grads_alive_std, label='alive')
+    plt.errorbar(range(config['epochs']), grads_pruned_mean, grads_pruned_std, label='pruned')
+    plt.legend()
+    plt.savefig('live_vs_pruned.png')
+
 
 def main():
     config = parse_args()
