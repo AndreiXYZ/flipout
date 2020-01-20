@@ -3,5 +3,5 @@
 __pycache__/
 /data/*
 /runs/*
-*.out
+*.out*
 ./tb_logs/*
