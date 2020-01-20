@@ -68,29 +68,27 @@ def epoch(epoch_num, loader,  model, opt, writer, config):
             # Accumulate them for all mini-batches
             loss.backward()
 
-        # When we exit the batch iteration, the .grad param
-        # will have the average gradient across all mini-batches
-        if model.training is False:
-            with torch.no_grad():
-                grads_alive = []
-                grads_pruned = []
-                for layer, layer_mask in zip(model.parameters(), model.mask):
-                    grads_alive.append(layer[layer_mask==1.])
-                    grads_pruned.append(layer[layer_mask==0.])
-                grads_alive = torch.cat(grads_alive)
-                grads_pruned = torch.cat(grads_pruned)
-
-                writer.add_scalar('avg_grads/alive_mean', grads_alive.mean(), epoch_num)
-                writer.add_scalar('avg_grads/alive_var', grads_alive.var(), epoch_num)
-                writer.add_scalar('avg_grads/pruned_mean', grads_pruned.mean(), epoch_num)
-                writer.add_scalar('avg_grads/pruned_var', grads_pruned.var(), epoch_num)
-
-        
         preds = out.argmax(dim=1, keepdim=True).squeeze()
         correct = preds.eq(y).sum().item()
         
         epoch_acc += correct
         epoch_loss += loss.item()
+            # When we exit the batch iteration, the .grad param
+        # will have the average gradient across all mini-batches
+    if model.training is False:
+        with torch.no_grad():
+            grads_alive = []
+            grads_pruned = []
+            for layer, layer_mask in zip(model.parameters(), model.mask):
+                grads_alive.append(layer.grad[layer_mask==1.])
+                grads_pruned.append(layer.grad[layer_mask==0.])
+            grads_alive = torch.cat(grads_alive)
+            grads_pruned = torch.cat(grads_pruned)
+
+            writer.add_scalar('avg_grads/alive_mean', grads_alive.mean(), epoch_num)
+            writer.add_scalar('avg_grads/alive_var', grads_alive.var(), epoch_num)
+            writer.add_scalar('avg_grads/pruned_mean', grads_pruned.mean(), epoch_num)
+            writer.add_scalar('avg_grads/pruned_var', grads_pruned.var(), epoch_num)
     
     epoch_acc /= size
     epoch_loss /= size
