@@ -54,9 +54,13 @@ def epoch(epoch_num, loader,  model, opt, writer, config):
                         writer.add_scalar('noise/'+str(idx), noise_per_layer[idx], update_num)
                     break
             opt.step()
+
             # Monitor wegiths for flips
             if 'custom' not in config['model']: 
                 flips_since_last = model.store_flips_since_last()
+
+            sparsity_after_step = model.get_sparsity(config)
+            writer.add_scalar('sparsity/sparsity_after_step', sparsity_after_step, update_num)
             # flips_total = model.get_flips_total()
             # flipped_total = model.get_total_flipped()
             # writer.add_scalar('flips/flips_since_last', flips_since_last, update_num)
@@ -102,6 +106,13 @@ def train(config, writer):
     
     opt = get_opt(config, model)
     # scheduler = lr_scheduler.MultiStepLR(opt, milestones=[30,60], gamma=0.1)
+
+    # Do SNIP if it is the case
+    if config['prune_criterion'] == 'snip':
+        keep_percentage = 1 - config['snip_sparsity']
+        keep_masks = SNIP(model, keep_percentage, train_loader, device)
+        apply_prune_mask(model, keep_masks)
+    
     for epoch_num in range(1, config['epochs']):
         print('='*10 + ' Epoch ' + str(epoch_num) + ' ' + '='*10)
 
@@ -139,7 +150,7 @@ def main():
     # Results may vary across machines!
     set_seed(config['seed'])
     # Set comment to name and then add hparams to tensorboard text
-    writer = SummaryWriter(log_dir='runs/'+config['logdir'], comment='_'+config['comment'])
+    writer = SummaryWriter(log_dir='./runs/' + config['logdir'] + '/' + get_time_str() + ' ' + config['comment'])
     del config['comment']
     writer.add_text('config', json.dumps(config))
     train(config, writer)

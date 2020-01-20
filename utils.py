@@ -2,6 +2,7 @@ import torch
 import numpy as np
 import gc
 import torch.optim as optim
+from datetime import datetime
 from rmspropw import RMSpropW
 
 def set_seed(seed):
@@ -9,6 +10,10 @@ def set_seed(seed):
     torch.backends.cudnn.deterministic = True
     torch.backends.cudnn.benchmark = False
     np.random.seed(seed)
+
+def get_time_str():
+    now = datetime.now()
+    return now.strftime('[%d-%m-%y %H:%M:%S]')
 
 def get_opt(config, model):
     params = model.parameters()
