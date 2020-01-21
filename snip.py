@@ -77,9 +77,6 @@ def apply_prune_mask(model, keep_masks):
             layer, nn.Linear), model.modules())
 
     model.mask = []
-    for layer, keep_mask in zip(prunable_layers, keep_masks):
-        assert (layer.weight.shape == keep_mask.shape)
-
     # Add the keep masks as part of the model
     i = 0
     for layer in model.parameters():
@@ -88,10 +85,10 @@ def apply_prune_mask(model, keep_masks):
             i += 1
         else:
             model.mask.append(torch.ones_like(layer))
-    # Verify their shapes for correctness
-    for layer_mask, keep_mask in zip(model.mask, keep_masks):
-        assert(layer_mask.shape == keep_mask.shape)
-    
+
+    for layer, keep_mask in zip(prunable_layers, keep_masks):
+        assert (layer.weight.shape == keep_mask.shape)
+        
         def hook_factory(keep_mask):
             """
             The hook function can't be defined directly here because of Python's
