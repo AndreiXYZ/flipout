@@ -44,9 +44,7 @@ def epoch(epoch_num, loader,  model, opt, writer, config):
         weight_penalty = model.get_weight_penalty(config)
         loss = F.cross_entropy(out, y) + weight_penalty*config['lambda']
 
-        if model.training:
-            writer.add_scalar('sparsity/sparsity_before_step', sparsity, update_num)      
-
+        if model.training:   
             if 'custom' not in config['model']:
                 model.save_weights()
             loss.backward()
@@ -66,8 +64,6 @@ def epoch(epoch_num, loader,  model, opt, writer, config):
             if 'custom' not in config['model']: 
                 flips_since_last = model.store_flips_since_last()
 
-            sparsity_after_step = model.get_sparsity(config)
-            writer.add_scalar('sparsity/sparsity_after_step', sparsity_after_step, update_num)
             # flips_total = model.get_flips_total()
             # flipped_total = model.get_total_flipped()
             # writer.add_scalar('flips/flips_since_last', flips_since_last, update_num)
@@ -89,9 +85,9 @@ def epoch(epoch_num, loader,  model, opt, writer, config):
         with torch.no_grad():
             grads_alive = []
             grads_pruned = []
-            for layer, layer_mask in zip(model.parameters(), model.mask):
-                grads_alive.append(layer.grad[layer_mask==1.])
-                grads_pruned.append(layer.grad[layer_mask==0.])
+            for layer in model.parameters():
+                grads_alive.append(layer.grad[layer!=0.].abs())
+                grads_pruned.append(layer.grad[layer==0.].abs())
             grads_alive = torch.cat(grads_alive)
             grads_pruned = torch.cat(grads_pruned)
 
@@ -99,10 +95,10 @@ def epoch(epoch_num, loader,  model, opt, writer, config):
             grads_alive_std.append(grads_alive.std().item())
             grads_pruned_mean.append(grads_pruned.mean().item())
             grads_pruned_std.append(grads_pruned.std().item())
-            writer.add_scalar('avg_grads/alive_mean', grads_alive.mean(), epoch_num)
-            writer.add_scalar('avg_grads/alive_var', grads_alive.var(), epoch_num)
-            writer.add_scalar('avg_grads/pruned_mean', grads_pruned.mean(), epoch_num)
-            writer.add_scalar('avg_grads/pruned_var', grads_pruned.var(), epoch_num)
+            writer.add_scalar('avg_abs_grads/alive_mean', grads_alive.mean(), epoch_num)
+            writer.add_scalar('avg_abs_grads/alive_var', grads_alive.var(), epoch_num)
+            writer.add_scalar('avg_abs_grads/pruned_mean', grads_pruned.mean(), epoch_num)
+            writer.add_scalar('avg_abs_grads/pruned_var', grads_pruned.var(), epoch_num)
     
     epoch_acc /= size
     epoch_loss /= size
@@ -158,7 +154,7 @@ def train(config, writer):
     plt.errorbar(range(config['epochs']), grads_alive_mean, grads_alive_std, label='alive')
     plt.errorbar(range(config['epochs']), grads_pruned_mean, grads_pruned_std, label='pruned')
     plt.legend()
-    plt.savefig('live_vs_pruned.png')
+    plt.savefig('live_vs_pruned_snip.png')
 
 
 def main():
