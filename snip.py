@@ -69,19 +69,29 @@ def SNIP(net, keep_ratio, train_dataloader, device):
 
     return(keep_masks)
 
-def apply_prune_mask(net, keep_masks):
-    model.mask = []
+def apply_prune_mask(model, keep_masks):
     # Before I can zip() layers and pruning masks I need to make sure they match
     # one-to-one by removing all the irrelevant modules:
     prunable_layers = filter(
         lambda layer: isinstance(layer, nn.Conv2d) or isinstance(
-            layer, nn.Linear), net.modules())
+            layer, nn.Linear), model.modules())
 
+    model.mask = []
     for layer, keep_mask in zip(prunable_layers, keep_masks):
         assert (layer.weight.shape == keep_mask.shape)
-        
-        model.mask.append(keep_mask)
 
+    # Add the keep masks as part of the model
+    i = 0
+    for layer in model.parameters():
+        if isinstance(layer, (nn.Conv2d, nn.Linear)):
+            model.mask.append(keep_masks[i])
+            i += 1
+        else:
+            model.mask.append(torch.ones_like(layer))
+    # Verify their shapes for correctness
+    for layer_mask, keep_mask in zip(model.mask, keep_masks):
+        assert(layer_mask.shape == keep_mask.shape)
+    
         def hook_factory(keep_mask):
             """
             The hook function can't be defined directly here because of Python's
