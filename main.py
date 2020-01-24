@@ -188,7 +188,7 @@ def parse_args():
     parser.add_argument('--prune_criterion', type=str, choices=['magnitude', 'flip', 'random', 'snip'])
     parser.add_argument('--prune_freq', type=int, default=2)
     parser.add_argument('--prune_rate', type=float, default=0.2) # for magnitude pruning
-    parser.add_argument('--flip_prune_threshold', type=int, default=1) # for flip pruning
+    parser.add_argument('--flip_threshold', type=int, default=1) # for flip pruning
     # Tensorboard-related args
     parser.add_argument('--comment', type=str, default=None,
                         help='Comment to add to tensorboard text')
