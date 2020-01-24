@@ -151,10 +151,14 @@ def train(config, writer):
         plot_stats(train_acc, train_loss, test_acc, test_loss, model, writer, epoch_num, config)
         # plot_weight_histograms(model, writer, epoch_num)
 
+    plt.subplot(1, 2, 1)
     plt.errorbar(range(config['epochs']), grads_alive_mean, grads_alive_std, label='alive')
-    plt.errorbar(range(config['epochs']), grads_pruned_mean, grads_pruned_std, label='pruned')
-    plt.legend()
-    plt.savefig('live_vs_pruned_snip.png')
+    plt.legend(); plt.grid()
+
+    plt.errorbar(range(config['epochs']), grads_pruned_mean, grads_pruned_std, label='pruned', color='orange')
+    plt.legend(); plt.grid()
+    
+    plt.savefig('live_vs_pruned_fixed.png')
 
 
 def main():
