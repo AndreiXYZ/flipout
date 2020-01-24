@@ -155,6 +155,7 @@ def train(config, writer):
     plt.errorbar(range(config['epochs']), grads_alive_mean, grads_alive_std, label='alive')
     plt.legend(); plt.grid()
 
+    plt.subplot(1,2, 2)
     plt.errorbar(range(config['epochs']), grads_pruned_mean, grads_pruned_std, label='pruned', color='orange')
     plt.legend(); plt.grid()
     
@@ -186,7 +187,7 @@ def parse_args():
     parser.add_argument('--seed', type=int, default=42)
     # Pruning
     parser.add_argument('--prune_criterion', type=str, choices=['magnitude', 'flip', 'random', 'snip'])
-    parser.add_argument('--prune_freq', type=int, default=2)
+    parser.add_argument('--prune_freq', type=int, default=1)
     parser.add_argument('--prune_rate', type=float, default=0.2) # for magnitude pruning
     parser.add_argument('--flip_threshold', type=int, default=1) # for flip pruning
     # Tensorboard-related args
