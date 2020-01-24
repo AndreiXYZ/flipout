@@ -42,6 +42,8 @@ def epoch(epoch_num, loader,  model, opt, writer, config):
 
         sparsity = model.get_sparsity(config)
         weight_penalty = model.get_weight_penalty(config)
+        if config['anneal_lambda'] == True:
+            weight_penalty *= (1-sparsity)
         loss = F.cross_entropy(out, y) + weight_penalty*config['lambda']
 
         if model.training:   
@@ -125,7 +127,8 @@ def train(config, writer):
 
         model.train()
         # Anneal wdecay
-        opt.param_groups[0]['weight_decay'] = config['lambda']*(1-model.get_sparsity(config))
+        if config['anneal_lambda'] == True:
+            opt.param_groups[0]['weight_decay'] = config['lambda']*(1-model.get_sparsity(config))
 
         train_acc, train_loss = epoch(epoch_num, train_loader, model, opt, writer, config)
         
@@ -199,6 +202,8 @@ def parse_args():
     parser.add_argument('--opt', type=str, choices=['sgd', 'rmsprop', 'adam', 'rmspropw'])
     parser.add_argument('--reg_type', type=str, choices=['wdecay', 'l1', 'l2'])
     parser.add_argument('--lambda', type=float, default=0)
+    parser.add_argument('--anneal_lambda', dest='anneal_lambda', action='store_true')
+    parser.add_argument('--no_anneal_lambda', dest='anneal_lambda', action='store_false')
     # Add noise or not
     parser.add_argument('--noise', dest='add_noise', action='store_true')
     parser.add_argument('--no_noise', dest='add_noise', action='store_false')
