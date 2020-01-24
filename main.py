@@ -138,7 +138,7 @@ def train(config, writer):
             if config['prune_criterion'] == 'magnitude':
                 model.update_mask_magnitudes(config['prune_rate'])
             elif config['prune_criterion'] == 'flip':
-                model.update_mask_flips(config['flip_prune_threshold'])
+                model.update_mask_flips(config['flip_threshold'])
             elif config['prune_criterion'] == 'random':
                 model.update_mask_random(config['prune_rate'])
         
