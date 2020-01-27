@@ -1,12 +1,9 @@
 #!/bin/bash
-#SBATCH -t 2:00:00
+#SBATCH -t 5:00:00
 #SBATCH -n 1
 #SBATCH --mem=16G
 #SBATCH -C TitanX
 #SBATCH --gres=gpu:1
-#SBATCH --mail-type=END
-#SBATCH --mail-user=andrei.apostol@student.uva.nl
-
 
 ARG1=${1:-0}
 
