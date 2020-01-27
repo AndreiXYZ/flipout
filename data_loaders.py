@@ -4,11 +4,11 @@ from torchvision import transforms, datasets
 from torch.utils.data import DataLoader
 
 def get_mnist_loaders(config):
-    normalize = transforms.Normalize(mean=[0.5], std=[0.5])
+    normalize = transforms.Normalize(mean=[0.1307], std=[0.3081])
 
     train_set = datasets.MNIST(root='./data', train=True, download=True, transform=transforms.Compose([transforms.ToTensor(),
                                                                                                         normalize]))
-                                                                                                        
+
     test_set = datasets.MNIST(root='./data', train=False, download=True, transform=transforms.Compose([transforms.ToTensor(),
                                                                                                         normalize]))
 
