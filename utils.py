@@ -22,8 +22,6 @@ def get_opt(config, model):
         wdecay = config['lambda']
     else:
         wdecay = 0
-    print('LR = ', lr)
-    print('Wdecay = ', wdecay)
     
     if config['opt'] == 'adam':
         opt = optim.Adam(params, lr=lr, weight_decay=wdecay)
@@ -71,3 +69,12 @@ def print_gc_memory_usage():
 
 def log_uniform(a, b, size):
     return torch.Tensor(np.random.uniform(np.log(a), np.log(b), size)).exp()
+
+def save_run(config, model, opt, curr_epoch, fpath):
+    save_dict = {'model_state_dict': model.state_dict(),
+                 'opt_state_dict': opt.state_dict(),
+                 'epoch': curr_epoch
+                 }
+    # Add the hparams used for the run to save_dict
+    save_dict.update(config)
+    torch.save(save_dict, fpath)
