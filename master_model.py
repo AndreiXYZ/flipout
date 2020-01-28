@@ -68,7 +68,7 @@ class MasterModel(nn.Module):
                 if penalty is None:
                     penalty = layer.norm(p=2)**2
                 else:
-                    penalty = penalty + layer.norm(p==2)**2
+                    penalty = penalty + layer.norm(p=2)**2
 
         else:
             penalty = 0
