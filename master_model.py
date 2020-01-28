@@ -57,14 +57,14 @@ class MasterModel(nn.Module):
     def get_weight_penalty(self, config):
         penalty = None
         if config['reg_type'] == 'l1':
-            for layer in model.parameters():
+            for layer in self.parameters():
                 if penalty is None:
                     penalty = layer.norm(p=1)
                 else:
                     penalty = penalty + layer.norm(p=1)
         
         elif config['reg_type'] == 'l2':
-            for layer in model.parameters():
+            for layer in self.parameters():
                 if penalty is None:
                     penalty = layer.norm(p=2)**2
                 else:
