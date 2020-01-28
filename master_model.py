@@ -196,11 +196,20 @@ class MasterModel(nn.Module):
             noise_per_layer = []
             if 'custom' not in config['model']:
                 for layer, layer_mask in zip(self.parameters(),self.mask):
-                    # Noise has variance equal to layer-wise l2 norm divided by num of elements
+                    # Add noise equal to layer-wise l2 norm of params
                     noise = torch.randn_like(layer)
                     scaling_factor = layer.grad.norm(p=2)/math.sqrt(layer.numel())
-                    noise_per_layer.append(scaling_factor)
                     layer.grad.data += noise*scaling_factor
+                    # Add average gradient of pruned weights as gradient
+                    # try:
+                    #     noise = torch.randn_like(layer)
+                    #     grad_pruned = layer[layer_mask==0].grad.data.std()
+                    #     layer.grad.data += noise*grad_pruned
+                    # except AttributeError:
+                    grad_pruned = 0
+                    # Append to list for logging purposes
+                    noise_per_layer.append(scaling_factor + grad_pruned)
+                    # Finally, mask gradient for pruned weights
                     layer.grad.data *= layer_mask
             else:
                 for layer in self.parameters():

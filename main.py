@@ -26,10 +26,7 @@ def epoch(epoch_num, loader,  model, opt, writer, config):
     epoch_loss = 0
     size = len(loader.dataset)
 
-    global grads_alive_mean
-    global grads_alive_std
-    global grads_pruned_mean
-    global grads_pruned_std
+    global grads_alive_mean, grads_alive_std, grads_pruned_mean, grads_pruned_std
 
     for batch_num, (x,y) in enumerate(loader):
         update_num = epoch_num*size/math.ceil(config['batch_size']) + batch_num
@@ -56,10 +53,10 @@ def epoch(epoch_num, loader,  model, opt, writer, config):
             if config['add_noise']:
                 noise_per_layer = model.inject_noise(config)
 
-                for idx,(name,layer) in enumerate(model.named_parameters()):
-                    if 'weight' in name and ('fc' in name or 'conv' in name):
-                        writer.add_scalar('noise/'+str(idx), noise_per_layer[idx], update_num)
-                    break
+                for idx,layer in enumerate(model.parameters()):
+                    # if hasattr('weight') and isinstance(layer, (nn.Linear, nn.Conv2d)):
+                    writer.add_scalar('noise/'+str(idx), noise_per_layer[idx], update_num)
+                    # break
             opt.step()
 
             # Monitor wegiths for flips
@@ -82,7 +79,7 @@ def epoch(epoch_num, loader,  model, opt, writer, config):
         epoch_acc += correct
         epoch_loss += loss.item()
             # When we exit the batch iteration, the .grad param
-        # will have the average gradient across all mini-batches
+            # will have the average gradient across all mini-batches
     if model.training is False:
         with torch.no_grad():
             grads_alive = []
@@ -164,7 +161,6 @@ def train(config, writer):
     
     plt.savefig('live_vs_pruned_fixed.png')
 
-
 def main():
     config = parse_args()
     # Ensure experiment is reproducible.
@@ -175,6 +171,7 @@ def main():
     del config['comment']
     writer.add_text('config', json.dumps(config))
     train(config, writer)
+
 
 def parse_args():
     parser = argparse.ArgumentParser()
@@ -209,6 +206,11 @@ def parse_args():
     parser.add_argument('--no_noise', dest='add_noise', action='store_false')
     # SNIP params
     parser.add_argument('--snip_sparsity', type=float, required=False, default=0.)
+
+    # Args for saving and resuming model training
+    # parser.add_arugment('--save_model', action='store_true', default=False)
+    # parser.add_argument('--resume', action='store_true', default=False)
+
     config = vars(parser.parse_args())
     
     return config
