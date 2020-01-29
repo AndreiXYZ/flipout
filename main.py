@@ -139,6 +139,8 @@ def train(config, writer):
                 model.update_mask_magnitudes(config['prune_rate'])
             elif config['prune_criterion'] == 'flip':
                 model.update_mask_flips(config['flip_threshold'])
+                # if len(grads_pruned_std) > 0:
+                #     model.update_mask_gradpruned(threshold=grads_pruned_std[-1])
             elif config['prune_criterion'] == 'random':
                 model.update_mask_random(config['prune_rate'])
         

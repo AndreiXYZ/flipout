@@ -14,7 +14,6 @@ class MasterWrapper(object):
         self.obj.save_weights()
         self.obj.instantiate_mask()
         self.obj.flip_counts = [torch.zeros_like(layer, dtype=torch.short).to('cuda') for layer in self.parameters()]
-        # print_gc_memory_usage()
         
     def __getattr__(self, name):
         # Override getattr such that it calls the wrapped object's attrs
@@ -160,6 +159,13 @@ class MasterModel(nn.Module):
             layer_mask.data[selected_indices] = 0 
             layer.data = layer*layer_mask
 
+    def update_mask_gradpruned(self, threshold):
+        with torch.no_grad():
+            # First, check if there are any pruned weights
+            for layer, layer_mask in zip(self.parameters(), self.mask):
+                if layer.grad[layer_mask==0].numel() > 0:
+                    layer_mask[layer.abs() <= threshold] = 0
+                    layer.data = layer*layer_mask
 
     def store_flips_since_last(self):
     # Retrieves how many params have flipped compared to previously saved weights
@@ -200,17 +206,11 @@ class MasterModel(nn.Module):
                     noise = torch.randn_like(layer)
                     scaling_factor = layer.grad.norm(p=2)/math.sqrt(layer.numel())
                     layer.grad.data += noise*scaling_factor
-                    # Add average gradient of pruned weights as gradient
-                    # try:
-                    #     noise = torch.randn_like(layer)
-                    #     grad_pruned = layer[layer_mask==0].grad.data.std()
-                    #     layer.grad.data += noise*grad_pruned
-                    # except AttributeError:
-                    grad_pruned = 0
                     # Append to list for logging purposes
                     noise_per_layer.append(scaling_factor + grad_pruned)
                     # Finally, mask gradient for pruned weights
                     layer.grad.data *= layer_mask
+        
             else:
                 for layer in self.parameters():
                     layer_mask = F.relu(layer)>0

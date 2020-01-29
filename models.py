@@ -8,14 +8,14 @@ from master_model import MasterModel, MasterWrapper
 class LeNet300Custom(MasterModel):
     def __init__(self):
         super(LeNet300Custom, self).__init__()
-        self.layers = nn.Sequential(LinearMasked(28*28, 300),
+        self.layers = nn.Sequential(LinearMasked(32*32, 300),
                                     nn.ReLU(),
                                     LinearMasked(300, 100),
                                     nn.ReLU(),
                                     LinearMasked(100,10))
         
     def forward(self, x):
-        x = x.view(-1, 28*28)
+        x = x.view(-1, 32*32)
         return self.layers(x)
 
 class LeNet_300_100(MasterModel):
@@ -23,7 +23,7 @@ class LeNet_300_100(MasterModel):
         super(LeNet_300_100, self).__init__()
         # Not exactly like the paper, yet
         self.layers = nn.Sequential(
-            nn.Linear(28*28, 300),
+            nn.Linear(32*32, 300),
             nn.ReLU(),
             nn.Linear(300, 100),
             nn.ReLU(),
@@ -37,7 +37,7 @@ class LeNet_300_100(MasterModel):
         # name so as to exclude biases. are biases ok to prune?
 
     def forward(self, x):
-        x = x.view(-1, 28*28)
+        x = x.view(-1, 32*32)
         out = self.layers(x)
         
         return out
@@ -48,7 +48,7 @@ class LeNet5(MasterModel):
 
         # Not exactly like the paper, yet
         self.conv_layers = nn.Sequential(
-            nn.Conv2d(in_channels=3, out_channels=6, kernel_size=(5,5)),
+            nn.Conv2d(in_channels=1, out_channels=6, kernel_size=(5,5)),
             nn.ReLU(),
             nn.MaxPool2d(kernel_size=(2,2), stride=2),
             nn.Conv2d(6, 16, kernel_size=(5,5)),
