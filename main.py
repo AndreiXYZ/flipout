@@ -16,17 +16,17 @@ from data_loaders import *
 from master_model import MasterWrapper
 from snip import SNIP, apply_prune_mask
 
-grads_alive_mean = []
-grads_alive_std = []
-grads_pruned_mean = []
-grads_pruned_std = []
+pruned_max = []
+pruned_mean = []
+live_mean = []
+live_std = []
 
 def epoch(epoch_num, loader,  model, opt, writer, config):
     epoch_acc = 0
     epoch_loss = 0
     size = len(loader.dataset)
-
-    global grads_alive_mean, grads_alive_std, grads_pruned_mean, grads_pruned_std
+    
+    global max_pruned, pruned_mean, live_mean
 
     for batch_num, (x,y) in enumerate(loader):
         update_num = epoch_num*size/math.ceil(config['batch_size']) + batch_num
@@ -35,15 +35,16 @@ def epoch(epoch_num, loader,  model, opt, writer, config):
         y = y.to(config['device'])
         out = model.forward(x)
 
-        # Calc loss function
-
         sparsity = model.get_sparsity(config)
         weight_penalty = model.get_weight_penalty(config)
+
         if config['anneal_lambda'] == True:
             weight_penalty *= (1-sparsity)
-        loss = F.cross_entropy(out, y) + weight_penalty*config['lambda']
+        
 
         if model.training:   
+            loss = F.cross_entropy(out, y) + weight_penalty*config['lambda']
+            
             if 'custom' not in config['model']:
                 model.save_weights()
             loss.backward()
@@ -63,44 +64,47 @@ def epoch(epoch_num, loader,  model, opt, writer, config):
             if 'custom' not in config['model']: 
                 flips_since_last = model.store_flips_since_last()
 
-            # flips_total = model.get_flips_total()
-            # flipped_total = model.get_total_flipped()
-            # writer.add_scalar('flips/flips_since_last', flips_since_last, update_num)
-            # writer.add_scalar('flips/flipped_total', flipped_total, update_num)
-
         else:
-            # Get the gradients, averaged over n, the batch size
-            # Accumulate them for all mini-batches
+            # Accumulate gradients over all samples in a batch
+            # This is done for all mini-batches
+            loss = F.cross_entropy(out, y, reduction='sum') + weight_penalty*config['lambda']
             loss.backward()
-
+            # When we exit this for loop, layer.grad will store sum of gradients
+            # across all batches.
+        
         preds = out.argmax(dim=1, keepdim=True).squeeze()
         correct = preds.eq(y).sum().item()
         
         epoch_acc += correct
         epoch_loss += loss.item()
-            # When we exit the batch iteration, the .grad param
-            # will have the average gradient across all mini-batches
+    
+    # When finished a testing epoch, gather statistics about gradients
     if model.training is False:
         with torch.no_grad():
-            grads_alive = []
-            grads_pruned = []
             for layer in model.parameters():
-                grads_alive.append(layer.grad[layer!=0.].abs())
-                grads_pruned.append(layer.grad[layer==0.].abs())
-            grads_alive = torch.cat(grads_alive)
-            grads_pruned = torch.cat(grads_pruned)
+                # Divide by num samples
+                layer.grad /= size
+                pruned_grads = layer.grad[layer==0.].abs()
+                live_grads = layer.grad[layer!=0.].abs()
+                live_magnitude = layer[layer!=0].abs()
+                if pruned_grads.numel() > 0:
+                    writer.add_histogram('weights/grad_pruned', pruned_grads, epoch_num)
+                writer.add_histogram('weights/grad_live', live_grads, epoch_num)
+                writer.add_histogram('weights/magnitude_live', live_magnitude, epoch_num)
+                
+                if pruned_grads.numel() > 0:
+                    pruned_max.append(pruned_grads.max().item())
+                    pruned_mean.append(pruned_grads.mean().item())
+                live_mean.append(live_magnitude.mean().item())
+                live_std.append(live_magnitude.std().item())
+                break
 
-            grads_alive_mean.append(grads_alive.mean().item())
-            grads_alive_std.append(grads_alive.std().item())
-            grads_pruned_mean.append(grads_pruned.mean().item())
-            grads_pruned_std.append(grads_pruned.std().item())
-            writer.add_scalar('avg_abs_grads/alive_mean', grads_alive.mean(), epoch_num)
-            writer.add_scalar('avg_abs_grads/alive_var', grads_alive.var(), epoch_num)
-            writer.add_scalar('avg_abs_grads/pruned_mean', grads_pruned.mean(), epoch_num)
-            writer.add_scalar('avg_abs_grads/pruned_var', grads_pruned.var(), epoch_num)
-    
     epoch_acc /= size
-    epoch_loss /= size
+
+    if model.training:
+        epoch_loss /= len(loader)
+    else:
+        epoch_loss /= size
 
     return epoch_acc, epoch_loss
 
@@ -140,7 +144,7 @@ def train(config, writer):
             elif config['prune_criterion'] == 'flip':
                 model.update_mask_flips(config['flip_threshold'])
                 # if len(grads_pruned_std) > 0:
-                #     model.update_mask_gradpruned(threshold=grads_pruned_std[-1])
+                #     model.update_mask_gradpruned(threshold=max_grad)
             elif config['prune_criterion'] == 'random':
                 model.update_mask_random(config['prune_rate'])
         
@@ -151,17 +155,6 @@ def train(config, writer):
         print('Wdecay : {:>15.6f}'.format(opt.param_groups[0]['weight_decay']))
         
         plot_stats(train_acc, train_loss, test_acc, test_loss, model, writer, epoch_num, config)
-        # plot_weight_histograms(model, writer, epoch_num)
-
-    plt.subplot(1, 2, 1)
-    plt.errorbar(range(config['epochs']), grads_alive_mean, grads_alive_std, label='alive')
-    plt.legend(); plt.grid()
-
-    plt.subplot(1, 2, 2)
-    plt.errorbar(range(config['epochs']), grads_pruned_mean, grads_pruned_std, label='pruned', color='orange')
-    plt.legend(); plt.grid()
-    
-    plt.savefig('live_vs_pruned_fixed.png')
 
 def main():
     config = parse_args()
@@ -174,6 +167,18 @@ def main():
     writer.add_text('config', json.dumps(config))
     train(config, writer)
 
+    plt.subplot(1, 2, 2)
+    plt.errorbar(range(config['epochs']), live_mean, live_std, label='live + std')
+    plt.legend()
+    plt.grid()
+
+    plt.subplot(1, 2, 1)
+    plt.errorbar(range(config['epochs']-1), pruned_mean, pruned_max, label='pruned + max')
+    plt.legend()
+    plt.grid()
+
+    plt.savefig('plots.png')
+    plt.show()
 
 def parse_args():
     parser = argparse.ArgumentParser()

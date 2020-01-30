@@ -207,7 +207,7 @@ class MasterModel(nn.Module):
                     scaling_factor = layer.grad.norm(p=2)/math.sqrt(layer.numel())
                     layer.grad.data += noise*scaling_factor
                     # Append to list for logging purposes
-                    noise_per_layer.append(scaling_factor + grad_pruned)
+                    noise_per_layer.append(scaling_factor)
                     # Finally, mask gradient for pruned weights
                     layer.grad.data *= layer_mask
         
