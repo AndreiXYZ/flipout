@@ -16,11 +16,6 @@ from data_loaders import *
 from master_model import MasterWrapper
 from snip import SNIP, apply_prune_mask
 
-pruned_max = []
-pruned_mean = []
-live_mean = []
-live_std = []
-
 def epoch(epoch_num, loader,  model, opt, writer, config):
     epoch_acc = 0
     epoch_loss = 0
@@ -42,9 +37,9 @@ def epoch(epoch_num, loader,  model, opt, writer, config):
             weight_penalty *= (1-sparsity)
         
 
-        if model.training:   
-            loss = F.cross_entropy(out, y) + weight_penalty*config['lambda']
-            
+        loss = F.cross_entropy(out, y) + weight_penalty*config['lambda']
+        
+        if model.training:       
             if 'custom' not in config['model']:
                 model.save_weights()
             loss.backward()
@@ -63,41 +58,13 @@ def epoch(epoch_num, loader,  model, opt, writer, config):
             # Monitor wegiths for flips
             if 'custom' not in config['model']: 
                 flips_since_last = model.store_flips_since_last()
-
-        else:
-            # Accumulate gradients over all samples in a batch
-            # This is done for all mini-batches
-            loss = F.cross_entropy(out, y, reduction='sum') + weight_penalty*config['lambda']
-            loss.backward()
-            # When we exit this for loop, layer.grad will store sum of gradients
-            # across all batches.
         
         preds = out.argmax(dim=1, keepdim=True).squeeze()
         correct = preds.eq(y).sum().item()
         
         epoch_acc += correct
         epoch_loss += loss.item()
-    
-    # When finished a testing epoch, gather statistics about gradients
-    if model.training is False:
-        with torch.no_grad():
-            for layer in model.parameters():
-                # Divide by num samples
-                layer.grad /= size
-                pruned_grads = layer.grad[layer==0.].abs()
-                live_grads = layer.grad[layer!=0.].abs()
-                live_magnitude = layer[layer!=0].abs()
-                if pruned_grads.numel() > 0:
-                    writer.add_histogram('weights/grad_pruned', pruned_grads, epoch_num)
-                writer.add_histogram('weights/grad_live', live_grads, epoch_num)
-                writer.add_histogram('weights/magnitude_live', live_magnitude, epoch_num)
-                
-                if pruned_grads.numel() > 0:
-                    pruned_max.append(pruned_grads.max().item())
-                    pruned_mean.append(pruned_grads.mean().item())
-                live_mean.append(live_magnitude.mean().item())
-                live_std.append(live_magnitude.std().item())
-                break
+
 
     epoch_acc /= size
 
@@ -115,7 +82,6 @@ def train(config, writer):
     print('Model has {} total params, including biases.'.format(model.get_total_params()))
     
     opt = get_opt(config, model)
-    # scheduler = lr_scheduler.MultiStepLR(opt, milestones=[30,60], gamma=0.1)
 
     # Do SNIP if it is the case
     if config['prune_criterion'] == 'snip':
@@ -138,6 +104,12 @@ def train(config, writer):
         # with torch.no_grad():
         test_acc, test_loss = epoch(epoch_num, test_loader, model, opt, writer, config)   
         
+        # if epoch_num%config['prune_freq'] == 0:
+        #     if epoch_num <= 80:
+        #         model.update_mask_flips(config['flip_threshold'])
+        #     elif epoch_num%3 == 0:
+        #         model.update_mask_magnitudes(0.2)
+        
         if epoch_num%config['prune_freq'] == 0:
             if config['prune_criterion'] == 'magnitude':
                 model.update_mask_magnitudes(config['prune_rate'])
@@ -146,7 +118,7 @@ def train(config, writer):
                 # if len(grads_pruned_std) > 0:
                 #     model.update_mask_gradpruned(threshold=max_grad)
             elif config['prune_criterion'] == 'random':
-                model.update_mask_random(config['prune_rate'])
+                model.update_mask_random(config['prune_rate'], config)
         
         print('Train - acc: {:>15.6f} loss: {:>15.6f}\nTest - acc: {:>16.6f} loss: {:>15.6f}'.format(
             train_acc, train_loss, test_acc, test_loss
@@ -155,6 +127,8 @@ def train(config, writer):
         print('Wdecay : {:>15.6f}'.format(opt.param_groups[0]['weight_decay']))
         
         plot_stats(train_acc, train_loss, test_acc, test_loss, model, writer, epoch_num, config)
+        model.get_output_connections()
+        writer.add_scalar('sparsity/output_connections', model.live_connections, epoch_num)
 
 def main():
     config = parse_args()
@@ -166,19 +140,6 @@ def main():
     del config['comment']
     writer.add_text('config', json.dumps(config))
     train(config, writer)
-
-    plt.subplot(1, 2, 2)
-    plt.errorbar(range(config['epochs']), live_mean, live_std, label='live + std')
-    plt.legend()
-    plt.grid()
-
-    plt.subplot(1, 2, 1)
-    plt.errorbar(range(config['epochs']-1), pruned_mean, pruned_max, label='pruned + max')
-    plt.legend()
-    plt.grid()
-
-    plt.savefig('plots.png')
-    plt.show()
 
 def parse_args():
     parser = argparse.ArgumentParser()

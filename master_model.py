@@ -14,7 +14,8 @@ class MasterWrapper(object):
         self.obj.save_weights()
         self.obj.instantiate_mask()
         self.obj.flip_counts = [torch.zeros_like(layer, dtype=torch.short).to('cuda') for layer in self.parameters()]
-        
+        self.live_connections = None
+
     def __getattr__(self, name):
         # Override getattr such that it calls the wrapped object's attrs
         func = getattr(self.__dict__['obj'], name)
@@ -138,13 +139,13 @@ class MasterModel(nn.Module):
                 layer_mask.data = flip_mask*layer_mask
                 layer.data = layer*layer_mask
 
-    def update_mask_random(self, rate):
+    def update_mask_random(self, rate, config):
         # Get prob distribution
         distribution = torch.Tensor([layer.numel() for layer in self.parameters()
                                     if layer.requires_grad])
         distribution /= distribution.sum()
 
-        to_prune = (1-self.get_sparsity())*rate
+        to_prune = (1-self.get_sparsity(config))*rate
         to_prune_absolute = math.ceil(self.get_total_params()*to_prune)
         
         # Get how many params to remove per layer
@@ -215,7 +216,7 @@ class MasterModel(nn.Module):
                 for layer in self.parameters():
                     layer_mask = F.relu(layer)>0
                     noise = torch.randn_like(layer)
-                    scaling_factor = layer.grad.norm(p=2)/math.sqrt(layer.numel())
+                    scaling_factor = layer.grad.norm(p=1)/math.sqrt(layer.numel())
                     noise_per_layer.append(scaling_factor)
                     # Only add noise to elements which are nonzero
                     layer.grad.data += noise*scaling_factor
@@ -236,3 +237,11 @@ class MasterModel(nn.Module):
                 remaining_pos += remaining[remaining > 0].numel()
     
         return total_remaining_weights, remaining_pos
+
+    def get_output_connections(self):
+        # Returns the number of output nodes that are still connected
+        # i.e. they are not entirely pruned out
+        classification_layer = self.mask[-2]
+        num_classes, connections = classification_layer.shape
+        # Sum over cols and see how many still are connected
+        self.live_connections = (classification_layer.sum(dim=1)>0).sum()
