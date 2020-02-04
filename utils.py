@@ -6,6 +6,12 @@ import torch.nn.functional as F
 from datetime import datetime
 from rmspropw import RMSpropW
 
+
+def accuracy(out, y):
+    preds = out.argmax(dim=1, keepdim=True).squeeze()
+    correct = preds.eq(y).sum().item()
+    return correct
+
 def set_seed(seed):
     torch.manual_seed(seed)
     torch.backends.cudnn.deterministic = True
@@ -17,28 +23,30 @@ def get_time_str():
     return now.strftime('[%d-%m-%y %H:%M:%S]')
 
 def get_opt(config, model):
-    params = model.parameters()
     lr = config['lr']
     if config['reg_type'] == 'wdecay':
         wdecay = config['lambda']
     else:
         wdecay = 0
     
-    if config['opt'] == 'adam':
-        opt = optim.Adam(params, lr=lr, weight_decay=wdecay)
-    elif config['opt'] == 'sgd':
-        opt = optim.SGD(params, lr=lr, weight_decay=wdecay)
-    elif config['opt'] == 'rmsprop':
-        opt = optim.RMSprop(params, lr=lr, weight_decay=wdecay)
-    elif config['opt'] == 'rmspropw':
-        opt = RMSpropW(params, lr=lr, weight_decay=wdecay)
+    kwargs = {'params': model.parameters(),
+              'lr': config['lr'], 
+              'weight_decay': wdecay}
+    
+    opt_dict = {'adam': optim.Adam,
+                'sgd': optim.SGD,
+                'rmsprop': optim.RMSprop,
+                'rmspropw': RMSpropW}
+
+    opt = opt_dict[config['opt']](**kwargs)
+
     return opt
 
-def loss_function(out, target, config):
+def loss_function(out, target, model, config):
     loss = F.cross_entropy(out, target)
 
     if 'l0' in config['model']:
-        loss += model.regularization
+        loss += model.regularization()
     
     if torch.cuda.is_available():
         loss = loss.cuda()
@@ -46,6 +54,31 @@ def loss_function(out, target, config):
     return loss
 
 
+def get_weight_penalty(model, config):
+    if 'l0' in config['model']:
+        return 0
+    
+    penalty = None
+    if config['reg_type'] == 'l1':
+        for layer in model.parameters():
+            if penalty is None:
+                penalty = layer.norm(p=1)
+            else:
+                penalty = penalty + layer.norm(p=1)
+
+    elif config['reg_type'] == 'l2':
+        for layer in model.parameters():
+            if penalty is None:
+                penalty = layer.norm(p=2)**2
+            else:
+                penalty = penalty + layer.norm(p=2)**2
+
+    else:
+        penalty = 0
+
+    return penalty
+
+    
 def plot_weight_histograms(model, writer, epoch_num):
     for name,layer in model.named_parameters():
         if layer.requires_grad:
@@ -57,8 +90,6 @@ def plot_weight_histograms(model, writer, epoch_num):
             layer = layer[layer!=0]
             if 'weight' in name:
                 writer.add_histogram('weights/'+name, layer_histogram, epoch_num)
-            # elif 'bias' in name:
-            #     writer.add_histogram('biases/'+name, layer.clone().detach().flatten(), epoch_num, bins=50)
 
 
 def plot_stats(train_acc, train_loss, test_acc, test_loss, model, writer, epoch_num, config):
@@ -67,7 +98,7 @@ def plot_stats(train_acc, train_loss, test_acc, test_loss, model, writer, epoch_
         writer.add_scalar('acc/generalization_err', train_acc-test_acc, epoch_num)
         writer.add_scalar('loss/train', train_loss, epoch_num)
         writer.add_scalar('loss/test', test_loss, epoch_num)
-        writer.add_scalar('sparsity/sparsity', model.get_sparsity(config), epoch_num)
+        # writer.add_scalar('sparsity/sparsity', model.get_sparsity(config), epoch_num)
     
 def print_gc_memory_usage():
     total_usage = 0
@@ -79,9 +110,6 @@ def print_gc_memory_usage():
         except:
             pass
     print('Total usage in bytes = ', total_usage)
-
-def log_uniform(a, b, size):
-    return torch.Tensor(np.random.uniform(np.log(a), np.log(b), size)).exp()
 
 def save_run(config, model, opt, curr_epoch, fpath):
     save_dict = {'model_state_dict': model.state_dict(),

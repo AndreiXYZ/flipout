@@ -195,20 +195,16 @@ class ResNet18(MasterModel):
         return out
 
 def load_model(config):
-    if config['model'] == 'lenet300':
-        model = LeNet_300_100()
-    elif config['model'] == 'lenet5':
-        model = LeNet5() 
-    elif config['model'] == 'resnet18':
-        model = ResNet18()
-    elif config['model'] == 'lenet300custom':
-        model = LeNet300Custom()
-    elif config['model'] == 'lenet5custom':
-        model = LeNet5Custom()
-    elif config['model'] == 'conv6':
-        model = Conv6()
-    elif config['model'] == 'conv6custom':
-        model = Conv6Custom()
+    model_dict = {'lenet300': LeNet_300_100,
+                  'lenet5': LeNet5,
+                  'resnet18': ResNet18,
+                  'conv6': Conv6,
+                  'lenet300custom': LeNet300Custom,
+                  'lenet5custom': LeNet5Custom,
+                  'conv6custom': Conv6Custom}
+    # Grab appropriate class and instantiate it
+    model = model_dict[config['model']]()
+    # Now wrap it in the master wrapper class
     model = MasterWrapper(model).to(config['device'])
 
     return model
