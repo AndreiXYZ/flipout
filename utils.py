@@ -2,6 +2,7 @@ import torch
 import numpy as np
 import gc
 import torch.optim as optim
+import torch.nn.functional as F
 from datetime import datetime
 from rmspropw import RMSpropW
 
@@ -32,6 +33,18 @@ def get_opt(config, model):
     elif config['opt'] == 'rmspropw':
         opt = RMSpropW(params, lr=lr, weight_decay=wdecay)
     return opt
+
+def loss_function(out, target, config):
+    loss = F.cross_entropy(out, target)
+
+    if 'l0' in config['model']:
+        loss += model.regularization
+    
+    if torch.cuda.is_available():
+        loss = loss.cuda()
+
+    return loss
+
 
 def plot_weight_histograms(model, writer, epoch_num):
     for name,layer in model.named_parameters():

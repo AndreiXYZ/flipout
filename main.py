@@ -15,13 +15,14 @@ from models import *
 from data_loaders import *
 from master_model import MasterWrapper
 from snip import SNIP, apply_prune_mask
+from L0_reg.L0_models import L0LeNet5
+
 
 def epoch(epoch_num, loader,  model, opt, writer, config):
     epoch_acc = 0
     epoch_loss = 0
     size = len(loader.dataset)
     
-    global max_pruned, pruned_mean, live_mean
 
     for batch_num, (x,y) in enumerate(loader):
         update_num = epoch_num*size/math.ceil(config['batch_size']) + batch_num
@@ -36,8 +37,8 @@ def epoch(epoch_num, loader,  model, opt, writer, config):
         if config['anneal_lambda'] == True:
             weight_penalty *= (1-sparsity)
         
-
-        loss = F.cross_entropy(out, y) + weight_penalty*config['lambda']
+        
+        loss = loss_function(out, y, config) + weight_penalty*config['lambda']
         
         if model.training:       
             if 'custom' not in config['model']:
@@ -49,14 +50,19 @@ def epoch(epoch_num, loader,  model, opt, writer, config):
             if config['add_noise']:
                 noise_per_layer = model.inject_noise(config)
 
-                for idx,layer in enumerate(model.parameters()):
-                    # if hasattr('weight') and isinstance(layer, (nn.Linear, nn.Conv2d)):
-                    writer.add_scalar('noise/'+str(idx), noise_per_layer[idx], update_num)
-                    # break
             opt.step()
+            # Clamp parameters if it is a l0 model
+            if 'l0' in config['model']:
+                # clamp the parameters
+                layers = model.layers if not args.multi_gpu else model.module.layers
+                for k, layer in enumerate(layers):
+                    layer.constrain_parameters()
+                if model.beta_ema > 0.:
+                    model.update_ema()
+            
 
             # Monitor wegiths for flips
-            if 'custom' not in config['model']: 
+            if 'custom' not in config['model'] or 'l0' not in config['model']: 
                 flips_since_last = model.store_flips_since_last()
         
         preds = out.argmax(dim=1, keepdim=True).squeeze()
@@ -115,8 +121,6 @@ def train(config, writer):
                 model.update_mask_magnitudes(config['prune_rate'])
             elif config['prune_criterion'] == 'flip':
                 model.update_mask_flips(config['flip_threshold'])
-                # if len(grads_pruned_std) > 0:
-                #     model.update_mask_gradpruned(threshold=max_grad)
             elif config['prune_criterion'] == 'random':
                 model.update_mask_random(config['prune_rate'], config)
         
@@ -145,7 +149,7 @@ def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('--model', type=str, choices=['lenet300', 'lenet5', 'resnet18', 
                                                         'conv6', 'lenet300custom', 'lenet5custom',
-                                                        'conv6custom'], default='lenet300')
+                                                        'conv6custom', 'l0lenet5'], default='lenet300')
     
     parser.add_argument('--dataset', type=str, choices=['mnist', 'cifar10'], default='mnist')
     parser.add_argument('--batch_size', type=int, default=32)
@@ -174,7 +178,12 @@ def parse_args():
     parser.add_argument('--no_noise', dest='add_noise', action='store_false')
     # SNIP params
     parser.add_argument('--snip_sparsity', type=float, required=False, default=0.)
-
+    # L0 params
+    parser.add_argument('--beta_ema', type=float, default=0.999)
+    parser.add_argument('--lambas', nargs='*', type=float, default=[1., 1., 1., 1.])
+    parser.add_argument('--local_rep', action='store_true')
+    parser.add_argument('--temperature', type=float, default=2./3.)
+    
     # Args for saving and resuming model training
     # parser.add_arugment('--save_model', action='store_true', default=False)
     # parser.add_argument('--resume', action='store_true', default=False)
