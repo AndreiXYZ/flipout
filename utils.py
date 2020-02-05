@@ -12,6 +12,20 @@ def accuracy(out, y):
     correct = preds.eq(y).sum().item()
     return correct
 
+def get_sparsity(model,config):
+# Get the global sparsity rate
+    with torch.no_grad():
+        sparsity = 0
+        if 'custom' in config['model']:
+            for layer in model.parameters():
+                relu_weights = F.relu(layer)
+                sparsity += (layer<=0).sum().item()
+        else:
+            for layer in model.parameters():
+                sparsity += (layer==0).sum().item()
+
+    return float(sparsity)/model.total_params
+
 def set_seed(seed):
     torch.manual_seed(seed)
     torch.backends.cudnn.deterministic = True
@@ -42,18 +56,6 @@ def get_opt(config, model):
 
     return opt
 
-def loss_function(out, target, model, config):
-    loss = F.cross_entropy(out, target)
-
-    if 'l0' in config['model']:
-        loss += model.regularization()
-    
-    if torch.cuda.is_available():
-        loss = loss.cuda()
-
-    return loss
-
-
 def get_weight_penalty(model, config):
     if 'l0' in config['model']:
         return 0
@@ -78,7 +80,6 @@ def get_weight_penalty(model, config):
 
     return penalty
 
-    
 def plot_weight_histograms(model, writer, epoch_num):
     for name,layer in model.named_parameters():
         if layer.requires_grad:
@@ -98,7 +99,7 @@ def plot_stats(train_acc, train_loss, test_acc, test_loss, model, writer, epoch_
         writer.add_scalar('acc/generalization_err', train_acc-test_acc, epoch_num)
         writer.add_scalar('loss/train', train_loss, epoch_num)
         writer.add_scalar('loss/test', test_loss, epoch_num)
-        # writer.add_scalar('sparsity/sparsity', model.get_sparsity(config), epoch_num)
+        writer.add_scalar('sparsity/sparsity', get_sparsity(model, config), epoch_num)
     
 def print_gc_memory_usage():
     total_usage = 0

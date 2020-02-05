@@ -37,43 +37,8 @@ class MasterModel(nn.Module):
             return sum([weights.numel() for weights in self.parameters()
                                     if weights.requires_grad])
     
-    def get_sparsity(self,config):
-    # Get the global sparsity rate
-        with torch.no_grad():
-            sparsity = 0
-            if 'custom' in config['model']:
-                for layer in self.parameters():
-                    relu_weights = F.relu(layer)
-                    sparsity += (layer<=0).sum().item()
-            else:
-                for layer in self.parameters():
-                    sparsity += (layer==0).sum().item()
-    
-        return float(sparsity)/self.total_params
-
     def get_flattened_params(self):
         return torch.cat([layer.view(-1) for layer in self.parameters()])
-
-    def get_weight_penalty(self, config):
-        penalty = None
-        if config['reg_type'] == 'l1':
-            for layer in self.parameters():
-                if penalty is None:
-                    penalty = layer.norm(p=1)
-                else:
-                    penalty = penalty + layer.norm(p=1)
-        
-        elif config['reg_type'] == 'l2':
-            for layer in self.parameters():
-                if penalty is None:
-                    penalty = layer.norm(p=2)**2
-                else:
-                    penalty = penalty + layer.norm(p=2)**2
-
-        else:
-            penalty = 0
-
-        return penalty
 
     def instantiate_mask(self):
         self.mask = [torch.ones_like(layer, dtype=torch.bool).to('cuda') for layer in self.parameters()]
@@ -124,7 +89,7 @@ class MasterModel(nn.Module):
     def update_mask_magnitude_global(self, rate):
         with torch.no_grad():
             num_els = self.get_total_params()
-            curr_sparsity = self.get_sparsity()
+            curr_sparsity = get_sparsity(self, config)
             num_unpruned = 1 - num_els*curr_sparsity
             num_to_prune = rate*num_unpruned
             # TODO
@@ -145,7 +110,7 @@ class MasterModel(nn.Module):
                                     if layer.requires_grad])
         distribution /= distribution.sum()
 
-        to_prune = (1-self.get_sparsity(config))*rate
+        to_prune = (1-self.get_sparsity(self, config))*rate
         to_prune_absolute = math.ceil(self.get_total_params()*to_prune)
         
         # Get how many params to remove per layer

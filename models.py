@@ -204,9 +204,10 @@ def load_model(config):
                   'conv6custom': Conv6Custom}
     # Grab appropriate class and instantiate it
     model = model_dict[config['model']]()
-    # Now wrap it in the master wrapper class
-    model = MasterWrapper(model).to(config['device'])
-
+    # Now wrap it in the master wrapper class if we're doing flips
+    if config['prune_criterion'] == 'flip':
+        model = MasterWrapper(model).to(config['device'])
+    
     return model
 
 def separate_signs(layer):
