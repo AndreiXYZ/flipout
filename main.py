@@ -88,9 +88,9 @@ def parse_args():
     opt_choices = ['sgd', 'rmsprop', 'adam', 'rmspropw']
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('--model', type=str, choices=model_choices, default='lenet300')
-    parser.add_argument('--dataset', type=str, choices=['mnist', 'cifar10'], default='mnist')
-    parser.add_argument('--batch_size', type=int, default=32)
+    parser.add_argument('-m', '--model', type=str, choices=model_choices, default='lenet300')
+    parser.add_argument('-d', '--dataset', type=str, choices=['mnist', 'cifar10'], default='mnist')
+    parser.add_argument('-bs', '--batch_size', type=int, default=32)
     parser.add_argument('--epochs', type=int, default=100)
     parser.add_argument('--lr', type=float, default=1e-4)
     parser.add_argument('--device', type=str, default='cuda')
