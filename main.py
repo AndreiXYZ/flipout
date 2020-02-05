@@ -22,7 +22,9 @@ from epoch_funcs import *
 def train(config, writer):
     device = config['device']
     model = load_model(config)
-
+    
+    model = model.to(device)
+    model = nn.DataParallel(model)
     train_loader, test_loader = load_dataset(config)
 
     train_size, test_size = len(train_loader.dataset), len(test_loader.dataset)
