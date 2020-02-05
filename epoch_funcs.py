@@ -106,9 +106,6 @@ def regular_epoch(epoch_num, loader, size, model, opt, writer, config):
         
         if model.training:       
             loss.backward()
-
-            model.apply_mask(config)
-            
             if config['add_noise']:
                 noise_per_layer = model.inject_noise(config)
 

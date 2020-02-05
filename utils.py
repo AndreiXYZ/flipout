@@ -12,6 +12,12 @@ def accuracy(out, y):
     correct = preds.eq(y).sum().item()
     return correct
 
+def get_total_params(model):
+    with torch.no_grad():
+        return sum([weights.numel() for weights in model.parameters()
+                                if weights.requires_grad])
+
+
 def get_sparsity(model,config):
 # Get the global sparsity rate
     with torch.no_grad():
@@ -24,7 +30,8 @@ def get_sparsity(model,config):
             for layer in model.parameters():
                 sparsity += (layer==0).sum().item()
 
-    return float(sparsity)/model.total_params
+    return float(sparsity)/get_total_params(model)
+
 
 def set_seed(seed):
     torch.manual_seed(seed)

@@ -10,7 +10,7 @@ from utils import *
 class MasterWrapper(object):
     def __init__(self, obj):
         self.obj = obj
-        self.obj.total_params = self.obj.get_total_params()
+        self.obj.total_params = get_total_params(self.obj)
         self.obj.save_weights()
         self.obj.instantiate_mask()
         self.obj.flip_counts = [torch.zeros_like(layer, dtype=torch.short).to('cuda') for layer in self.parameters()]
@@ -31,11 +31,6 @@ class MasterWrapper(object):
 class MasterModel(nn.Module):
     def __init__(self):
         super(MasterModel, self).__init__()
-
-    def get_total_params(self):
-        with torch.no_grad():
-            return sum([weights.numel() for weights in self.parameters()
-                                    if weights.requires_grad])
     
     def get_flattened_params(self):
         return torch.cat([layer.view(-1) for layer in self.parameters()])
@@ -88,7 +83,7 @@ class MasterModel(nn.Module):
 
     def update_mask_magnitude_global(self, rate):
         with torch.no_grad():
-            num_els = self.get_total_params()
+            num_els = get_total_params(self)
             curr_sparsity = get_sparsity(self, config)
             num_unpruned = 1 - num_els*curr_sparsity
             num_to_prune = rate*num_unpruned
@@ -111,7 +106,7 @@ class MasterModel(nn.Module):
         distribution /= distribution.sum()
 
         to_prune = (1-self.get_sparsity(self, config))*rate
-        to_prune_absolute = math.ceil(self.get_total_params()*to_prune)
+        to_prune_absolute = math.ceil(get_total_params(self)*to_prune)
         
         # Get how many params to remove per layer
         distribution *= to_prune_absolute

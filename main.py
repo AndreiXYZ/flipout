@@ -22,13 +22,15 @@ from epoch_funcs import *
 def train(config, writer):
     device = config['device']
     model = load_model(config)
-    
+
+    # Send model to gpu and parallelize
     model = model.to(device)
     model = nn.DataParallel(model)
+    # Get train and test loaders
     train_loader, test_loader = load_dataset(config)
 
     train_size, test_size = len(train_loader.dataset), len(test_loader.dataset)
-    print('Model has {} total params, including biases.'.format(model.get_total_params()))
+    print('Model has {} total params, including biases.'.format(get_total_params(model)))
     
     opt = get_opt(config, model)
     epoch = get_epoch_type(config)
