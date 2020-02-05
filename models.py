@@ -195,6 +195,8 @@ class ResNet18(MasterModel):
         return out
 
 def load_model(config):
+    import time
+    t1 = time.time()
     model_dict = {'lenet300': LeNet_300_100,
                   'lenet5': LeNet5,
                   'resnet18': ResNet18,
@@ -208,6 +210,7 @@ def load_model(config):
     if config['prune_criterion'] == 'flip':
         model = MasterWrapper(model).to(config['device'])
     
+    print('Time elapsed for load_model:', time.time() - t1)
     return model
 
 def separate_signs(layer):
