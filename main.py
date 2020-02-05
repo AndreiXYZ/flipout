@@ -25,7 +25,7 @@ def train(config, writer):
 
     # Send model to gpu and parallelize
     model = model.to(device)
-    model = nn.DataParallel(model)
+    # model = nn.DataParallel(model)
     # Get train and test loaders
     train_loader, test_loader = load_dataset(config)
 
@@ -69,8 +69,8 @@ def train(config, writer):
         print('Wdecay : {:>15.6f}'.format(opt.param_groups[0]['weight_decay']))
         # TODO implement this for L0 as well
         plot_stats(train_acc, train_loss, test_acc, test_loss, model, writer, epoch_num, config)
-        # model.get_output_connections()
-        # writer.add_scalar('sparsity/output_connections', model.live_connections, epoch_num)
+        model.get_output_connections()
+        writer.add_scalar('sparsity/output_connections', model.live_connections, epoch_num)
 
 def main():
     config = parse_args()
@@ -95,7 +95,7 @@ def parse_args():
     parser.add_argument('-m', '--model', type=str, choices=model_choices, default='lenet300')
     parser.add_argument('-d', '--dataset', type=str, choices=['mnist', 'cifar10'], default='mnist')
     parser.add_argument('-bs', '--batch_size', type=int, default=32)
-    parser.add_argument('--epochs', type=int, default=100)
+    parser.add_argument('-e', '--epochs', type=int, default=100)
     parser.add_argument('--lr', type=float, default=1e-4)
     parser.add_argument('--device', type=str, default='cuda')
     parser.add_argument('--seed', type=int, default=42)

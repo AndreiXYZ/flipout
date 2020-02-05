@@ -44,8 +44,6 @@ def get_time_str():
     return now.strftime('[%d-%m-%y %H:%M:%S]')
 
 def get_opt(config, model):
-    import time
-    t1 = time.time()
     lr = config['lr']
     if config['reg_type'] == 'wdecay':
         wdecay = config['lambda']
@@ -62,7 +60,6 @@ def get_opt(config, model):
                 'rmspropw': RMSpropW}
 
     opt = opt_dict[config['opt']](**kwargs)
-    print('Time elapsed for init. opt:', time.time() - t1)
     return opt
 
 def get_weight_penalty(model, config):
