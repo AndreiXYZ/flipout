@@ -119,8 +119,8 @@ def regular_epoch(epoch_num, loader, size, model, opt, writer, config):
 
     return epoch_acc, epoch_loss
 
+
 def get_epoch_type(config):
-    print(config['prune_criterion'])
     if config['prune_criterion'] == 'flip':
         return epoch_flips
     elif config['prune_criterion'] == 'l0':

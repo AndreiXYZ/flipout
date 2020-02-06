@@ -27,7 +27,7 @@ class MasterWrapper(object):
         else:
             return func
 
-    
+
 class MasterModel(nn.Module):
     def __init__(self):
         super(MasterModel, self).__init__()

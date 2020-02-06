@@ -48,6 +48,7 @@ def train(config, writer):
         if config['anneal_lambda'] == True:
             opt.param_groups[0]['weight_decay'] = config['lambda']*(1-get_sparsity(model, config))
 
+        
         train_acc, train_loss = epoch(epoch_num, train_loader, train_size, model, opt, writer, config)
         
         model.eval()
