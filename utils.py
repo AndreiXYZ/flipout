@@ -5,7 +5,8 @@ import torch.optim as optim
 import torch.nn.functional as F
 from datetime import datetime
 from rmspropw import RMSpropW
-
+from models.cifar10_models import *
+from models.mnist_models import *
 
 def accuracy(out, y):
     preds = out.argmax(dim=1, keepdim=True).squeeze()
@@ -42,6 +43,26 @@ def set_seed(seed):
 def get_time_str():
     now = datetime.now()
     return now.strftime('[%d-%m-%y %H:%M:%S]')
+
+def load_model(config):
+    init_param = 'VGG19' if config['model'] == 'vgg19' else None
+    model_dict = {'lenet300': LeNet_300_100,
+                  'lenet5': LeNet5,
+                  'conv6': Conv6,
+                  'vgg19': VGG,
+                  'resnet18': ResNet18,
+                  }
+    
+    # Grab appropriate class and instantiate it
+    if config['model'] == 'vgg19':
+        model = VGG('VGG19')
+    else:
+        model = model_dict[config['model']]()
+    # Now wrap it in the master wrapper class if we're doing flips
+    if config['prune_criterion'] == 'flip':
+        model = MasterWrapper(model).to(config['device'])
+    
+    return model
 
 def get_opt(config, model):
     lr = config['lr']

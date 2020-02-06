@@ -40,7 +40,6 @@ class LinearMasked(nn.Module):
         return F.linear(input, signed_weights, signed_bias)
 
 class Conv2dMasked(nn.modules.conv._ConvNd):
-    # TODO
     def __init__(self, in_channels, out_channels, kernel_size, stride=1,
                  padding=0, dilation=1, groups=1, bias=True, padding_mode='zeros'):
         

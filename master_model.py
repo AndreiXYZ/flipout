@@ -13,7 +13,7 @@ class MasterWrapper(object):
         self.obj.total_params = get_total_params(self.obj)
         self.obj.save_weights()
         self.obj.instantiate_mask()
-        self.obj.flip_counts = [torch.zeros_like(layer, dtype=torch.short).to('cuda') for layer in self.parameters()]
+        self.obj.flip_counts = [torch.zeros_like(layer, dtype=torch.short).to('cuda:1') for layer in self.parameters()]
         self.live_connections = None
 
     def __getattr__(self, name):
@@ -36,18 +36,18 @@ class MasterModel(nn.Module):
         return torch.cat([layer.view(-1) for layer in self.parameters()])
 
     def instantiate_mask(self):
-        self.mask = [torch.ones_like(layer, dtype=torch.bool).to('cuda') for layer in self.parameters()]
+        self.mask = [torch.ones_like(layer, dtype=torch.bool).to('cuda:1') for layer in self.parameters()]
     
     def save_weights(self):
-        self.saved_weights = [layer.data.detach().clone().to('cuda')
+        self.saved_weights = [layer.data.detach().clone().to('cuda:1')
                                 for layer in self.parameters()]
     
     def save_grads(self):
-        self.saved_grads = [layer.grad.clone().to('cuda')
+        self.saved_grads = [layer.grad.clone().to('cuda:1')
                             for layer in self.parameters()]
     
     def save_rewind_weights(self):
-        self.rewind_weights = [weights.detach().clone().to('cuda')
+        self.rewind_weights = [weights.detach().clone().to('cuda:1')
                                 for weights in self.parameters()]
 
     def rewind(self):

@@ -44,6 +44,7 @@ def epoch_flips(epoch_num, loader, size, model, opt, writer, config):
 
     return epoch_acc, epoch_loss
 
+
 def epoch_l0(epoch_num, loader, size, model, opt, writer, config):
     epoch_acc = 0
     epoch_loss = 0
@@ -86,6 +87,7 @@ def epoch_l0(epoch_num, loader, size, model, opt, writer, config):
 
     return epoch_acc, epoch_loss
 
+
 def regular_epoch(epoch_num, loader, size, model, opt, writer, config):
     epoch_acc = 0
     epoch_loss = 0
@@ -106,9 +108,6 @@ def regular_epoch(epoch_num, loader, size, model, opt, writer, config):
         
         if model.training:       
             loss.backward()
-            if config['add_noise']:
-                noise_per_layer = model.inject_noise(config)
-
             opt.step()
 
         epoch_acc += accuracy(out, y)
@@ -121,6 +120,7 @@ def regular_epoch(epoch_num, loader, size, model, opt, writer, config):
     return epoch_acc, epoch_loss
 
 def get_epoch_type(config):
+    print(config['prune_criterion'])
     if config['prune_criterion'] == 'flip':
         return epoch_flips
     elif config['prune_criterion'] == 'l0':
