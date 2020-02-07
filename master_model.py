@@ -10,8 +10,7 @@ from utils import *
 class MasterWrapper(object):
     def __init__(self, obj):
         self.obj = obj
-        self.obj.total_params = sum([weights.numel() for weights in self.obj.parameters()
-                                if weights.requires_grad])
+        self.obj.total_params = self.obj.get_total_params()
         self.obj.save_weights()
         self.obj.instantiate_mask()
         self.obj.flip_counts = [torch.zeros_like(layer, dtype=torch.short).to('cuda:1') for layer in self.parameters()]
@@ -33,6 +32,27 @@ class MasterModel(nn.Module):
     def __init__(self):
         super(MasterModel, self).__init__()
     
+    def get_total_params(self):
+        with torch.no_grad():
+            return sum([weights.numel() for weights in self.parameters()
+                                if weights.requires_grad])
+
+
+    def get_sparsity(self, config):
+    #Get the global sparsity rate
+        with torch.no_grad():
+            sparsity = 0
+            if 'custom' in config['model']:
+                for layer in self.parameters():
+                    relu_weights = F.relu(layer)
+                    sparsity += (layer<=0).sum().item()
+            else:
+                for layer in self.parameters():
+                    sparsity += (layer==0).sum().item()
+
+        return float(sparsity)/self.get_total_params()
+    
+
     def get_flattened_params(self):
         return torch.cat([layer.view(-1) for layer in self.parameters()])
 
@@ -82,15 +102,6 @@ class MasterModel(nn.Module):
                 layer_mask.data = mask.view_as(layer_mask)
                 layer.data = layer*layer_mask
 
-    def update_mask_magnitude_global(self, rate):
-        with torch.no_grad():
-            num_els = get_total_params(self)
-            curr_sparsity = get_sparsity(self, config)
-            num_unpruned = 1 - num_els*curr_sparsity
-            num_to_prune = rate*num_unpruned
-            # TODO
-
-
     def update_mask_flips(self, threshold):
         with torch.no_grad():
         # Prune parameters based on sign flips
@@ -106,8 +117,8 @@ class MasterModel(nn.Module):
                                     if layer.requires_grad])
         distribution /= distribution.sum()
 
-        to_prune = (1-self.get_sparsity(self, config))*rate
-        to_prune_absolute = math.ceil(get_total_params(self)*to_prune)
+        to_prune = (1-self.get_sparsity(config))*rate
+        to_prune_absolute = math.ceil(self.get_total_params()*to_prune)
         
         # Get how many params to remove per layer
         distribution *= to_prune_absolute
@@ -120,15 +131,7 @@ class MasterModel(nn.Module):
             selected_indices = valid_idxs[choice].chunk(2,dim=1)
             layer_mask.data[selected_indices] = 0 
             layer.data = layer*layer_mask
-
-    def update_mask_gradpruned(self, threshold):
-        with torch.no_grad():
-            # First, check if there are any pruned weights
-            for layer, layer_mask in zip(self.parameters(), self.mask):
-                if layer.grad[layer_mask==0].numel() > 0:
-                    layer_mask[layer.abs() <= threshold] = 0
-                    layer.data = layer*layer_mask
-
+    
     def store_flips_since_last(self):
     # Retrieves how many params have flipped compared to previously saved weights
         with torch.no_grad():

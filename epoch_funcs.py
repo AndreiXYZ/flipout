@@ -1,7 +1,7 @@
 import math
 import torch.nn as nn
 import torch.nn.functional as F
-from utils import accuracy, get_weight_penalty, get_sparsity
+from utils import accuracy, get_weight_penalty
 
 def epoch_flips(epoch_num, loader, size, model, opt, writer, config):
     epoch_acc = 0
@@ -13,12 +13,12 @@ def epoch_flips(epoch_num, loader, size, model, opt, writer, config):
         y = y.to(config['device'])
         out = model.forward(x)
 
-        sparsity = get_sparsity(model, config)
+        sparsity = model.get_sparsity(config)
         weight_penalty = get_weight_penalty(model, config)
 
         if config['anneal_lambda'] == True:
             weight_penalty *= (1-sparsity)
-            
+        
         loss = F.cross_entropy(out, y) + weight_penalty*config['lambda']
         
         if model.training:       
@@ -98,7 +98,7 @@ def regular_epoch(epoch_num, loader, size, model, opt, writer, config):
         y = y.to(config['device'])
         out = model.forward(x)
 
-        sparsity = get_sparsity(model, config)
+        sparsity = model.get_sparsity(config)
         weight_penalty = get_weight_penalty(model, config)
 
         if config['anneal_lambda'] == True:
@@ -108,6 +108,10 @@ def regular_epoch(epoch_num, loader, size, model, opt, writer, config):
         
         if model.training:       
             loss.backward()
+            model.apply_mask(config)
+            
+            if config['add_noise']:
+                noise_per_layer = model.inject_noise(config)
             opt.step()
 
         epoch_acc += accuracy(out, y)
@@ -125,4 +129,5 @@ def get_epoch_type(config):
         return epoch_flips
     elif config['prune_criterion'] == 'l0':
         return epoch_l0
+    
     return regular_epoch

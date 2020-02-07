@@ -7,32 +7,12 @@ from datetime import datetime
 from rmspropw import RMSpropW
 from models.cifar10_models import *
 from models.mnist_models import *
+from master_model import MasterWrapper
 
 def accuracy(out, y):
     preds = out.argmax(dim=1, keepdim=True).squeeze()
     correct = preds.eq(y).sum().item()
     return correct
-
-def get_total_params(model):
-    with torch.no_grad():
-        return sum([weights.numel() for weights in model.parameters()
-                                if weights.requires_grad])
-
-
-def get_sparsity(model,config):
-# Get the global sparsity rate
-    with torch.no_grad():
-        sparsity = 0
-        if 'custom' in config['model']:
-            for layer in model.parameters():
-                relu_weights = F.relu(layer)
-                sparsity += (layer<=0).sum().item()
-        else:
-            for layer in model.parameters():
-                sparsity += (layer==0).sum().item()
-
-    return float(sparsity)/get_total_params(model)
-
 
 def set_seed(seed):
     torch.manual_seed(seed)
@@ -126,7 +106,7 @@ def plot_stats(train_acc, train_loss, test_acc, test_loss, model, writer, epoch_
         writer.add_scalar('acc/generalization_err', train_acc-test_acc, epoch_num)
         writer.add_scalar('loss/train', train_loss, epoch_num)
         writer.add_scalar('loss/test', test_loss, epoch_num)
-        writer.add_scalar('sparsity/sparsity', get_sparsity(model, config), epoch_num)
+        writer.add_scalar('sparsity/sparsity', model.get_sparsity(config), epoch_num)
     
 def print_gc_memory_usage():
     total_usage = 0

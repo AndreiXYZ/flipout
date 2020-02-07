@@ -25,13 +25,11 @@ def train(config, writer):
 
     # Send model to gpu and parallelize
     model = model.to(device)
-    model = MasterWrapper(model)
     # model = nn.DataParallel(model)
     # Get train and test loaders
     train_loader, test_loader = load_dataset(config)
 
     train_size, test_size = len(train_loader.dataset), len(test_loader.dataset)
-    print('Model has {} total params, including biases.'.format(get_total_params(model)))
     
     opt = get_opt(config, model)
     epoch = get_epoch_type(config)
@@ -40,6 +38,10 @@ def train(config, writer):
         keep_percentage = 1 - config['snip_sparsity']
         keep_masks = SNIP(model, keep_percentage, train_loader, device)
         apply_prune_mask(model, keep_masks)
+    else:
+        model = MasterWrapper(model)
+    
+    print('Model has {} total params, including biases.'.format(model.get_total_params()))
     
     for epoch_num in range(1, config['epochs']+1):
         print('='*10 + ' Epoch ' + str(epoch_num) + ' ' + '='*10)
@@ -47,7 +49,7 @@ def train(config, writer):
         model.train()
         # Anneal wdecay
         if config['anneal_lambda'] == True:
-            opt.param_groups[0]['weight_decay'] = config['lambda']*(1-get_sparsity(model, config))
+            opt.param_groups[0]['weight_decay'] = config['lambda']*(1-model.get_sparsity(config))
 
         
         train_acc, train_loss = epoch(epoch_num, train_loader, train_size, model, opt, writer, config)
@@ -67,7 +69,8 @@ def train(config, writer):
         print('Train - acc: {:>15.6f} loss: {:>15.6f}\nTest - acc: {:>16.6f} loss: {:>15.6f}'.format(
             train_acc, train_loss, test_acc, test_loss
         ))
-        print('Sparsity : {:>15.4f}'.format(get_sparsity(model, config)))
+        
+        print('Sparsity : {:>15.4f}'.format(model.get_sparsity(config)))
         print('Wdecay : {:>15.6f}'.format(opt.param_groups[0]['weight_decay']))
         plot_stats(train_acc, train_loss, test_acc, test_loss, model, writer, epoch_num, config)
 
