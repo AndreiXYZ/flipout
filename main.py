@@ -25,6 +25,7 @@ def train(config, writer):
 
     # Send model to gpu and parallelize
     model = model.to(device)
+    model = MasterWrapper(model)
     # model = nn.DataParallel(model)
     # Get train and test loaders
     train_loader, test_loader = load_dataset(config)

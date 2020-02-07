@@ -10,7 +10,8 @@ from utils import *
 class MasterWrapper(object):
     def __init__(self, obj):
         self.obj = obj
-        self.obj.total_params = get_total_params(self.obj)
+        self.obj.total_params = sum([weights.numel() for weights in self.obj.parameters()
+                                if weights.requires_grad])
         self.obj.save_weights()
         self.obj.instantiate_mask()
         self.obj.flip_counts = [torch.zeros_like(layer, dtype=torch.short).to('cuda:1') for layer in self.parameters()]
