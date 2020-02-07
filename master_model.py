@@ -51,10 +51,6 @@ class MasterModel(nn.Module):
                     sparsity += (layer==0).sum().item()
 
         return float(sparsity)/self.get_total_params()
-    
-
-    def get_flattened_params(self):
-        return torch.cat([layer.view(-1) for layer in self.parameters()])
 
     def instantiate_mask(self):
         self.mask = [torch.ones_like(layer, dtype=torch.bool).to('cuda:1') for layer in self.parameters()]
@@ -131,7 +127,8 @@ class MasterModel(nn.Module):
             selected_indices = valid_idxs[choice].chunk(2,dim=1)
             layer_mask.data[selected_indices] = 0 
             layer.data = layer*layer_mask
-    
+
+
     def store_flips_since_last(self):
     # Retrieves how many params have flipped compared to previously saved weights
         with torch.no_grad():
