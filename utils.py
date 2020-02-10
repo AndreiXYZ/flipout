@@ -53,7 +53,8 @@ def get_opt(config, model):
     
     kwargs = {'params': model.parameters(),
               'lr': config['lr'], 
-              'weight_decay': wdecay}
+              'weight_decay': wdecay,
+              'momentum': config['momentum']}
     
     opt_dict = {'adam': optim.Adam,
                 'sgd': optim.SGD,

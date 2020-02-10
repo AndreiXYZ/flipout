@@ -1,19 +1,17 @@
-import torch, argparse, sys
 import numpy as np
-import math
+import math, argparse
+import torch
 import torch.optim as optim
 import torch.optim.lr_scheduler as lr_scheduler
-import matplotlib.pyplot as plt
 import torch.nn as nn
 import torch.nn.functional as F
+from torch.utils.tensorboard import SummaryWriter
+
+import matplotlib.pyplot as plt
 import json
 import random
 
-from torch.utils.tensorboard import SummaryWriter
-from torch.backends import cudnn
 from utils import *
-from models.cifar10_models import *
-from models.mnist_models import *
 from data_loaders import *
 from master_model import MasterWrapper
 from snip import SNIP, apply_prune_mask
@@ -111,6 +109,7 @@ def parse_args():
                         help='Log dir. for tensorboard')
     # Optimizer args
     parser.add_argument('--opt', type=str, choices=['sgd', 'rmsprop', 'adam', 'rmspropw'])
+    parser.add_argument('--momentum', 'mom', type=float, default=0)
     parser.add_argument('--reg_type', type=str, choices=['wdecay', 'l1', 'l2'])
     parser.add_argument('--lambda', type=float, default=0)
     parser.add_argument('--anneal_lambda', dest='anneal_lambda', action='store_true')
