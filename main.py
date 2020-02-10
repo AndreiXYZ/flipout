@@ -26,11 +26,13 @@ def train(config, writer):
     # model = nn.DataParallel(model)
     # Get train and test loaders
     train_loader, test_loader = load_dataset(config)
-
     train_size, test_size = len(train_loader.dataset), len(test_loader.dataset)
     
     opt = get_opt(config, model)
     epoch = get_epoch_type(config)
+    if config['use_scheduler']:
+        scheduler = lr_scheduler.MultiStepLR(opt, milestones=config['milestones'], gamma=0.1)
+    
     # Do SNIP if it is the case
     if config['prune_criterion'] == 'snip':
         keep_percentage = 1 - config['snip_sparsity']
@@ -56,6 +58,12 @@ def train(config, writer):
         with torch.no_grad():
             test_acc, test_loss = epoch(epoch_num, test_loader, test_size, model, opt, writer, config)
         
+        if config['use_scheduler']:
+            scheduler.step()
+        # Print LR to check if scheduler works properly
+        for param_group in opt.param_groups:
+            print('LR = ', param_group['lr'])
+
         if epoch_num%config['prune_freq'] == 0:
             if config['prune_criterion'] == 'magnitude':
                 model.update_mask_magnitudes(config['prune_rate'])
@@ -85,7 +93,7 @@ def main():
 
 def parse_args():
     model_choices = ['lenet300', 'lenet5', 'conv6', 'vgg19', 'resnet18']
-    pruning_choices = ['magnitude', 'flip', 'random', 'snip', 'l0']
+    pruning_choices = ['magnitude', 'flip', 'random', 'snip', 'l0', 'none']
     dataset_choices = ['mnist', 'cifar10']
     opt_choices = ['sgd', 'rmsprop', 'adam', 'rmspropw']
 
@@ -98,7 +106,7 @@ def parse_args():
     parser.add_argument('--device', type=str, default='cuda')
     parser.add_argument('--seed', type=int, default=42)
     # Pruning
-    parser.add_argument('--prune_criterion', type=str, choices=pruning_choices, default=None)
+    parser.add_argument('--prune_criterion', type=str, choices=pruning_choices, default='none')
     parser.add_argument('--prune_freq', type=int, default=1)
     parser.add_argument('--prune_rate', type=float, default=0.2) # for magnitude pruning
     parser.add_argument('--flip_threshold', type=int, default=1) # for flip pruning
@@ -109,14 +117,14 @@ def parse_args():
                         help='Log dir. for tensorboard')
     # Optimizer args
     parser.add_argument('--opt', type=str, choices=['sgd', 'rmsprop', 'adam', 'rmspropw'])
-    parser.add_argument('--momentum', 'mom', type=float, default=0)
-    parser.add_argument('--reg_type', type=str, choices=['wdecay', 'l1', 'l2'])
+    parser.add_argument('--momentum', '-mom', type=float, default=0)
+    parser.add_argument('--use_scheduler', dest='use_scheduler', action='store_true', default=False)
+    parser.add_argument('--milestones', nargs='*', type=int, required=False)
+    parser.add_argument('--reg_type', type=str, choices=['wdecay', 'l1', 'l2'], default=None)
     parser.add_argument('--lambda', type=float, default=0)
-    parser.add_argument('--anneal_lambda', dest='anneal_lambda', action='store_true')
-    parser.add_argument('--no_anneal_lambda', dest='anneal_lambda', action='store_false')
+    parser.add_argument('--anneal_lambda', dest='anneal_lambda', action='store_true', default=False)
     # Add noise or not
-    parser.add_argument('--noise', dest='add_noise', action='store_true')
-    parser.add_argument('--no_noise', dest='add_noise', action='store_false')
+    parser.add_argument('--noise', dest='add_noise', action='store_true', default=False)
     # SNIP params
     parser.add_argument('--snip_sparsity', type=float, required=False, default=0.)
     # L0 params

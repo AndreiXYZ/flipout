@@ -54,13 +54,16 @@ def get_opt(config, model):
     kwargs = {'params': model.parameters(),
               'lr': config['lr'], 
               'weight_decay': wdecay,
-              'momentum': config['momentum']}
+              }
+    # Add momentum if opt is not Adam
+    if config['opt'] != 'adam':
+        kwargs['momentum'] = config['momentum']
     
     opt_dict = {'adam': optim.Adam,
                 'sgd': optim.SGD,
                 'rmsprop': optim.RMSprop,
                 'rmspropw': RMSpropW}
-
+    
     opt = opt_dict[config['opt']](**kwargs)
     return opt
 
