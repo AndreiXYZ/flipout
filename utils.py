@@ -132,7 +132,6 @@ def get_num_connections(module):
     sum_connections = module.weight.sum(dim=1)
     return (sum_connections!=0.).sum().item()
 
-
 def save_run(config, model, opt, curr_epoch, fpath):
     save_dict = {'model_state_dict': model.state_dict(),
                  'opt_state_dict': opt.state_dict(),
