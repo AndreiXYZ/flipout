@@ -104,13 +104,14 @@ def plot_weight_histograms(model, writer, epoch_num):
                 writer.add_histogram('weights/'+name, layer_histogram, epoch_num)
 
 
-def plot_stats(train_acc, train_loss, test_acc, test_loss, model, writer, epoch_num, config):
+def plot_stats(train_acc, train_loss, test_acc, test_loss, model, writer, epoch_num, config, cls_module):
         writer.add_scalar('acc/train', train_acc, epoch_num)
         writer.add_scalar('acc/test', test_acc, epoch_num)
         writer.add_scalar('acc/generalization_err', train_acc-test_acc, epoch_num)
         writer.add_scalar('loss/train', train_loss, epoch_num)
         writer.add_scalar('loss/test', test_loss, epoch_num)
         writer.add_scalar('sparsity/sparsity', model.get_sparsity(config), epoch_num)
+        writer.add_scalar('sparsity/remaining_connections', get_num_connections(cls_module), epoch_num)
     
 def print_gc_memory_usage():
     total_usage = 0
@@ -122,6 +123,15 @@ def print_gc_memory_usage():
         except:
             pass
     print('Total usage in bytes = ', total_usage)
+
+
+def get_num_connections(module):
+    # For a layer, returns how many neurons have been disconnected
+    # To be used mainly for the classification layer
+    # Num. of neurons is the rows so sum over rows
+    sum_connections = module.weight.sum(dim=1)
+    return (sum_connections!=0.).sum().item()
+
 
 def save_run(config, model, opt, curr_epoch, fpath):
     save_dict = {'model_state_dict': model.state_dict(),

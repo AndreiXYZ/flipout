@@ -40,7 +40,12 @@ def train(config, writer):
         apply_prune_mask(model, keep_masks)
     else:
         model = MasterWrapper(model)
-    
+
+    # Grab the final classification layer to check disconnects
+    modules = [module for module in model.modules()
+                if isinstance(module, (nn.Linear, nn.Conv2d))]
+    cls_module = modules[-1]
+
     print('Model has {} total params, including biases.'.format(model.get_total_params()))
     
     for epoch_num in range(1, config['epochs']+1):
@@ -57,12 +62,9 @@ def train(config, writer):
         model.eval()
         with torch.no_grad():
             test_acc, test_loss = epoch(epoch_num, test_loader, test_size, model, opt, writer, config)
-        
+
         if config['use_scheduler']:
             scheduler.step()
-        # Print LR to check if scheduler works properly
-        for param_group in opt.param_groups:
-            print('LR = ', param_group['lr'])
 
         if epoch_num%config['prune_freq'] == 0:
             if config['prune_criterion'] == 'magnitude':
@@ -78,7 +80,8 @@ def train(config, writer):
         
         print('Sparsity : {:>15.4f}'.format(model.get_sparsity(config)))
         print('Wdecay : {:>15.6f}'.format(opt.param_groups[0]['weight_decay']))
-        plot_stats(train_acc, train_loss, test_acc, test_loss, model, writer, epoch_num, config)
+        plot_stats(train_acc, train_loss, test_acc, test_loss, 
+                    model, writer, epoch_num, config, cls_module)
 
 def main():
     config = parse_args()

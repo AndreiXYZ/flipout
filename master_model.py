@@ -198,11 +198,3 @@ class MasterModel(nn.Module):
                 remaining_pos += remaining[remaining > 0].numel()
     
         return total_remaining_weights, remaining_pos
-
-    def get_output_connections(self):
-        # Returns the number of output nodes that are still connected
-        # i.e. they are not entirely pruned out
-        classification_layer = self.mask[-2]
-        num_classes, connections = classification_layer.shape
-        # Sum over cols and see how many still are connected
-        self.live_connections = (classification_layer.sum(dim=1)>0).sum()
