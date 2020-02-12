@@ -16,10 +16,13 @@ from data_loaders import *
 from master_model import MasterWrapper
 from snip import SNIP, apply_prune_mask
 from epoch_funcs import *
+from L0_reg.L0_models import L0MLP
 
 def train(config, writer):
     device = config['device']
-    model = load_model(config)
+    model = L0MLP(num_classes=10, input_dim=32*32, layer_dims=(300, 100), N=50000,
+                     beta_ema=0.999, lambas=(1., 1., 1.), local_rep=False, weight_decay=0.0005,
+                     temperature=2./3.)
 
     # Send model to gpu and parallelize
     model = model.to(device)
@@ -43,7 +46,7 @@ def train(config, writer):
 
     # Grab the final classification layer to check disconnects
     modules = [module for module in model.modules()
-                if isinstance(module, (nn.Linear, nn.Conv2d))]
+                if hasattr(module, 'weight')]
     cls_module = modules[-1]
 
     print('Model has {} total params, including biases.'.format(model.get_total_params()))

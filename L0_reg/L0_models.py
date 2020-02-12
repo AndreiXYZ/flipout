@@ -1,13 +1,14 @@
 import torch
 import torch.nn as nn
-from L0_reg.l0_layers import L0Conv2d, L0Dense
+# from L0_reg.l0_layers import L0Conv2d, L0Dense
+from L0_reg.l0_layers_weights import L0Conv2d, L0Dense
 from L0_reg.base_layers import MAPConv2d, MAPDense
 from L0_reg.utils import get_flat_fts
 from copy import deepcopy
 import torch.nn.functional as F
+from master_model import MasterModel
 
-
-class L0MLP(nn.Module):
+class L0MLP(MasterModel):
     def __init__(self, input_dim, num_classes, layer_dims=(300, 100), N=50000, beta_ema=0.999,
                  weight_decay=1, lambas=(1., 1., 1.), local_rep=False, temperature=2./3.):
         super(L0MLP, self).__init__()
@@ -42,6 +43,7 @@ class L0MLP(nn.Module):
             self.steps_ema = 0.
 
     def forward(self, x):
+        x = x.flatten(start_dim=2)
         return self.output(x)
 
     def regularization(self):
@@ -77,6 +79,14 @@ class L0MLP(nn.Module):
         params = deepcopy(list(p.data for p in self.parameters()))
         return params
 
+    def get_total_params(self):
+        return sum([module.weight.numel() for module in self.layers])
+
+    def get_sparsity(self, config):
+        # L0 represents the number of nonzero elements
+        _, expected_l0 = self.get_exp_flops_l0()
+        # Now divide the expected L0 by the total number of parameters
+        return 1 - expected_l0/self.get_total_params()
 
 class L0LeNet5(nn.Module):
     def __init__(self, num_classes, input_size=(1, 28, 28), conv_dims=(20, 50), fc_dims=500,

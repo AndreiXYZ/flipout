@@ -29,7 +29,7 @@ class L0Dense(Module):
         self.in_features = in_features
         self.out_features = out_features
         self.prior_prec = weight_decay
-        self.weights = Parameter(torch.Tensor(in_features, out_features))
+        self.weight = Parameter(torch.Tensor(in_features, out_features))
         self.qz_loga = Parameter(torch.Tensor(in_features, out_features))
         self.temperature = temperature
         self.droprate_init = droprate_init if droprate_init != 0. else 0.5
@@ -44,7 +44,7 @@ class L0Dense(Module):
         print(self)
 
     def reset_parameters(self):
-        init.kaiming_normal_(self.weights, mode='fan_out')
+        init.kaiming_normal_(self.weight, mode='fan_out')
 
         self.qz_loga.data.normal_(math.log(1 - self.droprate_init) - math.log(self.droprate_init), 1e-2)
 
@@ -67,7 +67,7 @@ class L0Dense(Module):
 
     def _reg_w(self):
         """Expected L0 norm under the stochastic gates, takes into account and re-weights also a potential L2 penalty"""
-        logpw_col = (-(.5 * self.prior_prec * self.weights.pow(2)) - self.lamba)
+        logpw_col = (-(.5 * self.prior_prec * self.weight.pow(2)) - self.lamba)
         logpw = torch.sum((1 - self.cdf_qz(0)) * logpw_col)
 
         if not self.use_bias:
@@ -112,12 +112,12 @@ class L0Dense(Module):
     def sample_weights(self):
         z = self.quantile_concrete(self.get_eps(self.floatTensor(self.in_features, self.out_features)))
         mask = F.hardtanh(z, min_val=0, max_val=1)
-        return mask * self.weights
+        return mask * self.weight
 
     def forward(self, input):
         if self.local_rep or not self.training:
             z = self.sample_z(input.size(0), sample=self.training)
-            weights = self.weights*z
+            weights = self.weight*z
             output = input.squeeze().mm(weights)
         else:
             weights = self.sample_weights()
@@ -174,7 +174,7 @@ class L0Conv2d(Module):
         self.temperature = temperature
         self.floatTensor = torch.FloatTensor if not torch.cuda.is_available() else torch.cuda.FloatTensor
         self.use_bias = False
-        self.weights = Parameter(torch.Tensor(out_channels, in_channels // groups, *self.kernel_size))
+        self.weight = Parameter(torch.Tensor(out_channels, in_channels // groups, *self.kernel_size))
         self.qz_loga = Parameter(torch.Tensor(out_channels))
         self.dim_z = out_channels
         self.input_shape = None
@@ -188,7 +188,7 @@ class L0Conv2d(Module):
         # print(self)
 
     def reset_parameters(self):
-        init.kaiming_normal_(self.weights, mode='fan_in')
+        init.kaiming_normal_(self.weight, mode='fan_in')
 
         self.qz_loga.data.normal_(math.log(1 - self.droprate_init) - math.log(self.droprate_init), 1e-2)
 
@@ -212,7 +212,7 @@ class L0Conv2d(Module):
     def _reg_w(self):
         """Expected L0 norm under the stochastic gates, takes into account and re-weights also a potential L2 penalty"""
         q0 = self.cdf_qz(0)
-        logpw_col = torch.sum(- (.5 * self.prior_prec * self.weights.pow(2)) - self.lamba, 3).sum(2).sum(1)
+        logpw_col = torch.sum(- (.5 * self.prior_prec * self.weight.pow(2)) - self.lamba, 3).sum(2).sum(1)
         logpw = torch.sum((1 - q0) * logpw_col)
         logpb = 0 if not self.use_bias else - torch.sum((1 - q0) * (.5 * self.prior_prec * self.bias.pow(2) -
                                                                     self.lamba))
@@ -259,14 +259,14 @@ class L0Conv2d(Module):
     
     def sample_weights(self):
         z = self.quantile_concrete(self.get_eps(torch.FloatTensor(self.dim_z).to('cuda:1'))).view(self.dim_z, 1, 1, 1)
-        return F.hardtanh(z, min_val=0, max_val=1) * self.weights
+        return F.hardtanh(z, min_val=0, max_val=1) * self.weight
 
     def forward(self, input_):
         if self.input_shape is None:
             self.input_shape = input_.size()
         b = None if not self.use_bias else self.bias
         if self.local_rep or not self.training:
-            output = F.conv2d(input_, self.weights, b, self.stride, self.padding, self.dilation, self.groups)
+            output = F.conv2d(input_, self.weight, b, self.stride, self.padding, self.dilation, self.groups)
             z = self.sample_z(output.size(0), sample=self.training)
             return output.mul(z)
         else:
