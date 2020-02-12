@@ -69,10 +69,11 @@ class L0Dense(Module):
         logpw_col = (-(.5 * self.prior_prec * self.weight.pow(2)) - self.lamba)
         logpw = torch.sum((1 - self.cdf_qz(0)) * logpw_col)
 
-        if not self.use_bias:
-            logpb = 0
-        else:
-            logpb = - torch.sum(.5 * self.prior_prec * self.bias.pow(2))
+        logpb = 0
+        # if not self.use_bias:
+        #     logpb = 0
+        # else:
+        #     logpb = - torch.sum(.5 * self.prior_prec * self.bias.pow(2))
 
         return logpw + logpb
 
@@ -187,7 +188,7 @@ class L0Conv2d(Module):
     def constrain_parameters(self, **kwargs):
         self.qz_loga.data.clamp_(min=math.log(1e-2), max=math.log(1e2))
 
-    def cdf_qz(self, x, for_bias=False):
+    def cdf_qz(self, x,):
         """Implements the CDF of the 'stretched' concrete distribution"""
         xn = (x - limit_a) / (limit_b - limit_a)
         logits = math.log(xn) - math.log(1 - xn)
@@ -204,12 +205,12 @@ class L0Conv2d(Module):
         logpw = - (.5 * self.prior_prec * self.weight.pow(2)) - self.lamba
         logpw = torch.sum((1 - q0) * logpw)
 
-        if not self.use_bias:
-            logpb = 0
-        else:
-            q0 = q0.view(self.bias.size(0), -1).mean(-1)
-            logpb = -torch.sum((1 - q0) * (.5 * self.prior_prec * self.bias.pow(2) - self.lamba)) 
-        
+        logpb = 0
+        # if not self.use_bias:
+        #     logpb = 0
+        # else:
+        #     q0 = q0.view(self.bias.size(0), -1).mean(-1)
+        #     logpb = -torch.sum((1 - q0) * (.5 * self.prior_prec * self.bias.pow(2) - self.lamba)) 
         return logpw + logpb
 
     def regularization(self):
@@ -218,22 +219,10 @@ class L0Conv2d(Module):
     def count_expected_flops_and_l0(self):
         """Measures the expected floating point operations (FLOPs) and the expected L0 norm"""
         ppos = torch.sum(1 - self.cdf_qz(0))
-        n = self.kernel_size[0] * self.kernel_size[1] * self.in_channels  # vector_length
-        flops_per_instance = n + (n - 1)  # (n: multiplications and n-1: additions)
 
-        num_instances_per_filter = ((self.input_shape[1] - self.kernel_size[0] + 2 * self.padding[0]) / self.stride[0]) + 1  # for rows
-        num_instances_per_filter *= ((self.input_shape[2] - self.kernel_size[1] + 2 * self.padding[1]) / self.stride[1]) + 1  # multiplying with cols
-
-        flops_per_filter = num_instances_per_filter * flops_per_instance
-        expected_flops = flops_per_filter * ppos  # multiply with number of filters
         expected_l0 = ppos
 
-        if self.use_bias:
-            # since the gate is applied to the output we also reduce the bias computation
-            expected_flops += num_instances_per_filter * ppos
-            expected_l0 += ppos
-
-        return expected_flops.item(), expected_l0.item()
+        return 0, expected_l0.item()
 
     def get_eps(self, size):
         """Uniform random numbers for the concrete distribution"""

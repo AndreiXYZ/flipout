@@ -20,7 +20,7 @@ from L0_reg.L0_models import L0MLP, L0LeNet5
 
 def train(config, writer):
     device = config['device']
-    model = L0LeNet5(10, input_size=(1, 32, 32), conv_dims=(20, 50), fc_dims=500, N=60000,
+    model = L0LeNet5(10, input_size=(1, 32, 32), conv_dims=(20, 50), fc_dims=500, N=50000,
                      weight_decay=0.0005, lambas=[1., 1., 1., 1.], local_rep=False,
                      temperature=2./3.)
 

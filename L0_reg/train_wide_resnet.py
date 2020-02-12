@@ -8,7 +8,7 @@ import torch.nn as nn
 
 import torch.backends.cudnn as cudnn
 
-from models import L0WideResNet
+from L0_models import L0WideResNet
 from dataloaders import cifar10, cifar100
 from utils import save_checkpoint, AverageMeter, accuracy
 from torch.optim import lr_scheduler

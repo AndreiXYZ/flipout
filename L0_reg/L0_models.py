@@ -87,7 +87,7 @@ class L0MLP(MasterModel):
         return 1 - expected_l0/self.get_total_params()
 
 class L0LeNet5(MasterModel):
-    def __init__(self, num_classes, input_size=(1, 28, 28), conv_dims=(20, 50), fc_dims=500,
+    def __init__(self, num_classes, input_size=(1, 32, 32), conv_dims=(6, 16, 120), fc_dims=500,
                  N=50000, beta_ema=0., weight_decay=1, lambas=(1., 1., 1., 1.), local_rep=False,
                  temperature=2./3.):
         super(L0LeNet5, self).__init__()
@@ -98,20 +98,26 @@ class L0LeNet5(MasterModel):
         self.beta_ema = beta_ema
         self.weight_decay = weight_decay
 
-        convs = [L0Conv2d(input_size[0], conv_dims[0], 5, droprate_init=0.5, temperature=temperature,
+        convs = [L0Conv2d(1, 6, 5, droprate_init=0.5, temperature=temperature,
                           weight_decay=self.weight_decay, lamba=lambas[0], local_rep=local_rep),
-                 nn.ReLU(), nn.MaxPool2d(2),
-                 L0Conv2d(conv_dims[0], conv_dims[1], 5, droprate_init=0.5, temperature=temperature,
+                 nn.ReLU(),
+                 nn.MaxPool2d(kernel_size=(2,2), stride=2),
+                 L0Conv2d(6, 16, 5, droprate_init=0.5, temperature=temperature,
                           weight_decay=self.weight_decay, lamba=lambas[1], local_rep=local_rep),
-                 nn.ReLU(), nn.MaxPool2d(2)]
+                 nn.ReLU(),
+                 nn.MaxPool2d(kernel_size=(2,2), stride=2),
+                 L0Conv2d(16, 120, 5, droprate_init=0.5, temperature=temperature,
+                          weight_decay=self.weight_decay, lamba=lambas[2], local_rep=local_rep),
+                 nn.ReLU()
+                 ]
+        
         self.convs = nn.Sequential(*convs)
         if torch.cuda.is_available():
             self.convs = self.convs.cuda()
 
-        flat_fts = get_flat_fts(input_size, self.convs)
-        fcs = [L0Dense(flat_fts, self.fc_dims, droprate_init=0.5, weight_decay=self.weight_decay,
+        fcs = [L0Dense(120, 84, droprate_init=0.5, weight_decay=self.weight_decay,
                        lamba=lambas[2], local_rep=local_rep, temperature=temperature), nn.ReLU(),
-               L0Dense(self.fc_dims, num_classes, droprate_init=0.5, weight_decay=self.weight_decay,
+               L0Dense(84, 10, droprate_init=0.5, weight_decay=self.weight_decay,
                        lamba=lambas[3], local_rep=local_rep, temperature=temperature)]
         self.fcs = nn.Sequential(*fcs)
 
@@ -166,6 +172,7 @@ class L0LeNet5(MasterModel):
         return params
 
     def get_total_params(self):
+        
         return sum([module.weight.numel() for module in self.layers])
 
     def get_sparsity(self, config):
