@@ -24,6 +24,6 @@ python main.py -m resnet18 -d cifar10 -bs 128 -e 350 -lr 0.1 --prune_criterion f
 # VGG19
 python main.py -m vgg19 -d cifar10 -bs 128 -e 350 -lr 0.1 --prune_criterion flip \
                 --flip_threshold 25 --opt rmsprop --momentum 0 --reg_type wdecay --lambda 0 --use_scheduler \
-                ---anneal_lambda -noise --milestones 150 250 \
+                --anneal_lambda --noise --milestones 150 250 \
                 --logdir="baselines" --comment="vgg19 lambda=0 thresh=25" \
                 --device cuda:1
