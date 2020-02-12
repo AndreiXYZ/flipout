@@ -41,7 +41,6 @@ class L0Dense(Module):
             self.use_bias = True
         self.floatTensor = torch.FloatTensor if not torch.cuda.is_available() else torch.cuda.FloatTensor
         self.reset_parameters()
-        print(self)
 
     def reset_parameters(self):
         init.kaiming_normal_(self.weight, mode='fan_out')
@@ -126,14 +125,6 @@ class L0Dense(Module):
             output.add_(self.bias)
         return output
 
-    def __repr__(self):
-        s = ('{name}({in_features} -> {out_features}, droprate_init={droprate_init}, '
-             'lamba={lamba}, temperature={temperature}, weight_decay={prior_prec}, '
-             'local_rep={local_rep}')
-        if not self.use_bias:
-            s += ', bias=False'
-        s += ')'
-        return s.format(name=self.__class__.__name__, **self.__dict__)
 
 
 class L0Conv2d(Module):
@@ -175,8 +166,7 @@ class L0Conv2d(Module):
         self.floatTensor = torch.FloatTensor if not torch.cuda.is_available() else torch.cuda.FloatTensor
         self.use_bias = False
         self.weight = Parameter(torch.Tensor(out_channels, in_channels // groups, *self.kernel_size))
-        self.qz_loga = Parameter(torch.Tensor(out_channels))
-        self.dim_z = out_channels
+        self.qz_loga = Parameter(torch.Tensor(out_channels, in_channels//groups, *self.kernel_size))
         self.input_shape = None
         self.local_rep = local_rep
 
@@ -185,7 +175,6 @@ class L0Conv2d(Module):
             self.use_bias = True
 
         self.reset_parameters()
-        # print(self)
 
     def reset_parameters(self):
         init.kaiming_normal_(self.weight, mode='fan_in')
@@ -198,7 +187,7 @@ class L0Conv2d(Module):
     def constrain_parameters(self, **kwargs):
         self.qz_loga.data.clamp_(min=math.log(1e-2), max=math.log(1e2))
 
-    def cdf_qz(self, x):
+    def cdf_qz(self, x, for_bias=False):
         """Implements the CDF of the 'stretched' concrete distribution"""
         xn = (x - limit_a) / (limit_b - limit_a)
         logits = math.log(xn) - math.log(1 - xn)
@@ -212,10 +201,15 @@ class L0Conv2d(Module):
     def _reg_w(self):
         """Expected L0 norm under the stochastic gates, takes into account and re-weights also a potential L2 penalty"""
         q0 = self.cdf_qz(0)
-        logpw_col = torch.sum(- (.5 * self.prior_prec * self.weight.pow(2)) - self.lamba, 3).sum(2).sum(1)
-        logpw = torch.sum((1 - q0) * logpw_col)
-        logpb = 0 if not self.use_bias else - torch.sum((1 - q0) * (.5 * self.prior_prec * self.bias.pow(2) -
-                                                                    self.lamba))
+        logpw = - (.5 * self.prior_prec * self.weight.pow(2)) - self.lamba
+        logpw = torch.sum((1 - q0) * logpw)
+
+        if not self.use_bias:
+            logpb = 0
+        else:
+            q0 = q0.view(self.bias.size(0), -1).mean(-1)
+            logpb = -torch.sum((1 - q0) * (.5 * self.prior_prec * self.bias.pow(2) - self.lamba)) 
+        
         return logpw + logpb
 
     def regularization(self):
@@ -232,7 +226,7 @@ class L0Conv2d(Module):
 
         flops_per_filter = num_instances_per_filter * flops_per_instance
         expected_flops = flops_per_filter * ppos  # multiply with number of filters
-        expected_l0 = n * ppos
+        expected_l0 = ppos
 
         if self.use_bias:
             # since the gate is applied to the output we also reduce the bias computation
@@ -250,15 +244,15 @@ class L0Conv2d(Module):
     def sample_z(self, batch_size, sample=True):
         """Sample the hard-concrete gates for training and use a deterministic value for testing"""
         if sample:
-            eps = self.get_eps(self.floatTensor(batch_size, self.dim_z))
-            z = self.quantile_concrete(eps).view(batch_size, self.dim_z, 1, 1)
+            eps = self.get_eps(self.floatTensor(batch_size, self.out_channels))
+            z = self.quantile_concrete(eps).view(batch_size, self.out_channels, 1, 1)
             return F.hardtanh(z, min_val=0, max_val=1)
         else:  # mode
-            pi = torch.sigmoid(self.qz_loga).view(1, self.dim_z, 1, 1)
+            pi = torch.sigmoid(self.qz_loga)
             return F.hardtanh(pi * (limit_b - limit_a) + limit_a, min_val=0, max_val=1)
     
     def sample_weights(self):
-        z = self.quantile_concrete(self.get_eps(torch.FloatTensor(self.dim_z).to('cuda:1'))).view(self.dim_z, 1, 1, 1)
+        z = self.quantile_concrete(self.get_eps(self.floatTensor(self.out_channels, 1, *self.kernel_size)))
         return F.hardtanh(z, min_val=0, max_val=1) * self.weight
 
     def forward(self, input_):
@@ -266,33 +260,11 @@ class L0Conv2d(Module):
             self.input_shape = input_.size()
         b = None if not self.use_bias else self.bias
         if self.local_rep or not self.training:
+            z = self.sample_z(input_.size(0), sample=self.training)
+            weight = self.weight.mul(z)
             output = F.conv2d(input_, self.weight, b, self.stride, self.padding, self.dilation, self.groups)
-            z = self.sample_z(output.size(0), sample=self.training)
-            return output.mul(z)
+            return output
         else:
             weights = self.sample_weights()
             output = F.conv2d(input_, weights, None, self.stride, self.padding, self.dilation, self.groups)
             return output
-
-    def __repr__(self):
-        s = ('{name}({in_channels}, {out_channels}, kernel_size={kernel_size}, stride={stride}, '
-             'droprate_init={droprate_init}, temperature={temperature}, prior_prec={prior_prec}, '
-             'lamba={lamba}, local_rep={local_rep}')
-        if self.padding != (0,) * len(self.padding):
-            s += ', padding={padding}'
-        if self.dilation != (1,) * len(self.dilation):
-            s += ', dilation={dilation}'
-        if self.output_padding != (0,) * len(self.output_padding):
-            s += ', output_padding={output_padding}'
-        if self.groups != 1:
-            s += ', groups={groups}'
-        if not self.use_bias:
-            s += ', bias=False'
-        s += ')'
-        return s.format(name=self.__class__.__name__, **self.__dict__)
-
-
-
-
-
-

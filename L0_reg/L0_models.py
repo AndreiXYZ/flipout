@@ -19,21 +19,19 @@ class L0MLP(MasterModel):
         self.weight_decay = self.N * weight_decay
         self.lambas = lambas
 
-        layers = []
-        for i, dimh in enumerate(self.layer_dims):
-            inp_dim = self.input_dim if i == 0 else self.layer_dims[i - 1]
-            droprate_init, lamba = 0.2 if i == 0 else 0.5, lambas[i] if len(lambas) > 1 else lambas[0]
-            layers += [L0Dense(inp_dim, dimh, droprate_init=droprate_init, weight_decay=self.weight_decay,
-                               lamba=lamba, local_rep=local_rep, temperature=temperature), nn.ReLU()]
-
-        layers.append(L0Dense(self.layer_dims[-1], num_classes, droprate_init=0.5, weight_decay=self.weight_decay,
-                              lamba=lambas[-1], local_rep=local_rep, temperature=temperature))
+        layers = [L0Dense(32*32, 300, droprate_init=0.2, weight_decay=self.weight_decay,
+                          lamba=lambas[0], local_rep=local_rep, temperature=temperature),
+                  nn.ReLU(),
+                  L0Dense(300, 100, droprate_init=0.5, weight_decay=self.weight_decay,
+                          lamba=lambas[1], local_rep=local_rep, temperature=temperature),
+                  nn.ReLU(),
+                  L0Dense(100, 10, droprate_init=0.5, weight_decay=self.weight_decay,
+                          lamba=lambas[2], local_rep=local_rep, temperature=temperature)
+                  ]
+        
         self.output = nn.Sequential(*layers)
 
-        self.layers = []
-        for m in self.modules():
-            if isinstance(m, L0Dense):
-                self.layers.append(m)
+        self.layers = [layer for layer in layers if isinstance(layer, L0Dense)]
 
         if beta_ema > 0.:
             print('Using temporal averaging with beta: {}'.format(beta_ema))
@@ -88,7 +86,7 @@ class L0MLP(MasterModel):
         # Now divide the expected L0 by the total number of parameters
         return 1 - expected_l0/self.get_total_params()
 
-class L0LeNet5(nn.Module):
+class L0LeNet5(MasterModel):
     def __init__(self, num_classes, input_size=(1, 28, 28), conv_dims=(20, 50), fc_dims=500,
                  N=50000, beta_ema=0., weight_decay=1, lambas=(1., 1., 1., 1.), local_rep=False,
                  temperature=2./3.):

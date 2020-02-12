@@ -16,12 +16,12 @@ from data_loaders import *
 from master_model import MasterWrapper
 from snip import SNIP, apply_prune_mask
 from epoch_funcs import *
-from L0_reg.L0_models import L0MLP
+from L0_reg.L0_models import L0MLP, L0LeNet5
 
 def train(config, writer):
     device = config['device']
-    model = L0MLP(num_classes=10, input_dim=32*32, layer_dims=(300, 100), N=50000,
-                     beta_ema=0.999, lambas=(1., 1., 1.), local_rep=False, weight_decay=0.0005,
+    model = L0LeNet5(10, input_size=(1, 32, 32), conv_dims=(20, 50), fc_dims=500, N=60000,
+                     weight_decay=0.0005, lambas=[1., 1., 1., 1.], local_rep=False,
                      temperature=2./3.)
 
     # Send model to gpu and parallelize
