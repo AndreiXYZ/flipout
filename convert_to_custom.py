@@ -4,13 +4,19 @@ import math
 import torchvision.models as models
 from models.layers import LinearMasked, Conv2dMasked
 
-def separate_signs(layer):
-    layer.weight_signs = layer.weight.clone().detach().sign().to('cuda')
-    layer.weight.data.abs_()
+def separate_signs(module):
+    # Separate signs from values of the weights
+    # and make sure signs are not backpropagated through
+    module.weight_sign = module.weight.sign()
+    module.weight_sign.requires_grad = False
+    module.weight.abs_()
 
-    if layer.bias is not None:
-        layer.bias_signs = layer.bias.clone().detach().sign().to('cuda')
-        layer.bias.data.abs_()
+    # Repeat for bias if it is the case
+    if module.bias is not None:
+        module.bias_sign = module.bias.sign()
+        module.bias_sign.requires_grad = False
+        module.bias.abs_()
+
 
 def selfmask_forward_linear(self, x):
     signed_weights = F.relu(self.weight)*self.weight_signs
