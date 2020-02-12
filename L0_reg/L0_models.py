@@ -167,6 +167,15 @@ class L0LeNet5(nn.Module):
         params = deepcopy(list(p.data for p in self.parameters()))
         return params
 
+    def get_total_params(self):
+        return sum([module.weight.numel() for module in self.layers])
+
+    def get_sparsity(self, config):
+        # L0 represents the number of nonzero elements
+        _, expected_l0 = self.get_exp_flops_l0()
+        # Now divide the expected L0 by the total number of parameters
+        return 1 - expected_l0/self.get_total_params()
+
 
 class BasicBlock(nn.Module):
     def __init__(self, in_planes, out_planes, stride, droprate_init=0.0, weight_decay=0., lamba=0.01, local_rep=False,

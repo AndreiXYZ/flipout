@@ -134,10 +134,10 @@ def parse_args():
     # SNIP params
     parser.add_argument('--snip_sparsity', type=float, required=False, default=0.)
     # L0 params
-    # parser.add_argument('--beta_ema', type=float, default=0.999)
-    # parser.add_argument('--lambas', nargs='*', type=float, default=[1., 1., 1., 1.])
-    # parser.add_argument('--local_rep', action='store_true')
-    # parser.add_argument('--temperature', type=float, default=2./3.)
+    parser.add_argument('--beta_ema', type=float, default=0.999)
+    parser.add_argument('--lambas', nargs='*', type=float, default=[1., 1., 1., 1.])
+    parser.add_argument('--local_rep', action='store_true')
+    parser.add_argument('--temperature', type=float, default=2./3.)
     
     # Args for saving and resuming model training
     # parser.add_arugment('--save_model', action='store_true', default=False)
