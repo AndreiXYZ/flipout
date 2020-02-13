@@ -9,15 +9,14 @@ import torch.nn.functional as F
 from master_model import MasterModel
 
 class L0MLP(MasterModel):
-    def __init__(self, input_dim, num_classes, layer_dims=(300, 100), N=50000, beta_ema=0.999,
-                 weight_decay=1, lambas=(1., 1., 1.), local_rep=False, temperature=2./3.):
+    def __init__(self, N=50000, beta_ema=0.999, weight_decay=0., 
+                 lambas=(1., 1., 1.), local_rep=False, temperature=2./3.):
         super(L0MLP, self).__init__()
-        self.layer_dims = layer_dims
-        self.input_dim = input_dim
         self.N = N
         self.beta_ema = beta_ema
         self.weight_decay = self.N * weight_decay
         self.lambas = lambas
+
 
         layers = [L0Dense(32*32, 300, droprate_init=0.2, weight_decay=self.weight_decay,
                           lamba=lambas[0], local_rep=local_rep, temperature=temperature),
@@ -86,39 +85,35 @@ class L0MLP(MasterModel):
         # Now divide the expected L0 by the total number of parameters
         return 1 - expected_l0/self.get_total_params()
 
+
 class L0LeNet5(MasterModel):
-    def __init__(self, num_classes, input_size=(1, 32, 32), conv_dims=(6, 16, 120), fc_dims=500,
-                 N=50000, beta_ema=0., weight_decay=1, lambas=(1., 1., 1., 1.), local_rep=False,
-                 temperature=2./3.):
+    def __init__(self, N=50000, beta_ema=0., weight_decay=0., 
+                lambas=(1., 1., 1., 1., 1.), local_rep=False, temperature=2./3.):
         super(L0LeNet5, self).__init__()
         self.N = N
-        assert(len(conv_dims) == 2)
-        self.conv_dims = conv_dims
-        self.fc_dims = fc_dims
         self.beta_ema = beta_ema
         self.weight_decay = weight_decay
 
         convs = [L0Conv2d(1, 6, 5, droprate_init=0.5, temperature=temperature,
-                          weight_decay=self.weight_decay, lamba=lambas[0], local_rep=local_rep),
+                          weight_decay=self.weight_decay, lamba=lambas[0]),
                  nn.ReLU(),
                  nn.MaxPool2d(kernel_size=(2,2), stride=2),
                  L0Conv2d(6, 16, 5, droprate_init=0.5, temperature=temperature,
-                          weight_decay=self.weight_decay, lamba=lambas[1], local_rep=local_rep),
+                          weight_decay=self.weight_decay, lamba=lambas[1]),
                  nn.ReLU(),
                  nn.MaxPool2d(kernel_size=(2,2), stride=2),
                  L0Conv2d(16, 120, 5, droprate_init=0.5, temperature=temperature,
-                          weight_decay=self.weight_decay, lamba=lambas[2], local_rep=local_rep),
+                          weight_decay=self.weight_decay, lamba=lambas[2]),
                  nn.ReLU()
                  ]
         
         self.convs = nn.Sequential(*convs)
-        if torch.cuda.is_available():
-            self.convs = self.convs.cuda()
 
         fcs = [L0Dense(120, 84, droprate_init=0.5, weight_decay=self.weight_decay,
-                       lamba=lambas[2], local_rep=local_rep, temperature=temperature), nn.ReLU(),
+                       lamba=lambas[3], temperature=temperature), nn.ReLU(),
                L0Dense(84, 10, droprate_init=0.5, weight_decay=self.weight_decay,
-                       lamba=lambas[3], local_rep=local_rep, temperature=temperature)]
+                       lamba=lambas[4], temperature=temperature)]
+        
         self.fcs = nn.Sequential(*fcs)
 
         self.layers = []

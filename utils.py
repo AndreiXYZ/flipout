@@ -8,6 +8,7 @@ from rmspropw import RMSpropW
 from models.cifar10_models import *
 from models.mnist_models import *
 from master_model import MasterWrapper
+from L0_reg.L0_models import L0LeNet5, L0MLP
 
 def accuracy(out, y):
     preds = out.argmax(dim=1, keepdim=True).squeeze()
@@ -31,11 +32,18 @@ def load_model(config):
                   'conv6': Conv6,
                   'vgg19': VGG,
                   'resnet18': ResNet18,
+                  'l0lenet5': L0LeNet5,
+                  'l0lenet300': L0MLP,
                   }
     
     # Grab appropriate class and instantiate it
     if config['model'] == 'vgg19':
         model = VGG('VGG19')
+
+    elif 'l0' in config['model']:
+        model = model_dict[config['model']](N=60000, weight_decay=config['lambda'],
+                                            lambas=config['lambas'], local_rep=config['local_rep'],
+                                            temperature=config['temperature'], beta_ema=config['beta_ema'])
     else:
         model = model_dict[config['model']]()
     # Now wrap it in the master wrapper class if we're doing flips

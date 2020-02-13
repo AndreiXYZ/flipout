@@ -20,10 +20,7 @@ from L0_reg.L0_models import L0MLP, L0LeNet5
 
 def train(config, writer):
     device = config['device']
-    model = L0LeNet5(10, input_size=(1, 32, 32), conv_dims=(20, 50), fc_dims=500, N=60000,
-                     weight_decay=0.0005, lambas=[3., 3., 3., 3.], local_rep=False,
-                     temperature=2./3.)
-
+    model = load_model(config)
     # Send model to gpu and parallelize
     model = model.to(device)
     # model = nn.DataParallel(model)
@@ -98,7 +95,9 @@ def main():
     train(config, writer)
 
 def parse_args():
-    model_choices = ['lenet300', 'lenet5', 'conv6', 'vgg19', 'resnet18']
+    model_choices = ['lenet300', 'lenet5', 'conv6', 'vgg19', 'resnet18',
+                     'l0lenet5', 'l0lenet300']
+    
     pruning_choices = ['magnitude', 'flip', 'random', 'snip', 'l0', 'none']
     dataset_choices = ['mnist', 'cifar10']
     opt_choices = ['sgd', 'rmsprop', 'adam', 'rmspropw']
