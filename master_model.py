@@ -31,6 +31,7 @@ class MasterWrapper(object):
 class MasterModel(nn.Module):
     def __init__(self):
         super(MasterModel, self).__init__()
+        self.sparsity = 0
     
     def get_total_params(self):
         with torch.no_grad():

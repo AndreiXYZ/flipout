@@ -118,7 +118,7 @@ def plot_stats(train_acc, train_loss, test_acc, test_loss, model, writer, epoch_
         writer.add_scalar('acc/generalization_err', train_acc-test_acc, epoch_num)
         writer.add_scalar('loss/train', train_loss, epoch_num)
         writer.add_scalar('loss/test', test_loss, epoch_num)
-        writer.add_scalar('sparsity/sparsity', model.get_sparsity(config), epoch_num)
+        writer.add_scalar('sparsity/sparsity', model.sparsity, epoch_num)
         writer.add_scalar('sparsity/remaining_connections', get_num_connections(cls_module), epoch_num)
     
 def print_gc_memory_usage():

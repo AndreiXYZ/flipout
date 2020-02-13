@@ -53,10 +53,6 @@ def train(config, writer):
         
         model.train()
         # Anneal wdecay
-        if config['anneal_lambda'] == True:
-            opt.param_groups[0]['weight_decay'] = config['lambda']*(1-model.get_sparsity(config))
-
-        
         train_acc, train_loss = epoch(epoch_num, train_loader, train_size, model, opt, writer, config)
         
         model.eval()
@@ -66,6 +62,7 @@ def train(config, writer):
         if config['use_scheduler']:
             scheduler.step()
 
+        
         if epoch_num%config['prune_freq'] == 0:
             if config['prune_criterion'] == 'magnitude':
                 model.update_mask_magnitudes(config['prune_rate'])
@@ -74,11 +71,22 @@ def train(config, writer):
             elif config['prune_criterion'] == 'random':
                 model.update_mask_random(config['prune_rate'], config)
         
+        # Anneal wdecay and lr if it's the case
+        model.sparsity = model.get_sparsity(config)
+
+        if config['anneal_lambda'] == True:
+            opt.param_groups[0]['weight_decay'] = config['lambda']*(1-model.sparsity)
+
+        if config['anneal_lr'] == True:
+            opt.param_groups[0]['lr'] = config['lr']*(1-model.sparsity)
+        
+        print('LR = ', opt.param_groups[0]['lr'])
+        
         print('Train - acc: {:>15.6f} loss: {:>15.6f}\nTest - acc: {:>16.6f} loss: {:>15.6f}'.format(
             train_acc, train_loss, test_acc, test_loss
         ))
         
-        print('Sparsity : {:>15.4f}'.format(model.get_sparsity(config)))
+        print('Sparsity : {:>15.4f}'.format(model.sparsity))
         print('Wdecay : {:>15.6f}'.format(opt.param_groups[0]['weight_decay']))
         plot_stats(train_acc, train_loss, test_acc, test_loss, 
                     model, writer, epoch_num, config, cls_module)
@@ -128,6 +136,7 @@ def parse_args():
     parser.add_argument('--reg_type', type=str, choices=['wdecay', 'l1', 'l2'], default=None)
     parser.add_argument('--lambda', type=float, default=0)
     parser.add_argument('--anneal_lambda', dest='anneal_lambda', action='store_true', default=False)
+    parser.add_argument('--anneal_lr', dest='anneal_lr', action='store_true', default=False)
     # Add noise or not
     parser.add_argument('--noise', dest='add_noise', action='store_true', default=False)
     # SNIP params
