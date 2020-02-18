@@ -74,9 +74,15 @@ class MasterModel(nn.Module):
                 for weights in self.parameters():
                     layer_mask = F.relu(weights)>0
                     weights.grad.data = weights.grad.data*layer_mask
+                    if config['opt'] == 'adam':
+                        weights.data = weights.data*layer_mask
+            
             else:
                 for weights, layer_mask in zip(self.parameters(), self.mask):
                     weights.grad.data = weights.grad.data*layer_mask
+                    # Mask weights too if using Adam
+                    if config['opt'] == 'adam':
+                        weights.data = weights.data*layer_mask
 
     def update_mask_magnitudes(self, rate):
         # Prune parameters of the network according to lowest magnitude
