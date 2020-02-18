@@ -68,22 +68,28 @@ class MasterModel(nn.Module):
         for weights, rewind_weights, layer_mask in zip(self.parameters(), self.rewind_weights, self.mask):
             weights.data = rewind_weights.data*layer_mask
     
-    def apply_mask(self, config):
+    def mask_weights(self, config):
+        with torch.no_grad():
+            if 'custom' in config['model']:
+                for weights in self.parameters():
+                    layer_mask = F.relu(weights)>0
+                    weights.data = weights.data*layer_mask
+            else:
+                for weights, layer_mask in zip(self.parameters(), self.mask):
+                    weights.data = weights.data*layer_mask
+    
+    
+    def mask_grads(self, config):
         with torch.no_grad():
             if 'custom' in config['model']:
                 for weights in self.parameters():
                     layer_mask = F.relu(weights)>0
                     weights.grad.data = weights.grad.data*layer_mask
-                    if config['opt'] == 'adam':
-                        weights.data = weights.data*layer_mask
-            
             else:
                 for weights, layer_mask in zip(self.parameters(), self.mask):
                     weights.grad.data = weights.grad.data*layer_mask
-                    # Mask weights too if using Adam
-                    if config['opt'] == 'adam':
-                        weights.data = weights.data*layer_mask
 
+    
     def update_mask_magnitudes(self, rate):
         # Prune parameters of the network according to lowest magnitude
         with torch.no_grad():

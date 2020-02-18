@@ -25,13 +25,16 @@ def epoch_flips(epoch_num, loader, size, model, opt, writer, config):
             model.save_weights()
             loss.backward()
 
-            model.apply_mask(config)
+            model.mask_grads(config)
             
             if config['add_noise']:
                 noise_per_layer = model.inject_noise(config)
 
             opt.step()
 
+            if config['opt'] == 'adam':
+                model.mask_weights(config)
+            
             # Monitor wegiths for flips
             flips_since_last = model.store_flips_since_last()
 
@@ -108,12 +111,16 @@ def regular_epoch(epoch_num, loader, size, model, opt, writer, config):
         
         if model.training:       
             loss.backward()
-            model.apply_mask(config)
+            model.mask_grads(config)
             
             if config['add_noise']:
                 noise_per_layer = model.inject_noise(config)
+
             opt.step()
 
+            if config['opt'] == 'adam':
+                model.mask_weights(config)
+            
         epoch_acc += accuracy(out, y)
         epoch_loss += loss.item()
 
