@@ -25,6 +25,7 @@ def get_time_str():
     now = datetime.now()
     return now.strftime('[%d-%m-%y %H:%M:%S]')
 
+
 def load_model(config):
     init_param = 'VGG19' if config['model'] == 'vgg19' else None
     model_dict = {'lenet300': LeNet_300_100,

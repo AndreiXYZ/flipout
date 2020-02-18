@@ -62,17 +62,22 @@ def train(config, writer):
         if config['use_scheduler']:
             scheduler.step()
 
+        print('Sparsity before prune code:', model.get_sparsity(config))
         
         if epoch_num%config['prune_freq'] == 0:
             if config['prune_criterion'] == 'magnitude':
                 model.update_mask_magnitudes(config['prune_rate'])
             elif config['prune_criterion'] == 'flip':
                 model.update_mask_flips(config['flip_threshold'])
+            elif config['prune_criterion'] == 'topflip':
+                model.update_mask_topflips(config['prune_rate'], config)
             elif config['prune_criterion'] == 'random':
                 model.update_mask_random(config['prune_rate'], config)
-        
-        # Anneal wdecay and lr if it's the case
+
+        # Update model's sparsity
+        print('Sparsity after prune code:', model.get_sparsity(config))
         model.sparsity = model.get_sparsity(config)
+
 
         if config['anneal_lambda'] == True:
             opt.param_groups[0]['weight_decay'] = config['lambda']*(1-model.sparsity)
@@ -106,7 +111,7 @@ def parse_args():
     model_choices = ['lenet300', 'lenet5', 'conv6', 'vgg19', 'resnet18',
                      'l0lenet5', 'l0lenet300']
     
-    pruning_choices = ['magnitude', 'flip', 'random', 'snip', 'l0', 'none']
+    pruning_choices = ['magnitude', 'flip', 'topflip', 'random', 'snip', 'l0', 'none']
     dataset_choices = ['mnist', 'cifar10']
     opt_choices = ['sgd', 'rmsprop', 'adam', 'rmspropw']
 

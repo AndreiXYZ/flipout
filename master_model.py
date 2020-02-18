@@ -38,7 +38,6 @@ class MasterModel(nn.Module):
             return sum([weights.numel() for weights in self.parameters()
                                 if weights.requires_grad])
 
-
     def get_sparsity(self, config):
     #Get the global sparsity rate
         with torch.no_grad():
@@ -55,18 +54,15 @@ class MasterModel(nn.Module):
 
     def instantiate_mask(self):
         self.mask = [torch.ones_like(layer, dtype=torch.bool).to('cuda') for layer in self.parameters()]
-    
+
     def save_weights(self):
-        self.saved_weights = [layer.data.detach().clone().to('cuda')
-                                for layer in self.parameters()]
+        self.saved_weights = [layer.data.detach().clone().to('cuda') for layer in self.parameters()]
     
     def save_grads(self):
-        self.saved_grads = [layer.grad.clone().to('cuda')
-                            for layer in self.parameters()]
-    
+        self.saved_grads = [layer.grad.clone().to('cuda') for layer in self.parameters()]
+
     def save_rewind_weights(self):
-        self.rewind_weights = [weights.detach().clone().to('cuda')
-                                for weights in self.parameters()]
+        self.rewind_weights = [layer.data.detach().clone().to('cuda') for layer in self.parameters()]
 
     def rewind(self):
         for weights, rewind_weights, layer_mask in zip(self.parameters(), self.rewind_weights, self.mask):
@@ -99,6 +95,7 @@ class MasterModel(nn.Module):
                 layer_mask.data = mask.view_as(layer_mask)
                 layer.data = layer*layer_mask
 
+
     def update_mask_flips(self, threshold):
         with torch.no_grad():
         # Prune parameters based on sign flips
@@ -106,7 +103,38 @@ class MasterModel(nn.Module):
                 # Get parameters whose flips are above a threshold and invert for masking
                 flip_mask = ~(layer_flips >= threshold)
                 layer_mask.data = flip_mask*layer_mask
+                layer_flips.data *= layer_mask
                 layer.data = layer*layer_mask
+    
+
+    def update_mask_topflips(self, rate, config):
+        with torch.no_grad():
+            # Prune parameters of the network according to highest flips
+            # Flatten everything
+            flip_cts = torch.cat([layer_flips.clone().view(-1) 
+                                    for layer_flips in self.flip_counts])
+            flat_mask = torch.cat([layer_mask.clone().view(-1)
+                                    for layer_mask in self.mask])
+            flat_params = torch.cat([layer.clone().view(-1)
+                                    for layer in self.parameters()])
+            
+            # Get first n% flips
+            num_pruned = (flat_mask==0).sum().item()
+            num_to_prune = int((self.total_params - num_pruned)*rate)
+            to_prune = flip_cts.argsort(descending=True)[:num_to_prune]
+            print(to_prune.shape)
+            # Grab only those who are different than 0
+            to_prune = to_prune[flip_cts[to_prune] > 0]
+            print(to_prune.shape)
+            # Update mask and flip counts
+            flat_mask[to_prune] = 0
+            flip_cts[to_prune] = 0
+            # Replace mask and update parameters
+            self.mask = self.unflatten_tensor(flat_mask, self.mask)
+            
+            for layer, layer_mask in zip(self.parameters(), self.mask):
+                layer.data = layer*layer_mask
+            
 
     def update_mask_random(self, rate, config):
         # Get prob distribution
@@ -135,11 +163,13 @@ class MasterModel(nn.Module):
         with torch.no_grad():
             num_flips = 0
             
-            for curr_weights, prev_weights, layer_flips in zip(self.parameters(), self.saved_weights, self.flip_counts):
+            for curr_weights, prev_weights, layer_flips, layer_mask in zip(self.parameters(), self.saved_weights, self.flip_counts,
+                                                                self.mask):
                 curr_signs = curr_weights.sign()
                 prev_signs = prev_weights.sign()
                 flipped = ~curr_signs.eq(prev_signs)
                 layer_flips += flipped
+                layer_flips *= layer_mask
                 num_flips += flipped.sum()
         return num_flips
 
@@ -178,7 +208,7 @@ class MasterModel(nn.Module):
                 for layer in self.parameters():
                     layer_mask = F.relu(layer)>0
                     noise = torch.randn_like(layer)
-                    scaling_factor = layer.grad.norm(p=1)/math.sqrt(layer.numel())
+                    scaling_factor = layer.grad.norm(p=1)/layer.numel()
                     noise_per_layer.append(scaling_factor)
                     # Only add noise to elements which are nonzero
                     layer.grad.data += noise*scaling_factor
@@ -199,3 +229,15 @@ class MasterModel(nn.Module):
                 remaining_pos += remaining[remaining > 0].numel()
     
         return total_remaining_weights, remaining_pos
+
+
+    @staticmethod
+    def unflatten_tensor(flat_tensor, tensor_list):
+        # Unflatten a tensor according to a list of tensors such that it matches
+        idx = 0
+        result_list = []
+        for tensor in tensor_list:
+            tensor_numel = tensor.numel()
+            result_list.append(flat_tensor[idx:idx+tensor_numel].view_as(tensor))
+            idx += tensor_numel
+        return result_list
