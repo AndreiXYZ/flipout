@@ -122,10 +122,8 @@ class MasterModel(nn.Module):
             num_pruned = (flat_mask==0).sum().item()
             num_to_prune = int((self.total_params - num_pruned)*rate)
             to_prune = flip_cts.argsort(descending=True)[:num_to_prune]
-            print(to_prune.shape)
             # Grab only those who are different than 0
             to_prune = to_prune[flip_cts[to_prune] > 0]
-            print(to_prune.shape)
             # Update mask and flip counts
             flat_mask[to_prune] = 0
             flip_cts[to_prune] = 0

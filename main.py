@@ -61,8 +61,6 @@ def train(config, writer):
 
         if config['use_scheduler']:
             scheduler.step()
-
-        print('Sparsity before prune code:', model.get_sparsity(config))
         
         if epoch_num%config['prune_freq'] == 0:
             if config['prune_criterion'] == 'magnitude':
@@ -75,7 +73,6 @@ def train(config, writer):
                 model.update_mask_random(config['prune_rate'], config)
 
         # Update model's sparsity
-        print('Sparsity after prune code:', model.get_sparsity(config))
         model.sparsity = model.get_sparsity(config)
 
 
