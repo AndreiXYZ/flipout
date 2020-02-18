@@ -32,7 +32,7 @@ def epoch_flips(epoch_num, loader, size, model, opt, writer, config):
 
             opt.step()
 
-            if config['opt'] == 'adam':
+            if config['opt'] == 'adam' or config['momentum']!=0.:
                 model.mask_weights(config)
             
             # Monitor wegiths for flips
@@ -117,8 +117,8 @@ def regular_epoch(epoch_num, loader, size, model, opt, writer, config):
                 noise_per_layer = model.inject_noise(config)
 
             opt.step()
-
-            if config['opt'] == 'adam':
+        
+            if config['opt'] == 'adam' or config['momentum']!=0.:
                 model.mask_weights(config)
             
         epoch_acc += accuracy(out, y)

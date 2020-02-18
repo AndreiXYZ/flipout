@@ -9,7 +9,7 @@ CUDA_VISIBLE_DEVICES=1 python main.py -m lenet300 -d mnist -bs 256 -e 200 -lr 1e
                 --prune_freq 8 --prune_rate 0.2 --opt adam --logdir="baselines" --comment="lenet300 topflip original hparams"
 
 # LeNet5
-CUDA_VISIBLE_DEVICES=1 python main.py -m lenet5 -d mnist -bs 256 -e 100 -lr 2e-3 --prune_criterion topflip \
+CUDA_VISIBLE_DEVICES=1 python main.py -m lenet5 -d mnist -bs 256 -e 200 -lr 2e-3 --prune_criterion topflip \
                 --prune_freq 8 --prune_rate 0.2 --opt adam --logdir="baselines" --comment="lenet5 topflip original hparams"
 
 # ResNet18
