@@ -147,15 +147,14 @@ class MasterModel(nn.Module):
                 # Calc how many weights we still need to prune
                 num_pruned = (layer_mask==0).sum().item()
                 num_to_prune = (layer.numel() - num_pruned)*rate
-
+                
                 # Get index of the weights that are to be pruned
-                to_prune = layer_flips.view(-1).argosrt(descending=True)[:int(num_to_prune)]
+                to_prune = layer_flips.view(-1).argsort(descending=True)[:int(num_to_prune)]
                 # Only prune those that have more than 0 flips
-                to_prune = to_prune[layer_flips[to_prune] > 0]
-
+                to_prune = to_prune[layer_flips.view(-1)[to_prune] > 0]
                 # Update mask and multiply layer by mask
-                layer_mask.view(-1)[to_prune] = 0
-                layer_flips.view(-1)[to_prune] = 0
+                layer_mask.data.view(-1)[to_prune] = 0
+                layer_flips.data.view(-1)[to_prune] = 0
                 
                 layer.data = layer*layer_mask
     
@@ -194,6 +193,11 @@ class MasterModel(nn.Module):
                 layer_flips *= layer_mask
                 num_flips += flipped.sum()
         return num_flips
+
+    def store_ema_flip_counts(self, beta):
+        with torch.no_grad():
+            for layer_flips, layer_ema_flips in zip(self.flip_counts, self.ema_flip_counts):
+                layer_ema_flips = beta*layer_ema_flips + (1-beta)*layer_flips
 
     def get_flips_total(self):
         # Get total number of flips

@@ -132,7 +132,7 @@ def regular_epoch(epoch_num, loader, size, model, opt, writer, config):
 
 
 def get_epoch_type(config):
-    if config['prune_criterion'] == 'flip' or config['prune_criterion'] == 'topflip':
+    if config['prune_criterion'] in ['flip', 'topflip', 'topflip_layer']:
         return epoch_flips
     elif config['prune_criterion'] == 'l0':
         return epoch_l0

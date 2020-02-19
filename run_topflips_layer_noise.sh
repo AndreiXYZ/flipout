@@ -1,8 +1,7 @@
 #/bin/bash
 
 # This script runs the 4 tested models (2 for mnist, 2 for cifar10) with recommended
-# default hyperparameters and no pruning i.e. a regular training run to serve as 
-# a baseline for comparing relative accuracy drop of pruned vs. unpruned.
+# default hyperparameters and pruning the network using layerwise topflips
 
 # LeNet300
 CUDA_VISIBLE_DEVICES=1 python main.py -m lenet300 -d mnist -bs 256 -e 200 -lr 1e-3 --prune_criterion topflip_layer \

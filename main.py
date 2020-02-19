@@ -62,6 +62,9 @@ def train(config, writer):
         if config['use_scheduler']:
             scheduler.step()
         
+        if config['ema_flip_cts']:
+            model.store_ema_flip_counts(config['beta_ema_flips'])
+        
         if epoch_num%config['prune_freq'] == 0:
             if config['prune_criterion'] == 'magnitude':
                 model.update_mask_magnitudes(config['prune_rate'])
@@ -73,7 +76,7 @@ def train(config, writer):
                 model.update_mask_topflips_layerwise(config['prune_rate'])
             elif config['prune_criterion'] == 'random':
                 model.update_mask_random(config['prune_rate'], config)
-            
+        
 
         # Update model's sparsity
         model.sparsity = model.get_sparsity(config)
@@ -128,6 +131,8 @@ def parse_args():
     parser.add_argument('--prune_freq', type=int, default=1)
     parser.add_argument('--prune_rate', type=float, default=0.2) # for magnitude pruning
     parser.add_argument('--flip_threshold', type=int, default=1) # for flip pruning
+    parser.add_argument('--ema_flip_cts', dest='ema_flip_cts', action='store_true', default=False)
+    parser.add_argument('--beta_ema_flips', type=float, default=None)
     # Tensorboard-related args
     parser.add_argument('--comment', type=str, default=None,
                         help='Comment to add to tensorboard text')
