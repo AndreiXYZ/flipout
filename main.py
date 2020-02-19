@@ -69,8 +69,11 @@ def train(config, writer):
                 model.update_mask_flips(config['flip_threshold'])
             elif config['prune_criterion'] == 'topflip':
                 model.update_mask_topflips(config['prune_rate'])
+            elif config['prune_criterion'] == 'topflip_layer':
+                model.update_mask_topflips_layerwise(config['prune_rate'])
             elif config['prune_criterion'] == 'random':
                 model.update_mask_random(config['prune_rate'], config)
+            
 
         # Update model's sparsity
         model.sparsity = model.get_sparsity(config)
@@ -108,7 +111,7 @@ def parse_args():
     model_choices = ['lenet300', 'lenet5', 'conv6', 'vgg19', 'resnet18',
                      'l0lenet5', 'l0lenet300']
     
-    pruning_choices = ['magnitude', 'flip', 'topflip', 'random', 'snip', 'l0', 'none']
+    pruning_choices = ['magnitude', 'flip', 'topflip', 'topflip_layer', 'random', 'snip', 'l0', 'none']
     dataset_choices = ['mnist', 'cifar10']
     opt_choices = ['sgd', 'rmsprop', 'adam', 'rmspropw']
 
