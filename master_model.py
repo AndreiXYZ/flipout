@@ -15,6 +15,7 @@ class MasterWrapper(object):
         self.obj.instantiate_mask()
         self.obj.flip_counts = [torch.zeros_like(layer, dtype=torch.short).to('cuda') for layer in self.parameters()]
         self.live_connections = None
+        self.sparsity = 0
 
     def __getattr__(self, name):
         # Override getattr such that it calls the wrapped object's attrs
@@ -31,7 +32,6 @@ class MasterWrapper(object):
 class MasterModel(nn.Module):
     def __init__(self):
         super(MasterModel, self).__init__()
-        self.sparsity = 0
     
     def get_total_params(self):
         with torch.no_grad():
@@ -94,17 +94,12 @@ class MasterModel(nn.Module):
         # Prune parameters of the network according to lowest magnitude
         with torch.no_grad():
             for layer, layer_mask in zip(self.parameters(), self.mask):
-                flat_layer = layer.view(-1)
-                indices = flat_layer.abs().argsort(descending=False)
-
                 num_pruned = (layer_mask==0).sum().item()
-                num_unpruned = layer_mask.numel() - num_pruned
-                to_prune = num_pruned + int(rate*num_unpruned)
+                num_unpruned = layer.numel() - num_pruned
+                num_to_prune = num_pruned + int(rate*num_unpruned)
                 
-                indices = indices[:to_prune]
-                mask = layer_mask.view(-1).clone()
-                mask[indices] = 0
-                layer_mask.data = mask.view_as(layer_mask)
+                to_prune = layer.view(-1).abs().argsort(descending=False)[:num_to_prune]
+                layer_mask.view(-1)[to_prune] = 0
                 layer.data = layer*layer_mask
 
 
@@ -119,7 +114,7 @@ class MasterModel(nn.Module):
                 layer.data = layer*layer_mask
     
 
-    def update_mask_topflips(self, rate, config):
+    def update_mask_topflips(self, rate):
         with torch.no_grad():
             # Prune parameters of the network according to highest flips
             # Flatten everything
@@ -146,6 +141,24 @@ class MasterModel(nn.Module):
                 layer.data = layer*layer_mask
             
 
+    def update_mask_topflips_layerwise(self, rate):
+        with torch.no_grad():
+            for layer, layer_mask, layer_flips in zip(self.parameters(), self.mask, self.flip_counts):
+                # Calc how many weights we still need to prune
+                num_pruned = (layer_mask==0).sum().item()
+                num_to_prune = (layer.numel() - num_pruned)*rate
+
+                # Get index of the weights that are to be pruned
+                to_prune = layer_flips.view(-1).argosrt(descending=True)[:int(num_to_prune)]
+                # Only prune those that have more than 0 flips
+                to_prune = to_prune[layer_flips[to_prune] > 0]
+
+                # Update mask and multiply layer by mask
+                layer_mask.view(-1)[to_prune] = 0
+                layer_flips.view(-1)[to_prune] = 0
+                
+                layer.data = layer*layer_mask
+    
     def update_mask_random(self, rate, config):
         # Get prob distribution
         distribution = torch.Tensor([layer.numel() for layer in self.parameters()
@@ -172,7 +185,6 @@ class MasterModel(nn.Module):
     # Retrieves how many params have flipped compared to previously saved weights
         with torch.no_grad():
             num_flips = 0
-            
             for curr_weights, prev_weights, layer_flips, layer_mask in zip(self.parameters(), self.saved_weights, self.flip_counts,
                                                                 self.mask):
                 curr_signs = curr_weights.sign()

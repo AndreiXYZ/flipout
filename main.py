@@ -68,7 +68,7 @@ def train(config, writer):
             elif config['prune_criterion'] == 'flip':
                 model.update_mask_flips(config['flip_threshold'])
             elif config['prune_criterion'] == 'topflip':
-                model.update_mask_topflips(config['prune_rate'], config)
+                model.update_mask_topflips(config['prune_rate'])
             elif config['prune_criterion'] == 'random':
                 model.update_mask_random(config['prune_rate'], config)
 
