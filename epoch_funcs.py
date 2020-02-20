@@ -41,7 +41,10 @@ def epoch_flips(epoch_num, loader, size, model, opt, writer, config):
         epoch_acc += accuracy(out, y)
         epoch_loss += loss.item()
 
-
+    # Epoch is done. Update model flips with EMA
+    if config['use_ema_flips'] and model.training:
+        model.store_ema_flip_counts(config['beta_ema_flips'])
+    
     epoch_acc /= size
     epoch_loss /= size
 

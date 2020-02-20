@@ -13,7 +13,8 @@ class MasterWrapper(object):
         self.obj.total_params = self.obj.get_total_params()
         self.obj.save_weights()
         self.obj.instantiate_mask()
-        self.obj.flip_counts = [torch.zeros_like(layer, dtype=torch.short).to('cuda') for layer in self.parameters()]
+        self.obj.flip_counts = [torch.zeros_like(layer, dtype=torch.float).to('cuda') for layer in self.parameters()]
+        self.obj.ema_flip_counts = [torch.zeros_like(layer, dtype=torch.float).to('cuda') for layer in self.parameters()]
         self.live_connections = None
         self.sparsity = 0
 
@@ -114,12 +115,17 @@ class MasterModel(nn.Module):
                 layer.data = layer*layer_mask
     
 
-    def update_mask_topflips(self, rate):
+    def update_mask_topflips(self, rate, use_ema):
         with torch.no_grad():
             # Prune parameters of the network according to highest flips
             # Flatten everything
+            if use_ema:
+                flip_cts = self.ema_flip_counts
+            else:
+                flip_cts = self.flip_counts
+            
             flip_cts = torch.cat([layer_flips.clone().view(-1) 
-                                    for layer_flips in self.flip_counts])
+                                    for layer_flips in flip_cts])
             flat_mask = torch.cat([layer_mask.clone().view(-1)
                                     for layer_mask in self.mask])
             flat_params = torch.cat([layer.clone().view(-1)
@@ -194,10 +200,13 @@ class MasterModel(nn.Module):
                 num_flips += flipped.sum()
         return num_flips
 
+
     def store_ema_flip_counts(self, beta):
         with torch.no_grad():
-            for layer_flips, layer_ema_flips in zip(self.flip_counts, self.ema_flip_counts):
-                layer_ema_flips = beta*layer_ema_flips + (1-beta)*layer_flips
+            for layer_flips, layer_ema_flips, layer_mask in zip(self.flip_counts, self.ema_flip_counts, self.mask):
+                layer_ema_flips.data = beta*layer_ema_flips + layer_flips
+                layer_ema_flips.data = layer_ema_flips*layer_mask
+
 
     def get_flips_total(self):
         # Get total number of flips
