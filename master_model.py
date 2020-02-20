@@ -204,7 +204,7 @@ class MasterModel(nn.Module):
     def store_ema_flip_counts(self, beta):
         with torch.no_grad():
             for layer_flips, layer_ema_flips, layer_mask in zip(self.flip_counts, self.ema_flip_counts, self.mask):
-                layer_ema_flips.data = beta*layer_ema_flips + layer_flips
+                layer_ema_flips.data = beta*layer_ema_flips + (1-beta)*layer_flips
                 layer_ema_flips.data = layer_ema_flips*layer_mask
 
 
