@@ -47,7 +47,7 @@ def train(config, writer):
     cls_module = modules[-1]
 
     print('Model has {} total params, including biases.'.format(model.get_total_params()))
-    
+
     for epoch_num in range(1, config['epochs']+1):
         print('='*10 + ' Epoch ' + str(epoch_num) + ' ' + '='*10)
         
@@ -62,17 +62,19 @@ def train(config, writer):
         if config['use_scheduler']:
             scheduler.step()
         
-        if epoch_num%config['prune_freq'] == 0:
-            if config['prune_criterion'] == 'magnitude':
-                model.update_mask_magnitudes(config['prune_rate'])
-            elif config['prune_criterion'] == 'flip':
-                model.update_mask_flips(config['flip_threshold'])
-            elif config['prune_criterion'] == 'topflip':
-                model.update_mask_topflips(config['prune_rate'], config['use_ema_flips'])
-            elif config['prune_criterion'] == 'topflip_layer':
-                model.update_mask_topflips_layerwise(config['prune_rate'])
-            elif config['prune_criterion'] == 'random':
-                model.update_mask_random(config['prune_rate'], config)
+        # Prune only if stop_pruning_at is not set or the current epoch is lower than the stopping point
+        if config['stop_pruning_at'] is not None and epoch_num < config['stop_pruning_at']:
+            if epoch_num%config['prune_freq'] == 0:
+                if config['prune_criterion'] == 'magnitude':
+                    model.update_mask_magnitudes(config['prune_rate'])
+                elif config['prune_criterion'] == 'flip':
+                    model.update_mask_flips(config['flip_threshold'])
+                elif config['prune_criterion'] == 'topflip':
+                    model.update_mask_topflips(config['prune_rate'], config['use_ema_flips'])
+                elif config['prune_criterion'] == 'topflip_layer':
+                    model.update_mask_topflips_layerwise(config['prune_rate'])
+                elif config['prune_criterion'] == 'random':
+                    model.update_mask_random(config['prune_rate'], config)
         
 
         # Update model's sparsity
@@ -128,6 +130,7 @@ def parse_args():
     parser.add_argument('--prune_freq', type=int, default=1)
     parser.add_argument('--prune_rate', type=float, default=0.2) # for magnitude pruning
     parser.add_argument('--flip_threshold', type=int, default=1) # for flip pruning
+    parser.add_argument('--stop_pruning_at', type=int, default=None)
     # Flip pruning EMA
     parser.add_argument('--use_ema_flips', dest='use_ema_flips', action='store_true', default=False)
     parser.add_argument('--beta_ema_flips', type=float, default=None)

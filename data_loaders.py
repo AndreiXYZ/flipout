@@ -41,7 +41,7 @@ def get_cifar10_loaders(config):
 
     train_set = datasets.CIFAR10(root='./data', train=True, download=True, transform=transform_train)
     test_set = datasets.CIFAR10(root='./data', train=False, download=True, transform=transform_test)
-
+    
     train_loader = DataLoader(train_set,
                               batch_size = config['batch_size'],
                               shuffle = True,
