@@ -167,24 +167,21 @@ class MasterModel(nn.Module):
     
     def update_mask_random(self, rate, config):
         # Get prob distribution
-        distribution = torch.Tensor([layer.numel() for layer in self.parameters()
-                                    if layer.requires_grad])
-        distribution /= distribution.sum()
+        with torch.no_grad():
+            flat_mask = torch.cat([layer_mask.view(-1) for layer_mask in self.mask])
+            num_unpruned = (1-self.get_sparsity(config))*self.total_params
+            num_to_prune = num_unpruned*rate
+            # Get only the values which are nonzero
+            idx_nonzeros = (flat_mask!=0.).nonzero().view(-1)
+            
+            # Select randomly from those
+            idxs = np.random.choice(idx_nonzeros.cpu().numpy(), int(num_to_prune), replace=False)
+            flat_mask[idxs] = 0
 
-        to_prune = (1-self.get_sparsity(config))*rate
-        to_prune_absolute = math.ceil(self.get_total_params()*to_prune)
-        
-        # Get how many params to remove per layer
-        distribution *= to_prune_absolute
-        distribution = distribution.int()
+            self.mask = self.unflatten_tensor(flat_mask, self.mask)
 
-        # Sample to_prune times from the nonzero elemnets
-        for layer, layer_mask, to_prune_layer in zip(self.parameters(), self.mask, distribution):
-            valid_idxs = layer_mask.data.nonzero()
-            choice = torch.randperm(valid_idxs.size(0))[:to_prune_layer]
-            selected_indices = valid_idxs[choice].chunk(2,dim=1)
-            layer_mask.data[selected_indices] = 0 
-            layer.data = layer*layer_mask
+            for layer, layer_mask in zip(self.parameters(), self.mask):
+                layer.data = layer*layer_mask
             
 
     def store_flips_since_last(self):
