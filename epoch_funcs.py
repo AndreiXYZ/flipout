@@ -139,5 +139,5 @@ def get_epoch_type(config):
         return epoch_flips
     elif config['prune_criterion'] == 'l0':
         return epoch_l0
-    
+        
     return regular_epoch

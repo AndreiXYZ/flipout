@@ -121,17 +121,6 @@ def plot_stats(train_acc, train_loss, test_acc, test_loss, model, writer, epoch_
         writer.add_scalar('loss/test', test_loss, epoch_num)
         writer.add_scalar('sparsity/sparsity', model.sparsity, epoch_num)
         writer.add_scalar('sparsity/remaining_connections', get_num_connections(cls_module), epoch_num)
-    
-def print_gc_memory_usage():
-    total_usage = 0
-    for obj in gc.get_objects():
-        try:
-            if torch.is_tensor(obj) or (hasattr(obj, 'data') and torch.is_tensor(obj.data)):
-                total_usage += obj.element_size()*obj.nelement()
-                print(type(obj), obj.size(), obj.requires_grad, obj.element_size()*obj.nelement())
-        except:
-            pass
-    print('Total usage in bytes = ', total_usage)
 
 
 def get_num_connections(module):

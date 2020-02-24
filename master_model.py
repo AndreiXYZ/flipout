@@ -94,6 +94,7 @@ class MasterModel(nn.Module):
     def update_mask_magnitudes(self, rate):
         # Prune parameters of the network according to lowest magnitude
         with torch.no_grad():
+            print('OK')
             for layer, layer_mask in zip(self.parameters(), self.mask):
                 num_pruned = (layer_mask==0).sum().item()
                 num_unpruned = layer.numel() - num_pruned
@@ -184,7 +185,7 @@ class MasterModel(nn.Module):
             selected_indices = valid_idxs[choice].chunk(2,dim=1)
             layer_mask.data[selected_indices] = 0 
             layer.data = layer*layer_mask
-
+            
 
     def store_flips_since_last(self):
     # Retrieves how many params have flipped compared to previously saved weights

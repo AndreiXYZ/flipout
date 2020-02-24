@@ -61,9 +61,9 @@ def train(config, writer):
 
         if config['use_scheduler']:
             scheduler.step()
-        
+
         # Prune only if stop_pruning_at is not set or the current epoch is lower than the stopping point
-        if config['stop_pruning_at'] is not None and epoch_num < config['stop_pruning_at']:
+        if config['stop_pruning_at'] == -1 or epoch_num < config['stop_pruning_at']:
             if epoch_num%config['prune_freq'] == 0:
                 if config['prune_criterion'] == 'magnitude':
                     model.update_mask_magnitudes(config['prune_rate'])
@@ -130,7 +130,7 @@ def parse_args():
     parser.add_argument('--prune_freq', type=int, default=1)
     parser.add_argument('--prune_rate', type=float, default=0.2) # for magnitude pruning
     parser.add_argument('--flip_threshold', type=int, default=1) # for flip pruning
-    parser.add_argument('--stop_pruning_at', type=int, default=None)
+    parser.add_argument('--stop_pruning_at', type=int, default=-1)
     # Flip pruning EMA
     parser.add_argument('--use_ema_flips', dest='use_ema_flips', action='store_true', default=False)
     parser.add_argument('--beta_ema_flips', type=float, default=None)
