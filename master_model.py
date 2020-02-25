@@ -222,7 +222,7 @@ class MasterModel(nn.Module):
                 total_flipped += layer_flips[layer_flips >= 1].sum().item()
         return total_flipped
 
-    def inject_noise(self, config):
+    def inject_noise(self, config, epoch_num, curr_lr):
     # Inject Gaussian noise scaled by a factor into the gradients
         with torch.no_grad():
             noise_per_layer = []
@@ -231,6 +231,10 @@ class MasterModel(nn.Module):
                     # Add noise equal to layer-wise l2 norm of params
                     noise = torch.randn_like(layer)
                     scaling_factor = layer.grad.norm(p=2)/math.sqrt(layer.numel())
+                    # Scale noise by LR
+                    if config['scale_noise_by_lr']:
+                        scaling_factor *= config['lr']/curr_lr
+
                     layer.grad.data += noise*scaling_factor
                     # Append to list for logging purposes
                     noise_per_layer.append(scaling_factor)

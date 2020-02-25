@@ -107,7 +107,12 @@ def main():
     writer = SummaryWriter(log_dir='./runs/' + config['logdir'] + '/' + get_time_str() + ' ' + config['comment'])
     del config['comment']
     writer.add_text('config', json.dumps(config))
+
+    print('*'*30 + '\nRunning\n' + json.dumps(config, indent=4) + '\n' + '*'*30)
+    
     train(config, writer)
+    
+    print('*'*30 + '\nFinished Running\n', + json.dumps(config, indent=4) + '\n' + '*'*30)
 
 def parse_args():
     model_choices = ['lenet300', 'lenet5', 'conv6', 'vgg19', 'resnet18',
@@ -150,6 +155,7 @@ def parse_args():
     parser.add_argument('--anneal_lr', dest='anneal_lr', action='store_true', default=False)
     # Add noise or not
     parser.add_argument('--noise', dest='add_noise', action='store_true', default=False)
+    parser.add_argument('--scale_noise_by_lr', dest='scale_noise_by_lr', action='store_true', default=False)
     # SNIP params
     parser.add_argument('--snip_sparsity', type=float, required=False, default=0.)
     # L0 params

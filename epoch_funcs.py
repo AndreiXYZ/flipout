@@ -6,6 +6,7 @@ from utils import accuracy, get_weight_penalty
 def epoch_flips(epoch_num, loader, size, model, opt, writer, config):
     epoch_acc = 0
     epoch_loss = 0
+    curr_lr = opt.param_groups[0]['lr']
     for batch_num, (x,y) in enumerate(loader):
         update_num = epoch_num*size/math.ceil(config['batch_size']) + batch_num
         opt.zero_grad()
@@ -28,7 +29,7 @@ def epoch_flips(epoch_num, loader, size, model, opt, writer, config):
             model.mask_grads(config)
             
             if config['add_noise']:
-                noise_per_layer = model.inject_noise(config)
+                noise_per_layer = model.inject_noise(config, epoch_num, curr_lr)
 
             opt.step()
 
@@ -97,6 +98,8 @@ def epoch_l0(epoch_num, loader, size, model, opt, writer, config):
 def regular_epoch(epoch_num, loader, size, model, opt, writer, config):
     epoch_acc = 0
     epoch_loss = 0
+    curr_lr = opt.param_groups[0]['lr']
+
     for batch_num, (x,y) in enumerate(loader):
         update_num = epoch_num*size/math.ceil(config['batch_size']) + batch_num
         opt.zero_grad()
@@ -117,7 +120,7 @@ def regular_epoch(epoch_num, loader, size, model, opt, writer, config):
             model.mask_grads(config)
             
             if config['add_noise']:
-                noise_per_layer = model.inject_noise(config)
+                noise_per_layer = model.inject_noise(config, epoch_num, curr_lr)
 
             opt.step()
         
