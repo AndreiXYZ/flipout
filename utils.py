@@ -3,12 +3,17 @@ import numpy as np
 import gc
 import torch.optim as optim
 import torch.nn.functional as F
+import matplotlib.pyplot as plt
+import numpy as np
+import io
+
 from datetime import datetime
 from rmspropw import RMSpropW
 from models.cifar10_models import *
 from models.mnist_models import *
 from master_model import MasterWrapper
 from L0_reg.L0_models import L0LeNet5, L0MLP
+from imageio import imread
 
 def accuracy(out, y):
     preds = out.argmax(dim=1, keepdim=True).squeeze()
@@ -112,6 +117,21 @@ def plot_weight_histograms(model, writer, epoch_num):
             if 'weight' in name:
                 writer.add_histogram('weights/'+name, layer_histogram, epoch_num)
 
+
+def plot_layerwise_sparsity(model, writer, epoch_num):
+    layerwise_sparsity = []
+    for module in model.modules():
+        if isinstance(module, (nn.Linear, nn.Conv2d)):
+            total_params = module.weight.numel()
+            total_pruned = (module.weight==0).sum().item() 
+
+            if module.bias is not None:
+                total_params += module.bias.numel()
+                total_pruned += (module.bias==0).sum().item()
+            layerwise_sparsity.append(float(total_pruned)/total_params)
+    
+    for idx, elem in enumerate(layerwise_sparsity):
+        writer.add_scalar('layer_sparsity/'+str(idx), elem, epoch_num)
 
 def plot_stats(train_acc, train_loss, test_acc, test_loss, model, writer, epoch_num, config, cls_module):
         writer.add_scalar('acc/train', train_acc, epoch_num)

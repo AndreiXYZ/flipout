@@ -75,12 +75,12 @@ def train(config, writer):
                     model.update_mask_topflips_layerwise(config['prune_rate'])
                 elif config['prune_criterion'] == 'random':
                     model.update_mask_random(config['prune_rate'], config)
-        
+
+                plot_layerwise_sparsity(model, writer, epoch_num)
 
         # Update model's sparsity
         model.sparsity = model.get_sparsity(config)
-
-
+        
         if config['anneal_lambda'] == True:
             opt.param_groups[0]['weight_decay'] = config['lambda']*(1-model.sparsity)
 
@@ -106,13 +106,16 @@ def main():
     # Set comment to name and then add hparams to tensorboard text
     writer = SummaryWriter(log_dir='./runs/' + config['logdir'] + '/' + get_time_str() + ' ' + config['comment'])
     del config['comment']
-    writer.add_text('config', json.dumps(config))
+    writer.add_text('config', json.dumps(config, indent=4))
 
     print('*'*30 + '\nRunning\n' + json.dumps(config, indent=4) + '\n' + '*'*30)
     
     train(config, writer)
     
-    print('*'*30 + '\nFinished Running\n', + json.dumps(config, indent=4) + '\n' + '*'*30)
+    print('*'*30 + '\nFinished Running\n' + json.dumps(config, indent=4) + '\n' + '*'*30)
+
+    writer.flush()
+    writer.close()
 
 def parse_args():
     model_choices = ['lenet300', 'lenet5', 'conv6', 'vgg19', 'resnet18',
