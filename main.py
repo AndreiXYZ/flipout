@@ -12,6 +12,7 @@ import json
 import random
 
 from utils import *
+from utils import plot_hparams
 from data_loaders import *
 from master_model import MasterWrapper
 from snip import SNIP, apply_prune_mask
@@ -97,6 +98,9 @@ def train(config, writer):
         print('Wdecay : {:>15.6f}'.format(opt.param_groups[0]['weight_decay']))
         plot_stats(train_acc, train_loss, test_acc, test_loss, 
                     model, writer, epoch_num, config, cls_module)
+
+    # After training is done, log the hparams and the metrics
+    plot_hparams(writer, config, train_acc, test_acc, train_loss, test_loss, model.sparsity)
 
 def main():
     config = parse_args()
