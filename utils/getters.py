@@ -26,7 +26,6 @@ def get_model(config):
         model = model_dict[config['model']](N=60000, weight_decay=config['lambda'],
                                             lambas=config['lambas'], local_rep=config['local_rep'],
                                             temperature=config['temperature'], beta_ema=config['beta_ema'])
-        print(type(model))
     else:
         model = model_dict[config['model']]()
     # Now wrap it in the master wrapper class if we're doing flips

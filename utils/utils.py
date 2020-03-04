@@ -44,6 +44,14 @@ def save_run(config, model, opt, curr_epoch, fpath):
     save_dict.update(config)
     torch.save(save_dict, fpath)
 
+def torch_profile(func):
+    def wrapper_profile(*args, **kwargs): 
+        use_cuda = True if kwargs['device'] == 'cuda' else False
+        with torch.autograd.profiler.profile(use_cuda=use_cuda) as prof:
+            func(*args, **kwargs)
+        print(prof)
+    return wrapper_profile
+
 def torch_timeit(func):
     def wrapper_func(*args, **kwargs):
         t1 = torch.cuda.Event(enable_timing=True)
