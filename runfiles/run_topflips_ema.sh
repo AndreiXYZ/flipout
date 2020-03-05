@@ -6,7 +6,7 @@
 
 # LeNet300
 CUDA_VISIBLE_DEVICES=1 python main.py -m lenet300 -d mnist -bs 256 -e 200 -lr 1e-3 --prune_criterion topflip \
-                --use_ema_flips --beta_ema_flips 0.9 --prune_freq 8 --prune_rate 0.2 --opt adam --noise --logdir="baselines" --comment="lenet300 topflip original +noise+ema"
+                --use_ema_flips --beta_ema_flips 0.9 --prune_freq 8 --prune_rate 0.2 --opt adam --noise --logdir="test" --comment="lenet300 topflip original +noise+ema"
 
 # LeNet5
 CUDA_VISIBLE_DEVICES=1 python main.py -m lenet5 -d mnist -bs 256 -e 200 -lr 2e-3 --prune_criterion topflip \

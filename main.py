@@ -70,7 +70,7 @@ def train(config, writer):
                 elif config['prune_criterion'] == 'flip':
                     model.update_mask_flips(config['flip_threshold'])
                 elif config['prune_criterion'] == 'topflip':
-                    model.update_mask_topflips(config['prune_rate'], config['use_ema_flips'])
+                    model.update_mask_topflips(config['prune_rate'], config['use_ema_flips'], config['reset_flip_cts'])
                 elif config['prune_criterion'] == 'topflip_layer':
                     model.update_mask_topflips_layerwise(config['prune_rate'])
                 elif config['prune_criterion'] == 'random':
@@ -151,6 +151,7 @@ def parse_args():
     # Flip pruning EMA
     parser.add_argument('--use_ema_flips', dest='use_ema_flips', action='store_true', default=False)
     parser.add_argument('--beta_ema_flips', type=float, default=None)
+    parser.add_argument('--reset_flip_cts', action='store_true', default=False)
     # Tensorboard-related args
     parser.add_argument('--comment', type=str, default=None,
                         help='Comment to add to tensorboard text')

@@ -115,7 +115,7 @@ class MasterModel(nn.Module):
                 layer.data = layer*layer_mask
     
 
-    def update_mask_topflips(self, rate, use_ema):
+    def update_mask_topflips(self, rate, use_ema, reset_flips):
         with torch.no_grad():
             # Prune parameters of the network according to highest flips
             # Flatten everything
@@ -145,8 +145,11 @@ class MasterModel(nn.Module):
             
             for layer, layer_mask in zip(self.parameters(), self.mask):
                 layer.data = layer*layer_mask
-            
 
+            # Reset flip counts after pruning
+            if reset_flips:
+                self.reset_flip_counts()
+            
     def update_mask_topflips_layerwise(self, rate):
         with torch.no_grad():
             for layer, layer_mask, layer_flips in zip(self.parameters(), self.mask, self.flip_counts):
@@ -183,6 +186,11 @@ class MasterModel(nn.Module):
                 layer.data = layer*layer_mask
             
 
+    def reset_flip_counts(self):
+        for layer_flips, layer_ema_flips in zip(self.flip_counts, self.ema_flip_counts):
+            layer_flips.data = torch.zeros_like(layer_flips)
+            layer_ema_flips.data = torch.zeros_like(layer_ema_flips)
+    
     def store_flips_since_last(self):
     # Retrieves how many params have flipped compared to previously saved weights
         with torch.no_grad():
@@ -203,8 +211,7 @@ class MasterModel(nn.Module):
             for layer_flips, layer_ema_flips, layer_mask in zip(self.flip_counts, self.ema_flip_counts, self.mask):
                 layer_ema_flips.data = beta*layer_ema_flips + (1-beta)*layer_flips
                 layer_ema_flips.data = layer_ema_flips*layer_mask
-
-
+    
     def get_flips_total(self):
         # Get total number of flips
         with torch.no_grad():
