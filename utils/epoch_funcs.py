@@ -30,7 +30,8 @@ def epoch_flips(epoch_num, loader, size, model, opt, writer, config):
             model.mask_grads(config)
             
             if config['add_noise']:
-                noise_per_layer = model.inject_noise(config, epoch_num, curr_lr)
+                if config['stop_noise_at']==-1 or epoch_num < config['stop_noise_at']:
+                    noise_per_layer = model.inject_noise(config, epoch_num, curr_lr)
 
             opt.step()
 
@@ -121,7 +122,8 @@ def regular_epoch(epoch_num, loader, size, model, opt, writer, config):
             model.mask_grads(config)
             
             if config['add_noise']:
-                noise_per_layer = model.inject_noise(config, epoch_num, curr_lr)
+                if config['stop_noise_at']==-1 or epoch_num < config['stop_noise_at']:
+                    noise_per_layer = model.inject_noise(config, epoch_num, curr_lr)
 
             opt.step()
         
