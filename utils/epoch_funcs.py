@@ -32,7 +32,7 @@ def epoch_flips(epoch_num, loader, size, model, opt, writer, config):
             if config['add_noise']:
                 if config['stop_noise_at']==-1 or epoch_num < config['stop_noise_at']:
                     noise_per_layer = model.inject_noise(config, epoch_num, curr_lr)
-
+            
             opt.step()
 
             if config['opt'] == 'adam' or config['momentum']!=0.:
