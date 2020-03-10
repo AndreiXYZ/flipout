@@ -85,6 +85,13 @@ def get_weight_penalty(model, config):
             else:
                 penalty = penalty + layer.norm(p=2)**2
 
+    elif config['reg_type'] == 'hs':
+        for layer in model.parameters():
+            if penalty is None:
+                penalty = layer.abs().norm(p=1)**2 / layer.abs().norm(p=2)**2
+            else:
+                penalty += layer.abs().norm(p=1)**2 / layer.abs().norm(p=2)**2
+    
     else:
         penalty = 0
 
