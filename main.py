@@ -133,10 +133,12 @@ def parse_args():
     pruning_choices = ['magnitude', 'flip', 'topflip', 'topflip_layer', 'random', 'snip', 'l0', 'none']
     dataset_choices = ['mnist', 'cifar10']
     opt_choices = ['sgd', 'rmsprop', 'adam', 'rmspropw']
-
+    reg_type_choices = ['wdecay', 'l1', 'l2', 'hs']
+    dataset_choices = ['mnist', 'cifar10']
+    
     parser = argparse.ArgumentParser()
     parser.add_argument('-m', '--model', type=str, choices=model_choices, default='lenet300')
-    parser.add_argument('-d', '--dataset', type=str, choices=['mnist', 'cifar10'], default='mnist')
+    parser.add_argument('-d', '--dataset', type=str, choices=dataset_choices, default='mnist')
     parser.add_argument('-bs', '--batch_size', type=int, default=32)
     parser.add_argument('-e', '--epochs', type=int, default=100)
     parser.add_argument('-lr', type=float, default=1e-4)
@@ -158,11 +160,11 @@ def parse_args():
     parser.add_argument('--logdir', type=str, default=None,
                         help='Log dir. for tensorboard')
     # Optimizer args
-    parser.add_argument('--opt', type=str, choices=['sgd', 'rmsprop', 'adam', 'rmspropw'])
+    parser.add_argument('--opt', type=str, choices=opt_choices)
     parser.add_argument('--momentum', '-mom', type=float, default=0)
     parser.add_argument('--use_scheduler', dest='use_scheduler', action='store_true', default=False)
     parser.add_argument('--milestones', nargs='*', type=int, required=False)
-    parser.add_argument('--reg_type', type=str, choices=['wdecay', 'l1', 'l2'], default=None)
+    parser.add_argument('--reg_type', type=str, choices=reg_type_choices, default=None)
     parser.add_argument('--lambda', type=float, default=0)
     parser.add_argument('--anneal_lambda', dest='anneal_lambda', action='store_true', default=False)
     parser.add_argument('--anneal_lr', dest='anneal_lr', action='store_true', default=False)

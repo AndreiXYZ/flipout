@@ -212,6 +212,7 @@ class MasterModel(nn.Module):
                 layer_ema_flips.data = beta*layer_ema_flips + (1-beta)*layer_flips
                 layer_ema_flips.data = layer_ema_flips*layer_mask
     
+
     def get_flips_total(self):
         # Get total number of flips
         with torch.no_grad():
