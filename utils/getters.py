@@ -8,6 +8,7 @@ from rmspropw import RMSpropW
 from models.master_model import MasterWrapper
 
 def get_model(config):
+
     init_param = 'VGG19' if config['model'] == 'vgg19' else None
     model_dict = {'lenet300': LeNet_300_100,
                   'lenet5': LeNet5,
@@ -31,6 +32,10 @@ def get_model(config):
     # Now wrap it in the master wrapper class if we're doing flips
     if config['prune_criterion'] == 'flip':
         model = MasterWrapper(model).to(config['device'])
+    
+    if config['load_model'] is not None:
+        checkpoint = torch.load(config['load_model'])
+        model.load_state_dict(checkpoint)
     
     return model
 
@@ -87,10 +92,11 @@ def get_weight_penalty(model, config):
 
     elif config['reg_type'] == 'hs':
         for layer in model.parameters():
-            if penalty is None:
-                penalty = (layer.abs().sum()**2)/((layer.abs()**2).sum())
-            else:
-                penalty += (layer.abs().sum()**2)/((layer.abs()**2).sum())
+            if layer.requires_grad and layer.abs().sum() > 0:
+                if penalty is None:
+                    penalty = (layer.abs().sum()**2)/((layer.abs()**2).sum())
+                else:
+                    penalty += (layer.abs().sum()**2)/((layer.abs()**2).sum())
     
     else:
         penalty = 0

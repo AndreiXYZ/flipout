@@ -113,7 +113,8 @@ def main():
     # Results may vary across machines!
     utils.set_seed(config['seed'])
     # Set comment to name and then add hparams to tensorboard text
-    logdir = './runs/' + config['logdir'] + '/' + utils.get_time_str() + ' ' + config['comment']
+    curr_time = utils.get_time_str()
+    logdir = './runs/' + config['logdir'] + '/' + curr_time + ' ' + config['comment']
     writer = SummaryWriter(log_dir=logdir)
 
     comment = config.pop('comment')
@@ -127,7 +128,7 @@ def main():
     writer.close()
 
     if config['save_model']:
-        torch.save(model.state_dict(), logdir + '/model.pt')
+        torch.save(model.state_dict(), './chkpts/' + curr_time.replace(' ', '_') + comment.replace(' ', '_') + '.pt')
     
 
 def parse_args():
@@ -191,7 +192,7 @@ def parse_args():
     
     # Whether or not to save the model. Run-name will be comment name
     parser.add_argument('--save_model', action='store_true', default=False)
-
+    parser.add_argument('--load_model', type=str, default=None)
     config = vars(parser.parse_args())
     
     return config
