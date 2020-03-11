@@ -17,7 +17,7 @@ def mnist_dataloaders(config):
                               num_workers = 8,
                               drop_last = False)
     test_loader = DataLoader(test_set,
-                             batch_size = config['batch_size'],
+                             batch_size = config['test_batch_size'],
                              shuffle=False,
                              pin_memory = True,
                              num_workers = 8,
@@ -50,7 +50,7 @@ def cifar10_dataloaders(config):
                               drop_last = False)
 
     test_loader = DataLoader(test_set,
-                             batch_size = config['batch_size'],
+                             batch_size = config['test_batch_size'],
                              shuffle = False,
                              pin_memory = True,
                              num_workers = 8,

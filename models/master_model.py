@@ -185,7 +185,13 @@ class MasterModel(nn.Module):
             for layer, layer_mask in zip(self.parameters(), self.mask):
                 layer.data = layer*layer_mask
             
-
+    def update_mask_sensitivity(self, sensitivity):
+        # Updates the mask, removing all parameters that are less than std(layer)*sensitivity
+        with torch.no_grad():
+            for layer, layer_mask in zip(self.parameters(), self.mask):
+                threshold = sensitivity*layer.std()
+                layer_mask.data = ~(layer.abs() < threshold)
+    
     def reset_flip_counts(self):
         for layer_flips, layer_ema_flips in zip(self.flip_counts, self.ema_flip_counts):
             layer_flips.data = torch.zeros_like(layer_flips)

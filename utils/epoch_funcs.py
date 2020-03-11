@@ -4,12 +4,12 @@ import torch.nn.functional as F
 import utils.utils as utils
 import utils.getters as getters
 
-def epoch_flips(epoch_num, loader, size, model, opt, writer, config):
+def epoch_flips(epoch_num, loader, dataset_size, model, opt, writer, config):
     epoch_acc = 0
     epoch_loss = 0
     curr_lr = opt.param_groups[0]['lr']
     for batch_num, (x,y) in enumerate(loader):
-        update_num = epoch_num*size/math.ceil(config['batch_size']) + batch_num
+        # update_num = epoch_num*size/math.ceil(config['batch_size']) + batch_num
         opt.zero_grad()
         x = x.float().to(config['device'])
         y = y.to(config['device'])
@@ -42,19 +42,20 @@ def epoch_flips(epoch_num, loader, size, model, opt, writer, config):
             flips_since_last = model.store_flips_since_last()
 
         epoch_acc += utils.accuracy(out, y)
-        epoch_loss += loss.item()
+        # multiply batch loss by batch size since the loss is averaged
+        epoch_loss += x.size(0)*loss.item()
 
     # Epoch is done. Update model flips with EMA
     if config['use_ema_flips'] and model.training:
         model.store_ema_flip_counts(config['beta_ema_flips'])
 
-    epoch_acc /= size
-    epoch_loss /= size
+    epoch_acc /= dataset_size
+    epoch_loss /= dataset_size
 
     return epoch_acc, epoch_loss
 
 
-def epoch_l0(epoch_num, loader, size, model, opt, writer, config):
+def epoch_l0(epoch_num, loader, dataset_size, model, opt, writer, config):
     epoch_acc = 0
     epoch_loss = 0
 
@@ -65,7 +66,7 @@ def epoch_l0(epoch_num, loader, size, model, opt, writer, config):
             model.load_ema_params()
     
     for batch_num, (x,y) in enumerate(loader):
-        update_num = epoch_num*size/math.ceil(config['batch_size']) + batch_num
+        # update_num = epoch_num*size/math.ceil(config['batch_size']) + batch_num
         opt.zero_grad()
         x = x.float().to(config['device'])
         y = y.to(config['device'])
@@ -85,36 +86,38 @@ def epoch_l0(epoch_num, loader, size, model, opt, writer, config):
                 model.update_ema()
 
         epoch_acc += utils.accuracy(out, y)
-        epoch_loss += loss.item()
+        # multiply batch loss by batch size since the loss is averaged
+        epoch_loss += x.size(0)*loss.item()
 
     if not model.training:
         if model.beta_ema > 0:
             model.load_params(old_params)
     
-    epoch_acc /= size
-    epoch_loss /= size
+    epoch_acc /= dataset_size
+    epoch_loss /= dataset_size
 
     return epoch_acc, epoch_loss
 
 
-def regular_epoch(epoch_num, loader, size, model, opt, writer, config):
+def regular_epoch(epoch_num, loader, dataset_size, model, opt, writer, config):
     epoch_acc = 0
     epoch_loss = 0
     curr_lr = opt.param_groups[0]['lr']
 
     for batch_num, (x,y) in enumerate(loader):
-        update_num = epoch_num*size/math.ceil(config['batch_size']) + batch_num
+        # update_num = epoch_num*dataset_size/math.ceil(config['batch_size']) + batch_num
         opt.zero_grad()
         x = x.float().to(config['device'])
         y = y.to(config['device'])
         out = model.forward(x)
 
+        # print(x.shape)
         sparsity = model.sparsity
         weight_penalty = getters.get_weight_penalty(model, config)
 
         if config['anneal_lambda'] == True:
             weight_penalty *= (1-sparsity)
-        
+
         loss = F.cross_entropy(out, y) + weight_penalty*config['lambda']
         
         if model.training:       
@@ -131,10 +134,10 @@ def regular_epoch(epoch_num, loader, size, model, opt, writer, config):
                 model.mask_weights(config)
             
         epoch_acc += utils.accuracy(out, y)
-        epoch_loss += loss.item()
+        # multiply batch loss by batch size since the loss is averaged
+        epoch_loss += x.size(0)*loss.item()
 
-
-    epoch_acc /= size
-    epoch_loss /= size
+    epoch_acc /= dataset_size
+    epoch_loss /= dataset_size
 
     return epoch_acc, epoch_loss

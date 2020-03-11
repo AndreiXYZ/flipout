@@ -24,8 +24,9 @@ def train(config, writer):
     # model = nn.DataParallel(model)
     # Get train and test loaders
     train_loader, test_loader = getters.get_dataloaders(config)
-    train_size, test_size = len(train_loader.dataset), len(test_loader.dataset)
-    
+
+    train_dataset_size, test_dataset_size = len(train_loader.dataset), len(test_loader.dataset)
+
     opt = getters.get_opt(config, model)
     epoch = getters.get_epoch_type(config)
 
@@ -53,11 +54,11 @@ def train(config, writer):
         
         model.train()
         # Anneal wdecay
-        train_acc, train_loss = epoch(epoch_num, train_loader, train_size, model, opt, writer, config)
+        train_acc, train_loss = epoch(epoch_num, train_loader, train_dataset_size, model, opt, writer, config)
         
         model.eval()
         with torch.no_grad():
-            test_acc, test_loss = epoch(epoch_num, test_loader, test_size, model, opt, writer, config)
+            test_acc, test_loss = epoch(epoch_num, test_loader, test_dataset_size, model, opt, writer, config)
 
         if config['use_scheduler']:
             scheduler.step()
@@ -75,6 +76,9 @@ def train(config, writer):
                     model.update_mask_topflips_layerwise(config['prune_rate'])
                 elif config['prune_criterion'] == 'random':
                     model.update_mask_random(config['prune_rate'], config)
+                elif config['prune_criterion'] == 'sensitivity':
+                    model.update_mask_sensitivity(config['sensitivity'])
+                
 
                 # Plot layerwise sparsity
                 plotters.plot_layerwise_sparsity(model, writer, epoch_num)
@@ -130,16 +134,19 @@ def parse_args():
     model_choices = ['lenet300', 'lenet5', 'conv6', 'vgg19', 'resnet18',
                      'l0lenet5', 'l0lenet300']
     
-    pruning_choices = ['magnitude', 'flip', 'topflip', 'topflip_layer', 'random', 'snip', 'l0', 'none']
+    pruning_choices = ['magnitude', 'flip', 'topflip', 'topflip_layer', 
+                       'random', 'snip', 'l0', 'none', 'sensitivity']
+    
     dataset_choices = ['mnist', 'cifar10']
     opt_choices = ['sgd', 'rmsprop', 'adam', 'rmspropw']
     reg_type_choices = ['wdecay', 'l1', 'l2', 'hs']
     dataset_choices = ['mnist', 'cifar10']
-    
+
     parser = argparse.ArgumentParser()
     parser.add_argument('-m', '--model', type=str, choices=model_choices, default='lenet300')
     parser.add_argument('-d', '--dataset', type=str, choices=dataset_choices, default='mnist')
     parser.add_argument('-bs', '--batch_size', type=int, default=32)
+    parser.add_argument('-tbs', '--test_batch_size', type=int, default=32)
     parser.add_argument('-e', '--epochs', type=int, default=100)
     parser.add_argument('-lr', type=float, default=1e-4)
     parser.add_argument('--device', type=str, default='cuda')
@@ -148,8 +155,10 @@ def parse_args():
     parser.add_argument('--prune_criterion', type=str, choices=pruning_choices, default='none')
     parser.add_argument('--prune_freq', type=int, default=1)
     parser.add_argument('--prune_rate', type=float, default=0.2) # for magnitude pruning
+    parser.add_argument('--sensitivity', type=float, default=0)
     parser.add_argument('--flip_threshold', type=int, default=1) # for flip pruning
     parser.add_argument('--stop_pruning_at', type=int, default=-1)
+    
     # Flip pruning EMA
     parser.add_argument('--use_ema_flips', dest='use_ema_flips', action='store_true', default=False)
     parser.add_argument('--beta_ema_flips', type=float, default=None)
