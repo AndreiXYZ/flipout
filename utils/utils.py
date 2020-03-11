@@ -66,3 +66,9 @@ def torch_timeit(func):
 
         return res
     return wrapper_func
+
+def save_run(model, opt, fpath):
+    save_dict = {'model': model.state_dict(),
+                 'opt': opt.state_dict()}
+
+    torch.save(save_dict, fpath)

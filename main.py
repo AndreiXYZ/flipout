@@ -105,7 +105,7 @@ def train(config, writer):
     
     # After training is done, log the hparams and the metrics
     # plot_hparams(writer, config, train_acc, test_acc, train_loss, test_loss, model.sparsity)
-    return model
+    return model, opt
 
 def main():
     config = parse_args()
@@ -122,13 +122,14 @@ def main():
 
     print('*'*30 + '\nRunning\n' + json.dumps(config, indent=4) + '\n' + '*'*30)
     
-    model = train(config, writer)
+    model, opt = train(config, writer)
     
     writer.flush()
     writer.close()
 
     if config['save_model']:
-        torch.save(model.state_dict(), './chkpts/' + curr_time.replace(' ', '_') + comment.replace(' ', '_') + '.pt')
+        save_fpath = './chkpts/' + comment.replace(' ', '_') + '.pt'
+        utils.save_run(model, opt, save_fpath)
     
 
 def parse_args():

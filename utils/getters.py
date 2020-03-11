@@ -35,7 +35,7 @@ def get_model(config):
     
     if config['load_model'] is not None:
         checkpoint = torch.load(config['load_model'])
-        model.load_state_dict(checkpoint)
+        model.load_state_dict(checkpoint['model'])
     
     return model
 
@@ -69,6 +69,11 @@ def get_opt(config, model):
                 'rmspropw': RMSpropW}
     
     opt = opt_dict[config['opt']](**kwargs)
+
+    if config['load_model'] is not  None:
+        checkpoint = torch.load(config['load_model'])
+        opt.load_state_dict(checkpoint['opt'])
+    
     return opt
 
 def get_weight_penalty(model, config):
