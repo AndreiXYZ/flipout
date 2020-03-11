@@ -6,3 +6,4 @@ __pycache__/
 *.out
 *.tfevents.*
 *.png
+/chkpts/*
