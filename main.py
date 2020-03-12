@@ -134,7 +134,7 @@ def main():
 
     if config['save_model'] is not None:
         utils.save_run(model, opt, config['save_model'])
-    
+
 
 def parse_args():
     model_choices = ['lenet300', 'lenet5', 'conv6', 'vgg19', 'resnet18',
