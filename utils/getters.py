@@ -45,6 +45,7 @@ def get_dataloaders(config):
     elif config['dataset'] == 'cifar10':
         train_loader, test_loader = data_loaders.cifar10_dataloaders(config)
     
+    
     return train_loader, test_loader
 
 

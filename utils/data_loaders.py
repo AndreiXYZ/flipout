@@ -23,6 +23,7 @@ def mnist_dataloaders(config):
                              num_workers = 8,
                              drop_last = False)
     
+    
     return train_loader, test_loader
 
 
@@ -56,4 +57,5 @@ def cifar10_dataloaders(config):
                              num_workers = 8,
                              drop_last = False)
     
+
     return train_loader, test_loader

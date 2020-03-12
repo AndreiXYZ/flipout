@@ -111,7 +111,6 @@ def regular_epoch(epoch_num, loader, dataset_size, model, opt, writer, config):
         y = y.to(config['device'])
         out = model.forward(x)
 
-        # print(x.shape)
         sparsity = model.sparsity
         weight_penalty = getters.get_weight_penalty(model, config)
 

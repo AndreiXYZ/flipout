@@ -26,7 +26,7 @@ def train(config, writer):
     train_loader, test_loader = getters.get_dataloaders(config)
 
     train_dataset_size, test_dataset_size = len(train_loader.dataset), len(test_loader.dataset)
-
+    
     opt = getters.get_opt(config, model)
     epoch = getters.get_epoch_type(config)
 
