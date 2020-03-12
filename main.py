@@ -13,9 +13,10 @@ import utils.getters as getters
 from utils.data_loaders import *
 
 from torch.utils.tensorboard import SummaryWriter
-from models.master_model import init_attrs
+from models.master_model import init_attrs, CustomDataParallel
 from models.L0_models import L0MLP, L0LeNet5
 from snip import SNIP, apply_prune_mask
+
 
 def train(config, writer):
     device = config['device']
@@ -43,6 +44,9 @@ def train(config, writer):
     else:
         init_attrs(model)
 
+    if config['parallel']:
+        model = CustomDataParallel(model)
+    
     # Grab the final classification layer to check disconnects
     modules = [module for module in model.modules()
                 if hasattr(module, 'weight')]
@@ -194,6 +198,8 @@ def parse_args():
     # Whether or not to save the model. Run-name will be comment name
     parser.add_argument('--save_model', type=str, default=None)
     parser.add_argument('--load_model', type=str, default=None)
+    # Arg for parallelizing everything
+    parser.add_argument('--parallel', action='store_true', default=False)
     config = vars(parser.parse_args())
     
     return config

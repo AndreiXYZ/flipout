@@ -8,6 +8,15 @@ from torch.distributions import Categorical
 from utils import *
 
 
+class CustomDataParallel(nn.DataParallel):
+    def __getattr__(self, name):
+        try:
+            # Return attr of data parallel
+            return super().__getattr__(name)
+        except AttributeError:
+            # If it doesn't exist return wrapped model attr
+            return getattr(self.module, name)
+    
 def init_attrs(model):
     model.total_params = model.get_total_params()
     model.save_weights()
