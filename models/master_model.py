@@ -7,28 +7,15 @@ import numpy as np
 from torch.distributions import Categorical
 from utils import *
 
-class MasterWrapper(object):
-    def __init__(self, obj):
-        obj.total_params = obj.get_total_params()
-        obj.save_weights()
-        obj.instantiate_mask()
-        obj.flip_counts = [torch.zeros_like(layer, dtype=torch.float).to('cuda') for layer in obj.parameters()]
-        obj.ema_flip_counts = [torch.zeros_like(layer, dtype=torch.float).to('cuda') for layer in obj.parameters()]
-        obj.live_connections = None
-        obj.sparsity = 0
-        self.obj = obj
 
-    def __getattr__(self, name):
-        # Override getattr such that it calls the wrapped object's attrs
-        func = getattr(self.__dict__['obj'], name)
-        if callable(func):
-            def wrapper(*args, **kwargs):
-                ret = func(*args, **kwargs)
-                return ret
-            return wrapper
-        else:
-            return func
-
+def init_attrs(model):
+    model.total_params = model.get_total_params()
+    model.save_weights()
+    model.instantiate_mask()
+    model.flip_counts = [torch.zeros_like(layer, dtype=torch.float).to('cuda') for layer in model.parameters()]
+    model.ema_flip_counts = [torch.zeros_like(layer, dtype=torch.float).to('cuda') for layer in model.parameters()]
+    model.live_connections = None
+    model.sparsity = 0
 
 class MasterModel(nn.Module):
     def __init__(self):

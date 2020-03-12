@@ -5,10 +5,8 @@ from models.cifar10_models import *
 from models.mnist_models import *
 from models.L0_models import *
 from rmspropw import RMSpropW
-from models.master_model import MasterWrapper
 
 def get_model(config):
-
     init_param = 'VGG19' if config['model'] == 'vgg19' else None
     model_dict = {'lenet300': LeNet_300_100,
                   'lenet5': LeNet5,
@@ -29,9 +27,6 @@ def get_model(config):
                                             temperature=config['temperature'], beta_ema=config['beta_ema'])
     else:
         model = model_dict[config['model']]()
-    # Now wrap it in the master wrapper class if we're doing flips
-    if config['prune_criterion'] == 'flip':
-        model = MasterWrapper(model).to(config['device'])
     
     if config['load_model'] is not None:
         checkpoint = torch.load(config['load_model'])
@@ -45,7 +40,7 @@ def get_dataloaders(config):
     elif config['dataset'] == 'cifar10':
         train_loader, test_loader = data_loaders.cifar10_dataloaders(config)
     
-    
+
     return train_loader, test_loader
 
 

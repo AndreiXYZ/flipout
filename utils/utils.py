@@ -9,7 +9,6 @@ from datetime import datetime
 from rmspropw import RMSpropW
 from models.cifar10_models import *
 from models.mnist_models import *
-from models.master_model import MasterWrapper
 from models.L0_models import L0LeNet5, L0MLP
 
 def accuracy(out, y):

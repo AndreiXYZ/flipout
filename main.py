@@ -5,14 +5,15 @@ import torch.optim as optim
 import torch.optim.lr_scheduler as lr_scheduler
 import torch.nn as nn
 import torch.nn.functional as F
-from torch.utils.tensorboard import SummaryWriter
 import json
 
 import utils.utils as utils
 import utils.plotters as plotters
 import utils.getters as getters
 from utils.data_loaders import *
-from models.master_model import MasterWrapper
+
+from torch.utils.tensorboard import SummaryWriter
+from models.master_model import init_attrs
 from models.L0_models import L0MLP, L0LeNet5
 from snip import SNIP, apply_prune_mask
 
@@ -26,7 +27,7 @@ def train(config, writer):
     train_loader, test_loader = getters.get_dataloaders(config)
 
     train_dataset_size, test_dataset_size = len(train_loader.dataset), len(test_loader.dataset)
-    
+
     opt = getters.get_opt(config, model)
     epoch = getters.get_epoch_type(config)
 
@@ -40,7 +41,7 @@ def train(config, writer):
         apply_prune_mask(model, keep_masks)
         model.sparsity = model.get_sparsity(config)
     else:
-        model = MasterWrapper(model)
+        init_attrs(model)
 
     # Grab the final classification layer to check disconnects
     modules = [module for module in model.modules()
