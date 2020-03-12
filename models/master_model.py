@@ -9,14 +9,14 @@ from utils import *
 
 class MasterWrapper(object):
     def __init__(self, obj):
+        obj.total_params = obj.get_total_params()
+        obj.save_weights()
+        obj.instantiate_mask()
+        obj.flip_counts = [torch.zeros_like(layer, dtype=torch.float).to('cuda') for layer in obj.parameters()]
+        obj.ema_flip_counts = [torch.zeros_like(layer, dtype=torch.float).to('cuda') for layer in obj.parameters()]
+        obj.live_connections = None
+        obj.sparsity = 0
         self.obj = obj
-        self.obj.total_params = self.obj.get_total_params()
-        self.obj.save_weights()
-        self.obj.instantiate_mask()
-        self.obj.flip_counts = [torch.zeros_like(layer, dtype=torch.float).to('cuda') for layer in self.parameters()]
-        self.obj.ema_flip_counts = [torch.zeros_like(layer, dtype=torch.float).to('cuda') for layer in self.parameters()]
-        self.live_connections = None
-        self.sparsity = 0
 
     def __getattr__(self, name):
         # Override getattr such that it calls the wrapped object's attrs
@@ -191,6 +191,7 @@ class MasterModel(nn.Module):
             for layer, layer_mask in zip(self.parameters(), self.mask):
                 threshold = sensitivity*layer.std()
                 layer_mask.data = ~(layer.abs() < threshold)
+                layer.data = layer*layer_mask
     
     def reset_flip_counts(self):
         for layer_flips, layer_ema_flips in zip(self.flip_counts, self.ema_flip_counts):

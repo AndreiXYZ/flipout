@@ -65,7 +65,7 @@ def train(config, writer):
 
         # Prune only if stop_pruning_at is not set or the current epoch is lower than the stopping point
         if config['stop_pruning_at'] == -1 or epoch_num < config['stop_pruning_at']:
-            if epoch_num%config['prune_freq'] == 0:
+            if epoch_num%config['prune_freq'] == 0 and epoch_num != config['epochs']:
                 if config['prune_criterion'] == 'magnitude':
                     model.update_mask_magnitudes(config['prune_rate'])
                 elif config['prune_criterion'] == 'flip':
@@ -127,9 +127,8 @@ def main():
     writer.flush()
     writer.close()
 
-    if config['save_model']:
-        save_fpath = './chkpts/' + comment.replace(' ', '_') + '.pt'
-        utils.save_run(model, opt, save_fpath)
+    if config['save_model'] is not None:
+        utils.save_run(model, opt, config['save_model'])
     
 
 def parse_args():
@@ -192,7 +191,7 @@ def parse_args():
     parser.add_argument('--temperature', type=float, default=2./3.)
     
     # Whether or not to save the model. Run-name will be comment name
-    parser.add_argument('--save_model', action='store_true', default=False)
+    parser.add_argument('--save_model', type=str, default=None)
     parser.add_argument('--load_model', type=str, default=None)
     config = vars(parser.parse_args())
     
