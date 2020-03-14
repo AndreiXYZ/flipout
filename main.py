@@ -42,7 +42,7 @@ def train(config, writer):
         apply_prune_mask(model, keep_masks)
         model.sparsity = model.get_sparsity(config)
     else:
-        init_attrs(model)
+        init_attrs(model, config)
 
     if config['parallel']:
         model = CustomDataParallel(model)
@@ -52,7 +52,11 @@ def train(config, writer):
                 if hasattr(module, 'weight')]
     cls_module = modules[-1]
 
-    print('Model has {} total params, including biases.'.format(model.get_total_params()))
+    num_weights, num_biases = model.get_total_params()
+
+    print('Model has {} total params.\nnum_weights={}\nnum_biases'
+          .format(num_weights+num_biases, num_weights, num_biases)
+          )
 
     for epoch_num in range(1, config['epochs']+1):
         print('='*10 + ' Epoch ' + str(epoch_num) + ' ' + '='*10)
@@ -157,6 +161,7 @@ def parse_args():
     parser.add_argument('-lr', type=float, default=1e-4)
     parser.add_argument('--device', type=str, default='cuda')
     parser.add_argument('--seed', type=int, default=42)
+
     # Pruning
     parser.add_argument('--prune_criterion', type=str, choices=pruning_choices, default='none')
     parser.add_argument('--prune_freq', type=int, default=1)
@@ -164,7 +169,8 @@ def parse_args():
     parser.add_argument('--sensitivity', type=float, default=0)
     parser.add_argument('--flip_threshold', type=int, default=1) # for flip pruning
     parser.add_argument('--stop_pruning_at', type=int, default=-1)
-    
+    parser.add_argument('--prune_bias', action='store_true', default=True)
+
     # Flip pruning EMA
     parser.add_argument('--use_ema_flips', dest='use_ema_flips', action='store_true', default=False)
     parser.add_argument('--beta_ema_flips', type=float, default=None)
