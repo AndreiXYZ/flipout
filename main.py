@@ -57,7 +57,10 @@ def train(config, writer):
     print('Model has {} total params.\nnum_weights={}\nnum_biases={}'
           .format(num_weights+num_biases, num_weights, num_biases)
           )
-
+    
+    if not config['prune_bias']:
+        print('---Biases omitted from pruning---')
+    
     for epoch_num in range(1, config['epochs']+1):
         print('='*10 + ' Epoch ' + str(epoch_num) + ' ' + '='*10)
         
@@ -87,6 +90,8 @@ def train(config, writer):
                     model.update_mask_random(config['prune_rate'], config)
                 elif config['prune_criterion'] == 'sensitivity':
                     model.update_mask_sensitivity(config['sensitivity'])
+                elif  config['prune_criterion'] == 'global_magnitude':
+                    model.update_mask_global_magnitudes(config['prune_rate'])
                 
 
                 # Plot layerwise sparsity
@@ -145,7 +150,8 @@ def parse_args():
                      'l0lenet5', 'l0lenet300']
     
     pruning_choices = ['magnitude', 'flip', 'topflip', 'topflip_layer', 
-                       'random', 'snip', 'l0', 'none', 'sensitivity']
+                       'random', 'snip', 'l0', 'none', 'sensitivity',
+                       'global_magnitude']
     
     dataset_choices = ['mnist', 'cifar10']
     opt_choices = ['sgd', 'rmsprop', 'adam', 'rmspropw']

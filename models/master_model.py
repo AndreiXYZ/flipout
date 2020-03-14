@@ -17,8 +17,7 @@ class CustomDataParallel(nn.DataParallel):
             # If it doesn't exist return attr of wrapped model
             return getattr(self.module, name)
     
-def init_attrs(model, config):   
-    print(config['prune_bias'])
+def init_attrs(model, config):
     if config['prune_bias']:
         model.prunable_params = [layer for layer in model.parameters()
                                  if layer.requires_grad]
@@ -26,7 +25,7 @@ def init_attrs(model, config):
         model.prunable_params = [module.weight for module in model.modules()
                                  if hasattr(module, 'weight') and
                                  module.weight.requires_grad]
-
+    
     model.total_prunable = sum([layer.numel() for layer in model.prunable_params])
 
     model.save_weights()
@@ -46,11 +45,12 @@ class MasterModel(nn.Module):
     
     def get_total_params(self):
         with torch.no_grad():
+            
             num_weights = sum([module.weight.numel() for module in self.modules()
                         if hasattr(module, 'weight')])
             
             num_bias = sum([module.bias.numel() for module in self.modules()
-                            if hasattr(module, 'bias')])
+                            if hasattr(module, 'bias') and module.bias is not None])
         
         return num_weights, num_bias
 
@@ -121,7 +121,22 @@ class MasterModel(nn.Module):
                 layer_mask.view(-1)[to_prune] = 0
                 layer.data = layer*layer_mask
 
+    def update_mask_global_magnitudes(self, rate):
+        with torch.no_grad():
+            flat_params = torch.cat([layer.view(-1) for layer in self.prunable_params])
+            flat_mask = torch.cat([layer_mask.view(-1) for layer_mask in self.mask])
 
+            num_pruned = (flat_params==0).sum().item()
+
+            num_to_prune = int((self.total_prunable - num_pruned)*rate)
+            
+            to_prune = flat_params.argsort(descending=False)[:num_pruned+num_to_prune]
+            flat_mask[to_prune] = 0.
+            self.mask = self.unflatten_tensor(flat_mask, self.mask)
+            # Now update the weights
+            for layer, layer_mask in zip(self.prunable_params, self.mask):
+                layer.data = layer * layer_mask
+            
     def update_mask_flips(self, threshold):
         with torch.no_grad():
         # Prune parameters based on sign flips
