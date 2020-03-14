@@ -54,7 +54,7 @@ def train(config, writer):
 
     num_weights, num_biases = model.get_total_params()
 
-    print('Model has {} total params.\nnum_weights={}\nnum_biases'
+    print('Model has {} total params.\nnum_weights={}\nnum_biases={}'
           .format(num_weights+num_biases, num_weights, num_biases)
           )
 
@@ -169,8 +169,7 @@ def parse_args():
     parser.add_argument('--sensitivity', type=float, default=0)
     parser.add_argument('--flip_threshold', type=int, default=1) # for flip pruning
     parser.add_argument('--stop_pruning_at', type=int, default=-1)
-    parser.add_argument('--prune_bias', action='store_true', default=True)
-
+    parser.add_argument('--prune_bias', action='store_true', default=False)
     # Flip pruning EMA
     parser.add_argument('--use_ema_flips', dest='use_ema_flips', action='store_true', default=False)
     parser.add_argument('--beta_ema_flips', type=float, default=None)

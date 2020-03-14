@@ -16,18 +16,16 @@ def plot_weight_histograms(model, writer, epoch_num):
 
 def plot_layerwise_sparsity(model, writer, epoch_num):
     layerwise_sparsity = []
-    for module in model.modules():
-        if isinstance(module, (nn.Linear, nn.Conv2d)):
-            total_params = module.weight.numel()
-            total_pruned = (module.weight==0).sum().item() 
+    for name,module in model.named_modules():
+        if hasattr(module, 'weight'):
+            total_w = module.weight.numel()
+            total_b = module.bias.numel()
 
-            if module.bias is not None:
-                total_params += module.bias.numel()
-                total_pruned += (module.bias==0).sum().item()
-            layerwise_sparsity.append(float(total_pruned)/total_params)
-    
-    for idx, elem in enumerate(layerwise_sparsity):
-        writer.add_scalar('layer_sparsity/'+str(idx), elem, epoch_num)
+            w_pruned = (module.weight==0).sum().item()
+            b_pruned = (module.bias==0).sum().item()
+
+            writer.add_scalar('layerwise_sparsity/' + name + '.weight', float(w_pruned)/total_w, epoch_num)
+            writer.add_scalar('layerwise_sparsity/' + name + '.bias', float(b_pruned)/total_b, epoch_num)
 
 def plot_hparams(writer, config, train_acc, test_acc, train_loss, test_loss, sparsity):
     import copy

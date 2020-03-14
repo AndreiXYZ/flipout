@@ -17,13 +17,15 @@ class CustomDataParallel(nn.DataParallel):
             # If it doesn't exist return attr of wrapped model
             return getattr(self.module, name)
     
-def init_attrs(model, config):
+def init_attrs(model, config):   
+    print(config['prune_bias'])
     if config['prune_bias']:
         model.prunable_params = [layer for layer in model.parameters()
                                  if layer.requires_grad]
     else:
         model.prunable_params = [module.weight for module in model.modules()
-                                 if module.requires_grad]
+                                 if hasattr(module, 'weight') and
+                                 module.weight.requires_grad]
 
     model.total_prunable = sum([layer.numel() for layer in model.prunable_params])
 
@@ -45,9 +47,10 @@ class MasterModel(nn.Module):
     def get_total_params(self):
         with torch.no_grad():
             num_weights = sum([module.weight.numel() for module in self.modules()
-                        if module.requires_grad])
+                        if hasattr(module, 'weight')])
+            
             num_bias = sum([module.bias.numel() for module in self.modules()
-                            if module.requires_grad])
+                            if hasattr(module, 'bias')])
         
         return num_weights, num_bias
 
@@ -144,7 +147,7 @@ class MasterModel(nn.Module):
             flat_mask = torch.cat([layer_mask.clone().view(-1)
                                     for layer_mask in self.mask])
             flat_params = torch.cat([layer.clone().view(-1)
-                                    for layer in prunable_params])
+                                    for layer in self.prunable_params])
             
             # Get first n% flips
             num_pruned = (flat_mask==0).sum().item()
@@ -158,7 +161,7 @@ class MasterModel(nn.Module):
             # Replace mask and update parameters
             self.mask = self.unflatten_tensor(flat_mask, self.mask)
             
-            for layer, layer_mask in zip(self.prunable_parameters, self.mask):
+            for layer, layer_mask in zip(self.prunable_params, self.mask):
                 layer.data = layer*layer_mask
 
             # Reset flip counts after pruning
@@ -185,6 +188,8 @@ class MasterModel(nn.Module):
     def update_mask_random(self, rate, config):
         # Get prob distribution
         with torch.no_grad():
+            for layer_mask in self.mask:
+                print(layer_mask.shape)
             flat_mask = torch.cat([layer_mask.view(-1) for layer_mask in self.mask])
             num_unpruned = (1-self.get_sparsity(config))*self.total_prunable
             num_to_prune = num_unpruned*rate
@@ -256,10 +261,9 @@ class MasterModel(nn.Module):
         with torch.no_grad():
             noise_per_layer = []
             if 'custom' not in config['model']:
-                for layer, layer_mask in zip(self.parameters(),self.mask):
+                for layer in self.parameters():
                     # Add noise equal to layer-wise l2 norm of params
                     noise = torch.randn_like(layer)
-                    num_live = layer_mask[layer_mask==1].numel()
                     scaling_factor = layer.grad.norm(p=2)/math.sqrt(layer.numel())
                     # Scale noise by LR
                     if config['scale_noise_by_lr']:
@@ -268,9 +272,11 @@ class MasterModel(nn.Module):
                     layer.grad.data += noise*scaling_factor
                     # Append to list for logging purposes
                     noise_per_layer.append(scaling_factor)
+                
+                for prunable_layer, layer_mask in zip(self.prunable_params, self.mask):
                     # Finally, mask gradient for pruned weights
-                    layer.grad.data *= layer_mask
-        
+                    prunable_layer.grad.data *= layer_mask
+    
             else:
                 for layer in self.parameters():
                     layer_mask = F.relu(layer)>0
