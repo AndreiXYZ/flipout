@@ -19,13 +19,15 @@ def plot_layerwise_sparsity(model, writer, epoch_num):
     for name,module in model.named_modules():
         if hasattr(module, 'weight'):
             total_w = module.weight.numel()
-            total_b = module.bias.numel()
-
             w_pruned = (module.weight==0).sum().item()
-            b_pruned = (module.bias==0).sum().item()
-
             writer.add_scalar('layerwise_sparsity/' + name + '.weight', float(w_pruned)/total_w, epoch_num)
+        
+        if hasattr(module, 'bias') and module.bias is not None:
+            total_b = module.bias.numel()
+            b_pruned = (module.bias==0).sum().item()
             writer.add_scalar('layerwise_sparsity/' + name + '.bias', float(b_pruned)/total_b, epoch_num)
+
+
 
 def plot_hparams(writer, config, train_acc, test_acc, train_loss, test_loss, sparsity):
     import copy
