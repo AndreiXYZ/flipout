@@ -34,15 +34,6 @@ def get_num_connections(module):
     return (sum_connections!=0.).sum().item()
 
 
-def save_run(config, model, opt, curr_epoch, fpath):
-    save_dict = {'model_state_dict': model.state_dict(),
-                 'opt_state_dict': opt.state_dict(),
-                 'epoch': curr_epoch
-                 }
-    # Add the hparams used for the run to save_dict
-    save_dict.update(config)
-    torch.save(save_dict, fpath)
-
 def torch_profile(func):
     def wrapper_profile(*args, **kwargs): 
         use_cuda = True if kwargs['device'] == 'cuda' else False
@@ -66,8 +57,8 @@ def torch_timeit(func):
         return res
     return wrapper_func
 
-def save_run(model, opt, fpath):
-    fpath = './chkpts/' + fpath + '.pt'
+def save_run(model, opt, config):
+    import os
 
     save_dict = {
                  'opt_state': opt.state_dict(),
@@ -75,4 +66,10 @@ def save_run(model, opt, fpath):
                  'mask': model.mask,
                  }
     
-    torch.save(save_dict, fpath)
+    save_dir = './chkpts/' + config['logdir'] + '/'
+    if not os.path.exists(save_dir):
+        os.makedirs(save_dir)
+
+    save_fpath = save_dir + config['save_model'] + '.pt'
+    
+    torch.save(save_dict, save_fpath)

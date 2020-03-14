@@ -142,7 +142,7 @@ def main():
     writer.close()
 
     if config['save_model'] is not None:
-        utils.save_run(model, opt, config['save_model'])
+        utils.save_run(model, opt, config)
 
 
 def parse_args():
