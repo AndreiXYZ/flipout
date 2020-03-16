@@ -72,7 +72,7 @@ for idx, row in results.iterrows():
 # Actually do the plots
 for k, v in plot_dict.items():
     plot_length = np.arange(len(v['sparsities']))
-    plt.errorbar(plot_length, v['means'], v['stds'])
+    plt.errorbar(plot_length, v['means'], v['stds'], label=k)
 
 # Dirty hack for xticks
 for k, v in plot_dict.items():
