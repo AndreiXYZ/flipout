@@ -68,7 +68,7 @@ def save_run(model, opt, config):
     
     save_dir = './chkpts/' + config['logdir'] + '/'
     if not os.path.exists(save_dir):
-        os.makedirs(save_dir)
+        os.makedirs(save_dir, 0o777)
 
     save_fpath = save_dir + config['save_model'] + '.pt'
     
