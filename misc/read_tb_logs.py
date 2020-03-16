@@ -1,14 +1,11 @@
 import numpy as np
-import tensorboard
-import os
-import re
+import tensorboard, os, re
 import pandas as pd
 import matplotlib.pyplot as plt
 from tensorboard.backend.event_processing.event_accumulator import EventAccumulator
 from tabulate import tabulate
-from collections import OrderedDict
 
-root_path = 'runs/criterion_experiment_no_bias/'
+root_path = '../runs/criterion_experiment_no_bias/'
 
 
 # Prepare regexes
@@ -74,7 +71,8 @@ for idx, row in results.iterrows():
 
 # Actually do the plots
 for k, v in plot_dict.items():
-    plt.plot(np.arange(len(v['sparsities'])), v['means'], label=k)
+    plot_length = np.arange(len(v['sparsities']))
+    plt.errorbar(plot_length, v['means'], v['stds'])
 
 # Dirty hack for xticks
 for k, v in plot_dict.items():
