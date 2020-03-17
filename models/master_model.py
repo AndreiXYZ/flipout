@@ -203,8 +203,6 @@ class MasterModel(nn.Module):
     def update_mask_random(self, rate, config):
         # Get prob distribution
         with torch.no_grad():
-            for layer_mask in self.mask:
-                print(layer_mask.shape)
             flat_mask = torch.cat([layer_mask.view(-1) for layer_mask in self.mask])
             num_unpruned = (1-self.get_sparsity(config))*self.total_prunable
             num_to_prune = num_unpruned*rate
