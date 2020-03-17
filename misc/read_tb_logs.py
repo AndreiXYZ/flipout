@@ -4,8 +4,15 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from tensorboard.backend.event_processing.event_accumulator import EventAccumulator
 from tabulate import tabulate
+import argparse
 
-root_path = './runs/criterion_experiment_no_bias/'
+parser = argparse.ArgumentParser()
+parser.add_argument('--log_folder', type=str, help='Which folder to read for generating plots.')
+parser.add_argument('--desired_sparsity', type=float, help='''Which sparsity level to use
+                                                            for layerwise sparsity plots''')
+config = vars(parser.parse_args())
+
+root_path = config['log_folder']
 
 # Prepare regexes
 re_crit = re.compile(r'crit=(.\w+)')
@@ -34,6 +41,7 @@ for dirpath, dirs, files in os.walk(root_path):
     
     # Gather info about layer sparsity
     for key in event_accum.scalars.Keys():
+        # TODO vezi care e treaba cu batchnorm layer si biases
         if 'layerwise_sparsity' in key and ('linear' in key or 'conv' in key):
             # If key exists already, append to existing list
             # otherwise add it and create a 1-element list
@@ -44,7 +52,6 @@ for dirpath, dirs, files in os.walk(root_path):
                 layer_sparsity_dict[layer_key] = [layer_sparsity]
             else:
                 layer_sparsity_dict[layer_key].append(layer_sparsity)
-
 
     test_acc = event_accum.Scalars('acc/test')[-1].value
     sparsity = event_accum.Scalars('sparsity/sparsity')[-1].value
@@ -70,7 +77,7 @@ df_layer_sparsities = pd.DataFrame.from_dict(layer_sparsity_dict)
 grouped_layer_sparsities = df_layer_sparsities.groupby(groupby_keys)
 layer_sparsity_means = grouped_layer_sparsities.mean().reset_index()
 # Select just 1 level of sparsity
-desired_sparsity = 0.984375
+desired_sparsity = config['desired_sparsity']
 layer_sparsity_means = layer_sparsity_means[layer_sparsity_means['Sparsity']==desired_sparsity]
 layer_sparsity_means.plot(kind='barh', x='Prune crit.', legend=False)
 plt.grid()
