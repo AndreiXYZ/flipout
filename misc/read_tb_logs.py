@@ -34,7 +34,7 @@ for dirpath, dirs, files in os.walk(root_path):
     
     # Gather info about layer sparsity
     for key in event_accum.scalars.Keys():
-        if 'layerwise_sparsity' in key:
+        if 'layerwise_sparsity' in key and ('linear' in key or 'conv' in key):
             # If key exists already, append to existing list
             # otherwise add it and create a 1-element list
             layer_sparsity = event_accum.Scalars(key)[-1].value
@@ -65,14 +65,21 @@ groupby_keys = ['Model', 'Prune crit.', 'Sparsity']
 
 # Process layerwise sparsities
 # cand fac groupby stie sa faca media si std peste seed fiindca seed este string
-# df_layer_sparsities = pd.DataFrame.from_dict(layer_sparsity_dict)
-# grouped_layer_sparsities = df_layer_sparsities.groupby(groupby_keys)
-# layer_sparsity_means = grouped_layer_sparsities.mean().reset_index()
-# layer_sparsity_stds = gruped_layer_sparsities.std().reset_index()
+df_layer_sparsities = pd.DataFrame.from_dict(layer_sparsity_dict)
 
-# Now iterate over prune criterions and 
-# print(df_layer_sparsities)
-# sys.exit()
+grouped_layer_sparsities = df_layer_sparsities.groupby(groupby_keys)
+layer_sparsity_means = grouped_layer_sparsities.mean().reset_index()
+# Select just 1 level of sparsity
+desired_sparsity = 0.984375
+layer_sparsity_means = layer_sparsity_means[layer_sparsity_means['Sparsity']==desired_sparsity]
+layer_sparsity_means.plot(kind='barh', x='Prune crit.', legend=False)
+plt.grid()
+plt.title('Layerwise sparsity across pruning techniques for sparsity={}'.format(desired_sparsity))
+plt.savefig('misc/' + root_path.split('/')[2] + 
+            '_layerwise_sparsity_at_' + str(desired_sparsity) + '.png')
+plt.clf()
+# Should also add errorbars
+# layer_sparsity_stds = grouped_layer_sparsities.std().reset_index()
 
 # Turn the tb events file into df
 df = pd.DataFrame.from_dict(run_dict)
