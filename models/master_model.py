@@ -18,13 +18,23 @@ class CustomDataParallel(nn.DataParallel):
             return getattr(self.module, name)
     
 def init_attrs(model, config):
+    from itertools import chain
+    # Only prune linear and conv2d models (not batchnorm)
+    prunable_modules = (nn.Linear, nn.Conv2d)
+    
     if config['prune_bias']:
-        model.prunable_params = [layer for layer in model.parameters()
-                                 if layer.requires_grad]
+        model.prunable_params = list(chain.from_iterable(
+        [[module.weight, module.bias] for layer in model.modules()
+                                 if isinstance(module, prunable_modules)
+                                 and module.weight.requires_grad
+                                 and module.bias.requires_grad]
+        ))
+
     else:
         model.prunable_params = [module.weight for module in model.modules()
-                                 if hasattr(module, 'weight') and
-                                 module.weight.requires_grad]
+                                 if isinstance(module, prunable_modules)
+                                 and module.weight.requires_grad
+                                 ]
     
     model.total_prunable = sum([layer.numel() for layer in model.prunable_params])
 
