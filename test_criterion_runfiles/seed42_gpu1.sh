@@ -16,7 +16,7 @@ for prune_freq in 117 70 50 39; do
         CUDA_VISIBLE_DEVICES=${device} python main.py -m resnet18 -d cifar10 -bs 128 -tbs 10000 -e 350 -lr 0.1 \
                         --prune_criterion ${prune_criterion}  --prune_rate 0.5 --prune_freq  ${prune_freq} --seed ${seed} \
                         --opt sgd --momentum 0.9 --reg_type wdecay --lambda 5e-4 --use_scheduler \
-                        --milestones 150 250 --logdir="criterion_experiment" \
+                        --milestones 150 250 --logdir="criterion_experiment_no_bias" \
                         --comment="resnet18 crit=${prune_criterion} pf=${prune_freq} seed=${seed}" \
                         --save_model "pre-finetune/resnet18_${prune_criterion}_pf${prune_freq}_s${seed}"
 
