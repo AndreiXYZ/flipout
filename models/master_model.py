@@ -127,10 +127,10 @@ class MasterModel(nn.Module):
             flat_mask = torch.cat([layer_mask.view(-1) for layer_mask in self.mask])
 
             num_pruned = (flat_params==0).sum().item()
-
             num_to_prune = int((self.total_prunable - num_pruned)*rate)
-            
-            to_prune = flat_params.argsort(descending=False)[:num_pruned+num_to_prune]
+
+            to_prune = flat_params.abs().argsort(descending=False)[:num_pruned+num_to_prune]
+            # This should be all zeros
             flat_mask[to_prune] = 0.
             self.mask = self.unflatten_tensor(flat_mask, self.mask)
             # Now update the weights

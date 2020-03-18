@@ -16,7 +16,7 @@ for sparsity in ${sparsities[@]};do
                     --opt sgd --momentum 0.9 --reg_type wdecay --lambda 5e-4 --use_scheduler \
                     --milestones 150 250 --logdir="criterion_experiment_no_bias" \
                     --comment="resnet18 crit=snip sparsity=${sparsity} seed=${seed}" \
-                    --save_model "resnet18_snip_sp${sparsity}_s${seed}"
-    
+                    --save_model "pre-finetune/resnet18_snip_sp${sparsity}_s${seed}"
+        
 done
 

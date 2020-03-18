@@ -40,6 +40,7 @@ def train(config, writer):
         keep_percentage = 1 - config['snip_sparsity']
         keep_masks = SNIP(model, keep_percentage, train_loader, device)
         apply_prune_mask(model, keep_masks)
+        init_attrs(model, config)
         model.sparsity = model.get_sparsity(config)
     else:
         init_attrs(model, config)

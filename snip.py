@@ -29,7 +29,7 @@ def SNIP(net, keep_ratio, train_dataloader, device):
     # Monkey-patch the Linear and Conv2d layer to learn the multiplicative mask
     # instead of the weights
     for layer in net.modules():
-        if isinstance(layer, nn.Conv2d) or isinstance(layer, nn.Linear):
+        if isinstance(layer, (nn.Conv2d, nn.Linear)):
             layer.weight_mask = nn.Parameter(torch.ones_like(layer.weight))
             nn.init.xavier_normal_(layer.weight)
             layer.weight.requires_grad = False
