@@ -29,7 +29,7 @@ def init_attrs(model, config):
                                  and module.weight.requires_grad
                                  and module.bias.requires_grad]
         ))
-
+    
     else:
         model.prunable_params = [module.weight for module in model.modules()
                                  if isinstance(module, prunable_modules)
@@ -37,7 +37,7 @@ def init_attrs(model, config):
                                  ]
     
     model.total_prunable = sum([layer.numel() for layer in model.prunable_params])
-
+    print('Total prunable params of model:', model.total_prunable)
     model.save_weights()
     model.instantiate_mask()
     model.flip_counts = [torch.zeros_like(layer, dtype=torch.float).to('cuda') 
@@ -283,8 +283,14 @@ class MasterModel(nn.Module):
     # Inject Gaussian noise scaled by a factor into the gradients
         with torch.no_grad():
             noise_per_layer = []
+            
+            if config['noise_only_prunable']:
+                noise_add_params = self.prunable_params
+            else:
+                noise_add_params = self.parameters()
+            
             if 'custom' not in config['model']:
-                for layer in self.parameters():
+                for layer in self.noise_add_params:
                     # Add noise equal to layer-wise l2 norm of params
                     noise = torch.randn_like(layer)
                     scaling_factor = layer.grad.norm(p=2)/math.sqrt(layer.numel())
@@ -301,7 +307,7 @@ class MasterModel(nn.Module):
                     prunable_layer.grad.data *= layer_mask
     
             else:
-                for layer in self.parameters():
+                for layer in noise_add_params:
                     layer_mask = F.relu(layer)>0
                     noise = torch.randn_like(layer)
                     scaling_factor = layer.grad.norm(p=1)/layer.numel()
