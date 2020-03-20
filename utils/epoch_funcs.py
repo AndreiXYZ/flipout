@@ -9,7 +9,7 @@ def epoch_flips(epoch_num, loader, dataset_size, model, opt, writer, config):
     epoch_loss = 0
     curr_lr = opt.param_groups[0]['lr']
     for batch_num, (x,y) in enumerate(loader):
-        # update_num = epoch_num*size/math.ceil(config['batch_size']) + batch_num
+        update_num = epoch_num*dataset_size/math.ceil(config['batch_size']) + batch_num
         opt.zero_grad()
         x = x.float().to(config['device'])
         y = y.to(config['device'])
@@ -32,6 +32,9 @@ def epoch_flips(epoch_num, loader, dataset_size, model, opt, writer, config):
             if config['add_noise']:
                 if config['stop_noise_at']==-1 or epoch_num < config['stop_noise_at']:
                     noise_per_layer = model.inject_noise(config, epoch_num, curr_lr)
+                    for layer_noise, noisy_layer_name in zip(noise_per_layer, model.noisy_param_names):
+                        writer.add_scalar('layerwise_noise/'+noisy_layer_name, layer_noise, update_num)
+
             
             opt.step()
 

@@ -3,7 +3,7 @@ import torch
 import torch.nn.functional as F
 import math
 import numpy as np
-
+import sys
 from torch.distributions import Categorical
 from utils import *
 
@@ -36,6 +36,18 @@ def init_attrs(model, config):
                                  and module.weight.requires_grad
                                  ]
     
+    # Generate a list of names of modules we want to inject noise into
+    model.noisy_params = model.prunable_params if config['noise_only_prunable'] \
+                        else [layer for layer in model.parameters()]
+    
+    model.noisy_param_names = []
+
+    for noisy_param in model.noisy_params:
+        for name,param in model.named_parameters():
+            if param is noisy_param:
+                model.noisy_param_names.append(name)
+
+
     model.total_prunable = sum([layer.numel() for layer in model.prunable_params])
     print('Total prunable params of model:', model.total_prunable)
     model.save_weights()
@@ -284,13 +296,8 @@ class MasterModel(nn.Module):
         with torch.no_grad():
             noise_per_layer = []
             
-            if config['noise_only_prunable']:
-                noise_add_params = self.prunable_params
-            else:
-                noise_add_params = self.parameters()
-            
             if 'custom' not in config['model']:
-                for layer in self.noise_add_params:
+                for layer in self.noisy_params:
                     # Add noise equal to layer-wise l2 norm of params
                     noise = torch.randn_like(layer)
                     scaling_factor = layer.grad.norm(p=2)/math.sqrt(layer.numel())
@@ -307,7 +314,7 @@ class MasterModel(nn.Module):
                     prunable_layer.grad.data *= layer_mask
     
             else:
-                for layer in noise_add_params:
+                for layer in self.noisy_params:
                     layer_mask = F.relu(layer)>0
                     noise = torch.randn_like(layer)
                     scaling_factor = layer.grad.norm(p=1)/layer.numel()
