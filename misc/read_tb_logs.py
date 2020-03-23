@@ -8,8 +8,7 @@ import argparse
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--log_folder', type=str, help='Which folder to read for generating plots.')
-parser.add_argument('--desired_sparsity', type=float, help='''Which sparsity level to use
-                                                            for layerwise sparsity plots''')
+
 config = vars(parser.parse_args())
 
 root_path = config['log_folder']
@@ -38,23 +37,10 @@ for dirpath, dirs, files in os.walk(root_path):
     tb_event_file = os.path.join(dirpath, files[0])
     event_accum = EventAccumulator(tb_event_file)
     event_accum.Reload()
-    
-    # Gather info about layer sparsity
-    for key in event_accum.scalars.Keys():
-        # TODO vezi care e treaba cu batchnorm layer si biases
-        if 'layerwise_sparsity' in key and ('linear' in key or 'conv' in key):
-            # If key exists already, append to existing list
-            # otherwise add it and create a 1-element list
-            layer_sparsity = event_accum.Scalars(key)[-1].value
-            layer_key = key.split('/')[1]
-
-            if layer_key not in layer_sparsity_dict:
-                layer_sparsity_dict[layer_key] = [layer_sparsity]
-            else:
-                layer_sparsity_dict[layer_key].append(layer_sparsity)
 
     test_acc = event_accum.Scalars('acc/test')[-1].value
     sparsity = event_accum.Scalars('sparsity/sparsity')[-1].value
+    sparsity = round(sparsity, 4)
 
     run_keys = (model, seed, crit, sparsity)
     run_metrics = (test_acc,)
@@ -70,38 +56,20 @@ for dirpath, dirs, files in os.walk(root_path):
 # Define the keys by which to groupby the dataframes
 groupby_keys = ['Model', 'Prune crit.', 'Sparsity']
 
-# Process layerwise sparsities
-# cand fac groupby stie sa faca media si std peste seed fiindca seed este string
-df_layer_sparsities = pd.DataFrame.from_dict(layer_sparsity_dict)
-
-grouped_layer_sparsities = df_layer_sparsities.groupby(groupby_keys)
-layer_sparsity_means = grouped_layer_sparsities.mean().reset_index()
-# Select just 1 level of sparsity
-desired_sparsity = config['desired_sparsity']
-layer_sparsity_means = layer_sparsity_means[layer_sparsity_means['Sparsity']==desired_sparsity]
-layer_sparsity_means.plot(kind='barh', x='Prune crit.', legend=False)
-plt.grid()
-plt.title('Layerwise sparsity across pruning techniques for sparsity={}'.format(desired_sparsity))
-plt.savefig('misc/' + root_path.split('/')[2] + 
-            '_layerwise_sparsity_at_' + str(desired_sparsity) + '.png')
-plt.clf()
-# Should also add errorbars
-# layer_sparsity_stds = grouped_layer_sparsities.std().reset_index()
-
 # Turn the tb events file into df
 df = pd.DataFrame.from_dict(run_dict)
-layerwise_sparsity_df = pd.DataFrame.from_dict(layer_sparsity_dict)
-
 # Process the df of the metrics (test acc and final sparsity)
 # Calc mean and std over the seeds
+
 grouped = df.groupby(groupby_keys)
 
 means = grouped.mean().reset_index()
 means = means.rename(columns={'Test acc.': 'Mean acc.'})
 stds = grouped.std().reset_index()
 stds = stds.rename(columns={'Test acc.': 'Std. acc.'})
+print(means)
+print(stds)
 results = means.merge(stds, on=groupby_keys)
-
 # Build the plot dictionary
 prune_crits = results['Prune crit.'].unique()
 plot_dict = {key:{'means':[], 'stds':[], 'sparsities':[]} for key in prune_crits}
@@ -123,7 +91,9 @@ for k, v in plot_dict.items():
     plt.xticks(np.arange(len(v['sparsities'])), truncated)
     break
 
-plt.title('Sparsity vs. acc')
+plt.title('Sparsity vs. acc (ResNet-18 CIFAR-10)')
 plt.legend()
 plt.grid()
-plt.savefig('./misc/' + root_path.split('/')[2])
+plt.xlabel('Sparsity')
+plt.ylabel('Acc.')
+plt.savefig('./misc/' + 'kek.png')
