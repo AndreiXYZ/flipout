@@ -45,6 +45,11 @@ def train(config, writer):
     else:
         init_attrs(model, config)
 
+    # Init the mask from the loader if it is the case
+    if config['load_model'] is not None:
+        checkpoint = torch.load(config['load_model'], map_location='cuda')
+        model.mask = checkpoint['mask']
+    
     if config['parallel']:
         model = CustomDataParallel(model)
     

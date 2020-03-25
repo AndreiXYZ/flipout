@@ -28,9 +28,10 @@ def get_model(config):
     else:
         model = model_dict[config['model']]()
     
+    
     if config['load_model'] is not None:
-        checkpoint = torch.load(config['load_model'])
-        model.load_state_dict(checkpoint['model'])
+        checkpoint = torch.load(config['load_model'], map_location='cuda')
+        model.load_state_dict(checkpoint['model_state'])
     
     return model
 
@@ -66,9 +67,9 @@ def get_opt(config, model):
     
     opt = opt_dict[config['opt']](**kwargs)
 
-    if config['load_model'] is not  None:
-        checkpoint = torch.load(config['load_model'])
-        opt.load_state_dict(checkpoint['opt'])
+    if config['load_model'] is not None:
+        checkpoint = torch.load(config['load_model'], map_location='cuda')
+        opt.load_state_dict(checkpoint['opt_state'])
     
     return opt
 

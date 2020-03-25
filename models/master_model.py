@@ -158,7 +158,7 @@ class MasterModel(nn.Module):
             # Now update the weights
             for layer, layer_mask in zip(self.prunable_params, self.mask):
                 layer.data = layer * layer_mask
-            
+    
     def update_mask_flips(self, threshold):
         with torch.no_grad():
         # Prune parameters based on sign flips
