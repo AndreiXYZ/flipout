@@ -8,3 +8,4 @@ data/*
 *.pt
 *.swo
 *.swp
+runs/*/*
