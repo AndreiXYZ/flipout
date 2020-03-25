@@ -2,8 +2,7 @@
 *swp
 __pycache__/
 data/*
-runs/*
 *.out
-*tfevents*
+*.tfevents*
 *.png
 chkpts/*
