@@ -299,7 +299,7 @@ class MasterModel(nn.Module):
                 layer_ema_flips.data = layer_ema_flips*layer_mask
     
 
-    def add_current_magnitude(self):
+    def add_current_magnitudes(self):
         with torch.no_grad():
             for layer, historical_layer in zip(self.prunable_params, 
                                                self.historical_magnitudes):

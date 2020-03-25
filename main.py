@@ -98,6 +98,8 @@ def train(config, writer):
                     model.update_mask_sensitivity(config['sensitivity'])
                 elif  config['prune_criterion'] == 'global_magnitude':
                     model.update_mask_global_magnitudes(config['prune_rate'])
+                elif config['prune_criterion'] == 'historical_magnitude':
+                    model.update_mask_historical_magnitudes(config['prune_rate'])
                 
 
                 # Plot layerwise sparsity
