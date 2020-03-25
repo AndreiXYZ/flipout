@@ -4,6 +4,6 @@ __pycache__/
 /data/*
 /runs/*
 *.out
-*.tfevents.*
+*events*
 *.png
 /chkpts/*

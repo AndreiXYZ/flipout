@@ -66,10 +66,11 @@ def save_run(model, opt, config):
                  'mask': model.mask,
                  }
     
-    save_dir = './chkpts/' + config['logdir'] + '/'
+    save_fpath = './chkpts/' + config['logdir'] + '/' + config['save_model'] + '.pt'
+
+    save_dir = '/'.join(save_fpath.split('/')[:-1])
+
     if not os.path.exists(save_dir):
         os.makedirs(save_dir, 0o777)
-
-    save_fpath = save_dir + config['save_model'] + '.pt'
     
     torch.save(save_dict, save_fpath)
