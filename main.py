@@ -157,7 +157,7 @@ def parse_args():
     
     pruning_choices = ['magnitude', 'flip', 'topflip', 'topflip_layer', 
                        'random', 'snip', 'l0', 'none', 'sensitivity',
-                       'global_magnitude']
+                       'global_magnitude', 'historical_magnitude']
     
     dataset_choices = ['mnist', 'cifar10']
     opt_choices = ['sgd', 'rmsprop', 'adam', 'rmspropw']

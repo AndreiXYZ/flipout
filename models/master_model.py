@@ -52,11 +52,17 @@ def init_attrs(model, config):
     print('Total prunable params of model:', model.total_prunable)
     model.save_weights()
     model.instantiate_mask()
-    model.flip_counts = [torch.zeros_like(layer, dtype=torch.float).to('cuda') 
-                         for layer in model.prunable_params]
-                        
-    model.ema_flip_counts = [torch.zeros_like(layer, dtype=torch.float).to('cuda') 
-                             for layer in model.prunable_params]
+
+    if 'flip' in config['prune_criterion']:
+        model.flip_counts = [torch.zeros_like(layer, dtype=torch.float).to('cuda') 
+                            for layer in model.prunable_params]
+                            
+        model.ema_flip_counts = [torch.zeros_like(layer, dtype=torch.float).to('cuda') 
+                                for layer in model.prunable_params]
+    
+    if config['prune_criterion'] == 'historical_magnitude':
+        model.historical_magnitudes = [torch.zeros_like(layer, dtype=torch.float).to('cuda')
+                                        for layer in model.prunable_params]
     
     model.live_connections = None
     model.sparsity = 0
@@ -142,7 +148,25 @@ class MasterModel(nn.Module):
                 to_prune = layer.view(-1).abs().argsort(descending=False)[:num_to_prune]
                 layer_mask.view(-1)[to_prune] = 0
                 layer.data = layer*layer_mask
+    
+    def update_mask_historical_magnitudes(self, rate):
+        with torch.no_grad():
+            flat_params = torch.cat([layer.view(-1) for layer in self.prunable_params])
+            flat_mask = torch.cat([layer_mask.view(-1) for layer_mask in self.mask])
+            flat_historical_magnitudes = torch.cat([layer.view(-1) for layer 
+                                                    in self.historical_magnitudes])
 
+            num_pruned = (flat_params==0).sum().item()
+            num_to_prune = int((self.total_prunable - num_pruned)*rate)
+            to_prune = flat_historical_magnitudes.argsort(descending=False)[:num_pruned+num_to_prune]
+
+            flat_mask[to_prune] = 0.
+            self.mask = self.unflatten_tensor(flat_mask, self.mask)
+            # Now update the weights and the counts
+            for layer, layer_mask, historical_layer in zip(self.prunable_params, self.mask, self.historical_magnitudes):
+                layer.data = layer * layer_mask
+                historical_layer.data = historical_layer * layer_mask
+        
     def update_mask_global_magnitudes(self, rate):
         with torch.no_grad():
             flat_params = torch.cat([layer.view(-1) for layer in self.prunable_params])
@@ -275,6 +299,12 @@ class MasterModel(nn.Module):
                 layer_ema_flips.data = layer_ema_flips*layer_mask
     
 
+    def add_current_magnitude(self):
+        with torch.no_grad():
+            for layer, historical_layer in zip(self.prunable_params, 
+                                               self.historical_magnitudes):
+                historical_layer.data = historical_layer + layer.abs()
+    
     def get_flips_total(self):
         # Get total number of flips
         with torch.no_grad():
