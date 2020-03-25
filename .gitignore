@@ -3,7 +3,7 @@
 __pycache__/
 data/*
 *.out
-*.tfevents*
+*events.out*
 *.png
 *.pt
 *.swo
