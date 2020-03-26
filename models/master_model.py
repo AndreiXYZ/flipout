@@ -334,7 +334,8 @@ class MasterModel(nn.Module):
                     # Scale noise by LR
                     if config['scale_noise_by_lr']:
                         scaling_factor *= config['lr']/curr_lr
-
+                    # Multiply by constant scaling factor
+                    scaling_factor = scaling_factor*config['noise_scale_factor']
                     layer.grad.data += noise*scaling_factor
                     # Append to list for logging purposes
                     noise_per_layer.append(scaling_factor)

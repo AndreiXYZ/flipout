@@ -8,7 +8,7 @@
 source activate base
 device=0;
 seed=42;
-
+echo "Running historical magnitudes (fixed).";
 for prune_freq in 50 39; do
     #Do flips while adding noise only to prunable params
     CUDA_VISIBLE_DEVICES=${device} python main.py -m resnet18 -d cifar10 -bs 128 -tbs 2000 -e 350 -lr 0.1  \

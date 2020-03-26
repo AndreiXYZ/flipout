@@ -134,14 +134,14 @@ def regular_epoch(epoch_num, loader, dataset_size, model, opt, writer, config):
         
             if config['opt'] == 'adam' or config['momentum']!=0.:
                 model.mask_weights(config)
+
+            if config['prune_criterion'] == 'historical_magnitude':
+                model.add_current_magnitudes()
             
         epoch_acc += utils.accuracy(out, y)
         # multiply batch loss by batch size since the loss is averaged
         epoch_loss += x.size(0)*loss.item()
     
-    # Epoch is done, store historical magnitudes if it is the case
-    if config['prune_criterion'] == 'historical_magnitude':
-        model.add_current_magnitudes()
 
     epoch_acc /= dataset_size
     epoch_loss /= dataset_size
