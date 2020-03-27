@@ -136,7 +136,7 @@ def regular_epoch(epoch_num, loader, dataset_size, model, opt, writer, config):
                 model.mask_weights(config)
 
             if config['prune_criterion'] == 'historical_magnitude':
-                model.add_current_magnitudes()
+                model.add_current_magnitudes(config)
             
         epoch_acc += utils.accuracy(out, y)
         # multiply batch loss by batch size since the loss is averaged
