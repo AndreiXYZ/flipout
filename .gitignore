@@ -2,7 +2,6 @@
 *swp
 __pycache__/
 data/*
-*.out
 *events.out*
 *.png
 *.pt
