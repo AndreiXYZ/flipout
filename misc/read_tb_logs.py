@@ -91,9 +91,9 @@ for k, v in plot_dict.items():
     plt.xticks(np.arange(len(v['sparsities'])), truncated)
     break
 
-plt.title('Sparsity vs. acc (ResNet-18 CIFAR-10)')
+plt.title('Sparsity vs. acc (VGG-19 CIFAR-10)')
 plt.legend()
 plt.grid()
 plt.xlabel('Sparsity')
 plt.ylabel('Acc.')
-plt.savefig('./misc/' + 'kek2.png')
+plt.savefig('./misc/' + 'vgg_19_results.png')
