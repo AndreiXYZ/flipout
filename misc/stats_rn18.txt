@@ -1,0 +1,38 @@
+---------------------MEANS-------------------------
+       Model       Prune crit.  Sparsity  Mean acc.
+0   resnet18  global_magnitude    0.7500   0.954633
+1   resnet18  global_magnitude    0.9375   0.950867
+2   resnet18  global_magnitude    0.9844   0.941933
+3   resnet18  global_magnitude    0.9961   0.911067
+4   resnet18            random    0.7500   0.943100
+5   resnet18            random    0.9375   0.901033
+6   resnet18            random    0.9844   0.783100
+7   resnet18            random    0.9961   0.493000
+8   resnet18              snip    0.7500   0.950867
+9   resnet18              snip    0.9375   0.946300
+10  resnet18              snip    0.9844   0.915267
+11  resnet18              snip    0.9961   0.853067
+12  resnet18           topflip    0.7500   0.941700
+13  resnet18           topflip    0.9375   0.936900
+14  resnet18           topflip    0.9844   0.926567
+15  resnet18           topflip    0.9961   0.884400
+
+
+-----------------------STDS-------------------------
+       Model       Prune crit.  Sparsity  Std. acc.
+0   resnet18  global_magnitude    0.7500   0.001002
+1   resnet18  global_magnitude    0.9375   0.001060
+2   resnet18  global_magnitude    0.9844   0.002011
+3   resnet18  global_magnitude    0.9961   0.002050
+4   resnet18            random    0.7500   0.001836
+5   resnet18            random    0.9375   0.001848
+6   resnet18            random    0.9844   0.012212
+7   resnet18            random    0.9961   0.079226
+8   resnet18              snip    0.7500   0.001850
+9   resnet18              snip    0.9375   0.000964
+10  resnet18              snip    0.9844   0.003126
+11  resnet18              snip    0.9961   0.003014
+12  resnet18           topflip    0.7500   0.002571
+13  resnet18           topflip    0.9375   0.003100
+14  resnet18           topflip    0.9844   0.001150
+15  resnet18           topflip    0.9961   0.006040

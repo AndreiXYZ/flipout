@@ -1,14 +1,14 @@
 #!/bin/bash
-#SBATCH --time=02:00:00
+#SBATCH --time=48:00:00
 #SBATCH --partition=gpu_shared
 #SBATCH --gres=gpu:1
 #SBATCH --mem=16000M
-#SBATCH --cpus-per-task=2
-#SBATCH --array=1-60%8
-#SBATCH --job-name=array_test
-#SBATCH --output=out_files/array_test%a.out
+#SBATCH --cpus-per-task=1
+#SBATCH --array=1-60%30
+#SBATCH --job-name=array_job_vgg19
+#SBATCH --output=out_files/array_job%a.out
 source activate base
-device=1;
+device=0;
 
 param_folder='test_criterion_runfiles/array_job_args'
 run_params=`sed -n ${SLURM_ARRAY_TASK_ID}p ${param_folder}`;
