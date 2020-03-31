@@ -309,9 +309,14 @@ class MasterModel(nn.Module):
             else:
                 params_to_add = self.prunable_params
             
+
             for layer, historical_layer in zip(params_to_add, 
                                                self.historical_magnitudes):
-                historical_layer.data = historical_layer + layer.abs()
+                if config['beta_ema_maghists'] is not None:
+                    historical_layer.data = historical_layer*config['beta_ema_maghists'] + layer.abs()
+                else:
+                    historical_layer.data = historical_layer*config['beta_ema_maghists'] + layer.abs()
+
     
     def get_flips_total(self):
         # Get total number of flips

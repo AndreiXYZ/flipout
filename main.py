@@ -190,6 +190,7 @@ def parse_args():
     parser.add_argument('--reset_flip_cts', action='store_true', default=False)
     # Historical magnitudes params
     parser.add_argument('--normalize_magnitudes', action='store_true', default=False)
+    parser.add_argument('--beta_ema_maghists', type=float, default=1.0)
     # Tensorboard-related args
     parser.add_argument('--comment', type=str, default=None,
                         help='Comment to add to tensorboard text')
