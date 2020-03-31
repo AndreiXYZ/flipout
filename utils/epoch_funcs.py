@@ -32,8 +32,8 @@ def epoch_flips(epoch_num, loader, dataset_size, model, opt, writer, config):
             if config['add_noise']:
                 if config['stop_noise_at']==-1 or epoch_num < config['stop_noise_at']:
                     noise_per_layer = model.inject_noise(config, epoch_num, curr_lr)
-                    for layer_noise, noisy_layer_name in zip(noise_per_layer, model.noisy_param_names):
-                        writer.add_scalar('layerwise_noise/'+noisy_layer_name, layer_noise, update_num)
+                    # for layer_noise, noisy_layer_name in zip(noise_per_layer, model.noisy_param_names):
+                    #     writer.add_scalar('layerwise_noise/'+noisy_layer_name, layer_noise, update_num)
 
             
             opt.step()

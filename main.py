@@ -100,11 +100,13 @@ def train(config, writer):
                     model.update_mask_global_magnitudes(config['prune_rate'])
                 elif config['prune_criterion'] == 'historical_magnitude':
                     model.update_mask_historical_magnitudes(config['prune_rate'])
+                elif config['prune_criterion'] == 'weight_div_flips':
+                    model.update_mask_weight_div_flips(config['prune_rate'])
                 
 
                 # Plot layerwise sparsity
-                plotters.plot_layerwise_sparsity(model, writer, epoch_num)
-        
+                # plotters.plot_layerwise_sparsity(model, writer, epoch_num)
+        print(model.flip_counts[0])
         # Update model's sparsity
         model.sparsity = model.get_sparsity(config)
         
@@ -159,7 +161,8 @@ def parse_args():
     
     pruning_choices = ['magnitude', 'flip', 'topflip', 'topflip_layer', 
                        'random', 'snip', 'l0', 'none', 'sensitivity',
-                       'global_magnitude', 'historical_magnitude']
+                       'global_magnitude', 'historical_magnitude',
+                       'weight_div_flips']
     
     dataset_choices = ['mnist', 'cifar10']
     opt_choices = ['sgd', 'rmsprop', 'adam', 'rmspropw']
@@ -190,7 +193,7 @@ def parse_args():
     parser.add_argument('--reset_flip_cts', action='store_true', default=False)
     # Historical magnitudes params
     parser.add_argument('--normalize_magnitudes', action='store_true', default=False)
-    parser.add_argument('--beta_ema_maghists', type=float, default=1.0)
+    parser.add_argument('--beta_ema_maghists', type=float, default=None)
     # Tensorboard-related args
     parser.add_argument('--comment', type=str, default=None,
                         help='Comment to add to tensorboard text')
