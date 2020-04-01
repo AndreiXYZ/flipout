@@ -106,7 +106,7 @@ def train(config, writer):
 
                 # Plot layerwise sparsity
                 # plotters.plot_layerwise_sparsity(model, writer, epoch_num)
-        print(model.flip_counts[0])
+        
         # Update model's sparsity
         model.sparsity = model.get_sparsity(config)
         

@@ -258,7 +258,7 @@ class MasterModel(nn.Module):
             # Do weight divided by number of flips
             # add a 1 to denominator to avoid division by 0
             criterion = flat_magnitudes.abs()/(flip_cts+1)
-            to_prune = criterion.argsort(descending=True)[:num_pruned+num_to_prune]
+            to_prune = criterion.argsort(descending=False)[:num_pruned+num_to_prune]
             flat_mask[to_prune] = 0.
             self.mask = self.unflatten_tensor(flat_mask, self.mask)
 

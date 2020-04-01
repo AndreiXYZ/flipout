@@ -14,5 +14,5 @@ for prune_freq in 50 39; do
                 --prune_criterion weight_div_flips --prune_rate 0.5 --prune_freq ${prune_freq} --seed ${seed} \
                 --opt sgd --momentum 0.9 --reg_type wdecay --lambda 5e-4 --use_scheduler \
                 --milestones 150 250 --noise --logdir="test" \
-                --comment="resnet18 crit=weight_div_flips pf=${prune_freq} seed=${seed}"\
+                --comment="resnet18 crit=weight_div_flips pf=${prune_freq} seed=${seed}"
 done
