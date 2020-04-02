@@ -5,8 +5,8 @@
 #SBATCH --mem=16000M
 #SBATCH --cpus-per-task=1
 #SBATCH --array=1-30%15
-#SBATCH --job-name=higher_sparsity
-#SBATCH --output=out_files/higher_sparsity/array_job%a.out
+#SBATCH --job-name=weight_div_flips
+#SBATCH --output=out_files/weight_div_flips/array_job%a.out
 source activate base
 device=0;
 

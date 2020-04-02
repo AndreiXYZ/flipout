@@ -50,7 +50,7 @@ def init_attrs(model, config):
             if param is noisy_param:
                 model.noisy_param_names.append(name)
 
-
+    
     model.total_prunable = sum([layer.numel() for layer in model.prunable_params])
     print('Total prunable params of model:', model.total_prunable)
     model.save_weights()
