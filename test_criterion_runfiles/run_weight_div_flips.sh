@@ -4,10 +4,10 @@
 #SBATCH -p gpu_shared
 #SBATCH --mem=16000M
 #SBATCH --gres=gpu:1
-#SBATCH --output=out_files/weight_div_flips
+#SBATCH --output=out_files/weight_div_flips_43
 source activate base
 device=0;
-seed=42;
+seed=43;
 echo "Running weight div flips test.";
 for prune_freq in 50 39; do
     CUDA_VISIBLE_DEVICES=${device} python main.py -m resnet18 -d cifar10 -bs 128 -tbs 5000 -e 350 -lr 0.1  \

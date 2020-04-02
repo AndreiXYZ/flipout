@@ -1,0 +1,130 @@
+Running --model resnet18 --prune_criterion random --seed 42 --prune_freq 32 --prune_rate 0.5 --comment=resnet18_crit=random_pf=32_seed=42 --save_model=pre-finetune/resnet18_random_pf32_s42 --logdir=criterion_experiment_no_bias/resnet18
+******************************
+Running
+{
+    "model": "resnet18",
+    "dataset": "cifar10",
+    "batch_size": 128,
+    "test_batch_size": 2000,
+    "epochs": 350,
+    "lr": 0.1,
+    "device": "cuda",
+    "seed": 42,
+    "prune_criterion": "random",
+    "prune_freq": 32,
+    "prune_rate": 0.5,
+    "sensitivity": 0,
+    "flip_threshold": 1,
+    "stop_pruning_at": -1,
+    "prune_bias": false,
+    "use_ema_flips": false,
+    "beta_ema_flips": null,
+    "reset_flip_cts": false,
+    "normalize_magnitudes": false,
+    "beta_ema_maghists": null,
+    "logdir": "criterion_experiment_no_bias/resnet18",
+    "opt": "sgd",
+    "momentum": 0.9,
+    "use_scheduler": true,
+    "milestones": [
+        150,
+        250
+    ],
+    "reg_type": "wdecay",
+    "lambda": 0.0005,
+    "anneal_lambda": false,
+    "anneal_lr": false,
+    "add_noise": false,
+    "scale_noise_by_lr": false,
+    "stop_noise_at": -1,
+    "noise_only_prunable": false,
+    "noise_scale_factor": 1,
+    "snip_sparsity": 0.0,
+    "beta_ema": 0.999,
+    "lambas": [
+        1.0,
+        1.0,
+        1.0,
+        1.0
+    ],
+    "local_rep": false,
+    "temperature": 0.6666666666666666,
+    "save_model": "pre-finetune/resnet18_random_pf32_s42",
+    "load_model": null,
+    "parallel": false
+}
+******************************
+Files already downloaded and verified
+Files already downloaded and verified
+Total prunable params of model: 11164352
+Model has 11173962 total params.
+num_weights=11169152
+num_biases=4810
+---Biases omitted from pruning---
+========== Epoch 1 ==========
+LR =  0.1
+Train - acc:        0.325920 loss:        1.847682
+Test - acc:         0.433400 loss:        1.508943
+Sparsity :          0.0000
+Wdecay :        0.000500
+========== Epoch 2 ==========
+LR =  0.1
+Train - acc:        0.514980 loss:        1.326493
+Test - acc:         0.576200 loss:        1.166692
+Sparsity :          0.0000
+Wdecay :        0.000500
+========== Epoch 3 ==========
+LR =  0.1
+Train - acc:        0.637620 loss:        1.009011
+Test - acc:         0.606500 loss:        1.140515
+Sparsity :          0.0000
+Wdecay :        0.000500
+========== Epoch 4 ==========
+LR =  0.1
+Train - acc:        0.717740 loss:        0.806052
+Test - acc:         0.696100 loss:        0.896292
+Sparsity :          0.0000
+Wdecay :        0.000500
+========== Epoch 5 ==========
+LR =  0.1
+Train - acc:        0.760000 loss:        0.691428
+Test - acc:         0.742900 loss:        0.751321
+Sparsity :          0.0000
+Wdecay :        0.000500
+========== Epoch 6 ==========
+LR =  0.1
+Train - acc:        0.787060 loss:        0.611490
+Test - acc:         0.756600 loss:        0.710299
+Sparsity :          0.0000
+Wdecay :        0.000500
+========== Epoch 7 ==========
+LR =  0.1
+Train - acc:        0.806060 loss:        0.564509
+Test - acc:         0.769000 loss:        0.710991
+Sparsity :          0.0000
+Wdecay :        0.000500
+========== Epoch 8 ==========
+LR =  0.1
+Train - acc:        0.817920 loss:        0.529806
+Test - acc:         0.787400 loss:        0.621394
+Sparsity :          0.0000
+Wdecay :        0.000500
+========== Epoch 9 ==========
+LR =  0.1
+Train - acc:        0.824420 loss:        0.509206
+Test - acc:         0.772600 loss:        0.684377
+Sparsity :          0.0000
+Wdecay :        0.000500
+========== Epoch 10 ==========
+LR =  0.1
+Train - acc:        0.833860 loss:        0.483304
+Test - acc:         0.775600 loss:        0.667925
+Sparsity :          0.0000
+Wdecay :        0.000500
+========== Epoch 11 ==========
+LR =  0.1
+Train - acc:        0.838920 loss:        0.469585
+Test - acc:         0.767600 loss:        0.754009
+Sparsity :          0.0000
+Wdecay :        0.000500
+========== Epoch 12 ==========
