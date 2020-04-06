@@ -1,0 +1,2164 @@
+Running --model resnet18 --noise --prune_criterion weight_div_flips --seed 44 --prune_freq 117 --prune_rate 0.5 --comment=resnet18_crit=weight_div_flips_pf=117_seed=44 --save_model=pre-finetune/resnet18_weight_div_flips_pf117_s44 --logdir=criterion_experiment_no_bias/resnet18
+******************************
+Running
+{
+    "model": "resnet18",
+    "dataset": "cifar10",
+    "batch_size": 128,
+    "test_batch_size": 2000,
+    "epochs": 350,
+    "lr": 0.1,
+    "device": "cuda",
+    "seed": 44,
+    "prune_criterion": "weight_div_flips",
+    "prune_freq": 117,
+    "prune_rate": 0.5,
+    "sensitivity": 0,
+    "flip_threshold": 1,
+    "stop_pruning_at": -1,
+    "prune_bias": false,
+    "prune_bnorm": false,
+    "use_ema_flips": false,
+    "beta_ema_flips": null,
+    "reset_flip_cts": false,
+    "normalize_magnitudes": false,
+    "beta_ema_maghists": null,
+    "logdir": "criterion_experiment_no_bias/resnet18",
+    "opt": "sgd",
+    "momentum": 0.9,
+    "use_scheduler": true,
+    "milestones": [
+        150,
+        250
+    ],
+    "reg_type": "wdecay",
+    "lambda": 0.0005,
+    "anneal_lambda": false,
+    "anneal_lr": false,
+    "add_noise": true,
+    "scale_noise_by_lr": false,
+    "stop_noise_at": -1,
+    "noise_only_prunable": false,
+    "noise_scale_factor": 1,
+    "snip_sparsity": 0.0,
+    "beta_ema": 0.999,
+    "lambas": [
+        1.0,
+        1.0,
+        1.0,
+        1.0
+    ],
+    "local_rep": false,
+    "temperature": 0.6666666666666666,
+    "save_model": "pre-finetune/resnet18_weight_div_flips_pf117_s44",
+    "load_model": null,
+    "parallel": false
+}
+******************************
+Files already downloaded and verified
+Files already downloaded and verified
+Total prunable params of model: 11164352
+Model has 11173962 total params.
+num_weights=11169152
+num_biases=4810
+---Biases omitted from pruning---
+========== Epoch 1 ==========
+LR =  0.1
+Train - acc:        0.303340 loss:        2.045872
+Test - acc:         0.449200 loss:        1.518474
+Sparsity :          0.0000
+Wdecay :        0.000500
+========== Epoch 2 ==========
+LR =  0.1
+Train - acc:        0.486940 loss:        1.408749
+Test - acc:         0.553600 loss:        1.216369
+Sparsity :          0.0000
+Wdecay :        0.000500
+========== Epoch 3 ==========
+LR =  0.1
+Train - acc:        0.595040 loss:        1.130263
+Test - acc:         0.627400 loss:        1.061316
+Sparsity :          0.0000
+Wdecay :        0.000500
+========== Epoch 4 ==========
+LR =  0.1
+Train - acc:        0.662820 loss:        0.954220
+Test - acc:         0.666000 loss:        0.963036
+Sparsity :          0.0000
+Wdecay :        0.000500
+========== Epoch 5 ==========
+LR =  0.1
+Train - acc:        0.710980 loss:        0.823103
+Test - acc:         0.700400 loss:        0.900422
+Sparsity :          0.0000
+Wdecay :        0.000500
+========== Epoch 6 ==========
+LR =  0.1
+Train - acc:        0.754080 loss:        0.701555
+Test - acc:         0.719300 loss:        0.843699
+Sparsity :          0.0000
+Wdecay :        0.000500
+========== Epoch 7 ==========
+LR =  0.1
+Train - acc:        0.784640 loss:        0.626890
+Test - acc:         0.762900 loss:        0.702303
+Sparsity :          0.0000
+Wdecay :        0.000500
+========== Epoch 8 ==========
+LR =  0.1
+Train - acc:        0.800120 loss:        0.580976
+Test - acc:         0.678300 loss:        1.056559
+Sparsity :          0.0000
+Wdecay :        0.000500
+========== Epoch 9 ==========
+LR =  0.1
+Train - acc:        0.809040 loss:        0.553956
+Test - acc:         0.750400 loss:        0.725537
+Sparsity :          0.0000
+Wdecay :        0.000500
+========== Epoch 10 ==========
+LR =  0.1
+Train - acc:        0.817400 loss:        0.527065
+Test - acc:         0.750100 loss:        0.776029
+Sparsity :          0.0000
+Wdecay :        0.000500
+========== Epoch 11 ==========
+LR =  0.1
+Train - acc:        0.828080 loss:        0.504549
+Test - acc:         0.806100 loss:        0.560775
+Sparsity :          0.0000
+Wdecay :        0.000500
+========== Epoch 12 ==========
+LR =  0.1
+Train - acc:        0.827040 loss:        0.498283
+Test - acc:         0.787800 loss:        0.637411
+Sparsity :          0.0000
+Wdecay :        0.000500
+========== Epoch 13 ==========
+LR =  0.1
+Train - acc:        0.835700 loss:        0.482435
+Test - acc:         0.794000 loss:        0.615528
+Sparsity :          0.0000
+Wdecay :        0.000500
+========== Epoch 14 ==========
+LR =  0.1
+Train - acc:        0.838900 loss:        0.468737
+Test - acc:         0.820400 loss:        0.537681
+Sparsity :          0.0000
+Wdecay :        0.000500
+========== Epoch 15 ==========
+LR =  0.1
+Train - acc:        0.844200 loss:        0.459359
+Test - acc:         0.804800 loss:        0.583139
+Sparsity :          0.0000
+Wdecay :        0.000500
+========== Epoch 16 ==========
+LR =  0.1
+Train - acc:        0.845740 loss:        0.448696
+Test - acc:         0.757400 loss:        0.755301
+Sparsity :          0.0000
+Wdecay :        0.000500
+========== Epoch 17 ==========
+LR =  0.1
+Train - acc:        0.845840 loss:        0.444416
+Test - acc:         0.784900 loss:        0.670693
+Sparsity :          0.0000
+Wdecay :        0.000500
+========== Epoch 18 ==========
+LR =  0.1
+Train - acc:        0.849560 loss:        0.437153
+Test - acc:         0.836300 loss:        0.472858
+Sparsity :          0.0000
+Wdecay :        0.000500
+========== Epoch 19 ==========
+LR =  0.1
+Train - acc:        0.852000 loss:        0.431503
+Test - acc:         0.805300 loss:        0.564962
+Sparsity :          0.0000
+Wdecay :        0.000500
+========== Epoch 20 ==========
+LR =  0.1
+Train - acc:        0.853780 loss:        0.428139
+Test - acc:         0.822000 loss:        0.534250
+Sparsity :          0.0000
+Wdecay :        0.000500
+========== Epoch 21 ==========
+LR =  0.1
+Train - acc:        0.856600 loss:        0.417603
+Test - acc:         0.776100 loss:        0.709650
+Sparsity :          0.0000
+Wdecay :        0.000500
+========== Epoch 22 ==========
+LR =  0.1
+Train - acc:        0.857220 loss:        0.416609
+Test - acc:         0.822800 loss:        0.534768
+Sparsity :          0.0000
+Wdecay :        0.000500
+========== Epoch 23 ==========
+LR =  0.1
+Train - acc:        0.856600 loss:        0.418318
+Test - acc:         0.835400 loss:        0.503948
+Sparsity :          0.0000
+Wdecay :        0.000500
+========== Epoch 24 ==========
+LR =  0.1
+Train - acc:        0.857700 loss:        0.416371
+Test - acc:         0.797500 loss:        0.599861
+Sparsity :          0.0000
+Wdecay :        0.000500
+========== Epoch 25 ==========
+LR =  0.1
+Train - acc:        0.861780 loss:        0.406843
+Test - acc:         0.789200 loss:        0.638827
+Sparsity :          0.0000
+Wdecay :        0.000500
+========== Epoch 26 ==========
+LR =  0.1
+Train - acc:        0.858420 loss:        0.412091
+Test - acc:         0.812200 loss:        0.574223
+Sparsity :          0.0000
+Wdecay :        0.000500
+========== Epoch 27 ==========
+LR =  0.1
+Train - acc:        0.861500 loss:        0.402603
+Test - acc:         0.834200 loss:        0.487177
+Sparsity :          0.0000
+Wdecay :        0.000500
+========== Epoch 28 ==========
+LR =  0.1
+Train - acc:        0.861100 loss:        0.403876
+Test - acc:         0.788300 loss:        0.694953
+Sparsity :          0.0000
+Wdecay :        0.000500
+========== Epoch 29 ==========
+LR =  0.1
+Train - acc:        0.862260 loss:        0.397948
+Test - acc:         0.834000 loss:        0.496371
+Sparsity :          0.0000
+Wdecay :        0.000500
+========== Epoch 30 ==========
+LR =  0.1
+Train - acc:        0.861600 loss:        0.404324
+Test - acc:         0.767800 loss:        0.741355
+Sparsity :          0.0000
+Wdecay :        0.000500
+========== Epoch 31 ==========
+LR =  0.1
+Train - acc:        0.863460 loss:        0.399084
+Test - acc:         0.813800 loss:        0.548094
+Sparsity :          0.0000
+Wdecay :        0.000500
+========== Epoch 32 ==========
+LR =  0.1
+Train - acc:        0.862380 loss:        0.399397
+Test - acc:         0.821100 loss:        0.548047
+Sparsity :          0.0000
+Wdecay :        0.000500
+========== Epoch 33 ==========
+LR =  0.1
+Train - acc:        0.866720 loss:        0.392388
+Test - acc:         0.831100 loss:        0.522133
+Sparsity :          0.0000
+Wdecay :        0.000500
+========== Epoch 34 ==========
+LR =  0.1
+Train - acc:        0.863960 loss:        0.395103
+Test - acc:         0.791300 loss:        0.647549
+Sparsity :          0.0000
+Wdecay :        0.000500
+========== Epoch 35 ==========
+LR =  0.1
+Train - acc:        0.865880 loss:        0.393367
+Test - acc:         0.748300 loss:        0.861032
+Sparsity :          0.0000
+Wdecay :        0.000500
+========== Epoch 36 ==========
+LR =  0.1
+Train - acc:        0.867420 loss:        0.392783
+Test - acc:         0.793100 loss:        0.629516
+Sparsity :          0.0000
+Wdecay :        0.000500
+========== Epoch 37 ==========
+LR =  0.1
+Train - acc:        0.867160 loss:        0.387712
+Test - acc:         0.855000 loss:        0.438008
+Sparsity :          0.0000
+Wdecay :        0.000500
+========== Epoch 38 ==========
+LR =  0.1
+Train - acc:        0.868080 loss:        0.387555
+Test - acc:         0.817900 loss:        0.557149
+Sparsity :          0.0000
+Wdecay :        0.000500
+========== Epoch 39 ==========
+LR =  0.1
+Train - acc:        0.867240 loss:        0.389858
+Test - acc:         0.841200 loss:        0.478896
+Sparsity :          0.0000
+Wdecay :        0.000500
+========== Epoch 40 ==========
+LR =  0.1
+Train - acc:        0.869000 loss:        0.387413
+Test - acc:         0.832700 loss:        0.490588
+Sparsity :          0.0000
+Wdecay :        0.000500
+========== Epoch 41 ==========
+LR =  0.1
+Train - acc:        0.864980 loss:        0.394477
+Test - acc:         0.841800 loss:        0.463607
+Sparsity :          0.0000
+Wdecay :        0.000500
+========== Epoch 42 ==========
+LR =  0.1
+Train - acc:        0.869720 loss:        0.383677
+Test - acc:         0.843400 loss:        0.466556
+Sparsity :          0.0000
+Wdecay :        0.000500
+========== Epoch 43 ==========
+LR =  0.1
+Train - acc:        0.870200 loss:        0.381420
+Test - acc:         0.781100 loss:        0.700399
+Sparsity :          0.0000
+Wdecay :        0.000500
+========== Epoch 44 ==========
+LR =  0.1
+Train - acc:        0.869540 loss:        0.383390
+Test - acc:         0.801500 loss:        0.623825
+Sparsity :          0.0000
+Wdecay :        0.000500
+========== Epoch 45 ==========
+LR =  0.1
+Train - acc:        0.870180 loss:        0.382817
+Test - acc:         0.783300 loss:        0.685600
+Sparsity :          0.0000
+Wdecay :        0.000500
+========== Epoch 46 ==========
+LR =  0.1
+Train - acc:        0.870820 loss:        0.376388
+Test - acc:         0.813000 loss:        0.573551
+Sparsity :          0.0000
+Wdecay :        0.000500
+========== Epoch 47 ==========
+LR =  0.1
+Train - acc:        0.869700 loss:        0.380625
+Test - acc:         0.832900 loss:        0.502137
+Sparsity :          0.0000
+Wdecay :        0.000500
+========== Epoch 48 ==========
+LR =  0.1
+Train - acc:        0.869460 loss:        0.382523
+Test - acc:         0.762700 loss:        0.762488
+Sparsity :          0.0000
+Wdecay :        0.000500
+========== Epoch 49 ==========
+LR =  0.1
+Train - acc:        0.869520 loss:        0.381779
+Test - acc:         0.829900 loss:        0.524733
+Sparsity :          0.0000
+Wdecay :        0.000500
+========== Epoch 50 ==========
+LR =  0.1
+Train - acc:        0.867960 loss:        0.379790
+Test - acc:         0.834400 loss:        0.510441
+Sparsity :          0.0000
+Wdecay :        0.000500
+========== Epoch 51 ==========
+LR =  0.1
+Train - acc:        0.872280 loss:        0.373012
+Test - acc:         0.811000 loss:        0.582797
+Sparsity :          0.0000
+Wdecay :        0.000500
+========== Epoch 52 ==========
+LR =  0.1
+Train - acc:        0.873420 loss:        0.372036
+Test - acc:         0.843100 loss:        0.475100
+Sparsity :          0.0000
+Wdecay :        0.000500
+========== Epoch 53 ==========
+LR =  0.1
+Train - acc:        0.870400 loss:        0.378922
+Test - acc:         0.856800 loss:        0.411110
+Sparsity :          0.0000
+Wdecay :        0.000500
+========== Epoch 54 ==========
+LR =  0.1
+Train - acc:        0.874820 loss:        0.371978
+Test - acc:         0.797100 loss:        0.629058
+Sparsity :          0.0000
+Wdecay :        0.000500
+========== Epoch 55 ==========
+LR =  0.1
+Train - acc:        0.870640 loss:        0.378161
+Test - acc:         0.767800 loss:        0.727634
+Sparsity :          0.0000
+Wdecay :        0.000500
+========== Epoch 56 ==========
+LR =  0.1
+Train - acc:        0.872540 loss:        0.372711
+Test - acc:         0.797500 loss:        0.611661
+Sparsity :          0.0000
+Wdecay :        0.000500
+========== Epoch 57 ==========
+LR =  0.1
+Train - acc:        0.871460 loss:        0.373897
+Test - acc:         0.854300 loss:        0.436976
+Sparsity :          0.0000
+Wdecay :        0.000500
+========== Epoch 58 ==========
+LR =  0.1
+Train - acc:        0.872720 loss:        0.374363
+Test - acc:         0.833100 loss:        0.507876
+Sparsity :          0.0000
+Wdecay :        0.000500
+========== Epoch 59 ==========
+LR =  0.1
+Train - acc:        0.872780 loss:        0.371153
+Test - acc:         0.867000 loss:        0.394288
+Sparsity :          0.0000
+Wdecay :        0.000500
+========== Epoch 60 ==========
+LR =  0.1
+Train - acc:        0.874740 loss:        0.367565
+Test - acc:         0.849200 loss:        0.475920
+Sparsity :          0.0000
+Wdecay :        0.000500
+========== Epoch 61 ==========
+LR =  0.1
+Train - acc:        0.874780 loss:        0.369434
+Test - acc:         0.845800 loss:        0.448344
+Sparsity :          0.0000
+Wdecay :        0.000500
+========== Epoch 62 ==========
+LR =  0.1
+Train - acc:        0.871860 loss:        0.376186
+Test - acc:         0.781900 loss:        0.695914
+Sparsity :          0.0000
+Wdecay :        0.000500
+========== Epoch 63 ==========
+LR =  0.1
+Train - acc:        0.873440 loss:        0.371171
+Test - acc:         0.834900 loss:        0.500511
+Sparsity :          0.0000
+Wdecay :        0.000500
+========== Epoch 64 ==========
+LR =  0.1
+Train - acc:        0.871740 loss:        0.371933
+Test - acc:         0.852100 loss:        0.444918
+Sparsity :          0.0000
+Wdecay :        0.000500
+========== Epoch 65 ==========
+LR =  0.1
+Train - acc:        0.871780 loss:        0.371990
+Test - acc:         0.841500 loss:        0.489206
+Sparsity :          0.0000
+Wdecay :        0.000500
+========== Epoch 66 ==========
+LR =  0.1
+Train - acc:        0.873980 loss:        0.370594
+Test - acc:         0.855200 loss:        0.438623
+Sparsity :          0.0000
+Wdecay :        0.000500
+========== Epoch 67 ==========
+LR =  0.1
+Train - acc:        0.872280 loss:        0.372062
+Test - acc:         0.828900 loss:        0.518650
+Sparsity :          0.0000
+Wdecay :        0.000500
+========== Epoch 68 ==========
+LR =  0.1
+Train - acc:        0.873000 loss:        0.370841
+Test - acc:         0.805500 loss:        0.613012
+Sparsity :          0.0000
+Wdecay :        0.000500
+========== Epoch 69 ==========
+LR =  0.1
+Train - acc:        0.874360 loss:        0.368795
+Test - acc:         0.826500 loss:        0.525628
+Sparsity :          0.0000
+Wdecay :        0.000500
+========== Epoch 70 ==========
+LR =  0.1
+Train - acc:        0.877540 loss:        0.359595
+Test - acc:         0.854300 loss:        0.434711
+Sparsity :          0.0000
+Wdecay :        0.000500
+========== Epoch 71 ==========
+LR =  0.1
+Train - acc:        0.874280 loss:        0.367340
+Test - acc:         0.835400 loss:        0.502133
+Sparsity :          0.0000
+Wdecay :        0.000500
+========== Epoch 72 ==========
+LR =  0.1
+Train - acc:        0.869000 loss:        0.378338
+Test - acc:         0.826300 loss:        0.545173
+Sparsity :          0.0000
+Wdecay :        0.000500
+========== Epoch 73 ==========
+LR =  0.1
+Train - acc:        0.873220 loss:        0.370593
+Test - acc:         0.835900 loss:        0.487525
+Sparsity :          0.0000
+Wdecay :        0.000500
+========== Epoch 74 ==========
+LR =  0.1
+Train - acc:        0.874460 loss:        0.366382
+Test - acc:         0.800900 loss:        0.632965
+Sparsity :          0.0000
+Wdecay :        0.000500
+========== Epoch 75 ==========
+LR =  0.1
+Train - acc:        0.873380 loss:        0.370189
+Test - acc:         0.821100 loss:        0.583991
+Sparsity :          0.0000
+Wdecay :        0.000500
+========== Epoch 76 ==========
+LR =  0.1
+Train - acc:        0.878020 loss:        0.361024
+Test - acc:         0.850600 loss:        0.461314
+Sparsity :          0.0000
+Wdecay :        0.000500
+========== Epoch 77 ==========
+LR =  0.1
+Train - acc:        0.878060 loss:        0.360828
+Test - acc:         0.827400 loss:        0.521085
+Sparsity :          0.0000
+Wdecay :        0.000500
+========== Epoch 78 ==========
+LR =  0.1
+Train - acc:        0.874360 loss:        0.368305
+Test - acc:         0.777500 loss:        0.671557
+Sparsity :          0.0000
+Wdecay :        0.000500
+========== Epoch 79 ==========
+LR =  0.1
+Train - acc:        0.875820 loss:        0.365397
+Test - acc:         0.774800 loss:        0.758583
+Sparsity :          0.0000
+Wdecay :        0.000500
+========== Epoch 80 ==========
+LR =  0.1
+Train - acc:        0.874240 loss:        0.367884
+Test - acc:         0.844000 loss:        0.473741
+Sparsity :          0.0000
+Wdecay :        0.000500
+========== Epoch 81 ==========
+LR =  0.1
+Train - acc:        0.877000 loss:        0.365813
+Test - acc:         0.838900 loss:        0.479518
+Sparsity :          0.0000
+Wdecay :        0.000500
+========== Epoch 82 ==========
+LR =  0.1
+Train - acc:        0.873900 loss:        0.369830
+Test - acc:         0.798500 loss:        0.653937
+Sparsity :          0.0000
+Wdecay :        0.000500
+========== Epoch 83 ==========
+LR =  0.1
+Train - acc:        0.873300 loss:        0.369927
+Test - acc:         0.855600 loss:        0.433112
+Sparsity :          0.0000
+Wdecay :        0.000500
+========== Epoch 84 ==========
+LR =  0.1
+Train - acc:        0.874540 loss:        0.371067
+Test - acc:         0.807400 loss:        0.583515
+Sparsity :          0.0000
+Wdecay :        0.000500
+========== Epoch 85 ==========
+LR =  0.1
+Train - acc:        0.875160 loss:        0.369557
+Test - acc:         0.817700 loss:        0.560351
+Sparsity :          0.0000
+Wdecay :        0.000500
+========== Epoch 86 ==========
+LR =  0.1
+Train - acc:        0.877100 loss:        0.363132
+Test - acc:         0.853400 loss:        0.439046
+Sparsity :          0.0000
+Wdecay :        0.000500
+========== Epoch 87 ==========
+LR =  0.1
+Train - acc:        0.874980 loss:        0.361904
+Test - acc:         0.828800 loss:        0.528302
+Sparsity :          0.0000
+Wdecay :        0.000500
+========== Epoch 88 ==========
+LR =  0.1
+Train - acc:        0.877260 loss:        0.363573
+Test - acc:         0.839200 loss:        0.502353
+Sparsity :          0.0000
+Wdecay :        0.000500
+========== Epoch 89 ==========
+LR =  0.1
+Train - acc:        0.876540 loss:        0.363945
+Test - acc:         0.729200 loss:        0.967693
+Sparsity :          0.0000
+Wdecay :        0.000500
+========== Epoch 90 ==========
+LR =  0.1
+Train - acc:        0.873780 loss:        0.369268
+Test - acc:         0.841300 loss:        0.497874
+Sparsity :          0.0000
+Wdecay :        0.000500
+========== Epoch 91 ==========
+LR =  0.1
+Train - acc:        0.877060 loss:        0.364654
+Test - acc:         0.837300 loss:        0.489758
+Sparsity :          0.0000
+Wdecay :        0.000500
+========== Epoch 92 ==========
+LR =  0.1
+Train - acc:        0.873580 loss:        0.369464
+Test - acc:         0.841500 loss:        0.478789
+Sparsity :          0.0000
+Wdecay :        0.000500
+========== Epoch 93 ==========
+LR =  0.1
+Train - acc:        0.875720 loss:        0.363625
+Test - acc:         0.818600 loss:        0.561999
+Sparsity :          0.0000
+Wdecay :        0.000500
+========== Epoch 94 ==========
+LR =  0.1
+Train - acc:        0.878360 loss:        0.360600
+Test - acc:         0.861600 loss:        0.403242
+Sparsity :          0.0000
+Wdecay :        0.000500
+========== Epoch 95 ==========
+LR =  0.1
+Train - acc:        0.874600 loss:        0.368205
+Test - acc:         0.820900 loss:        0.537126
+Sparsity :          0.0000
+Wdecay :        0.000500
+========== Epoch 96 ==========
+LR =  0.1
+Train - acc:        0.874360 loss:        0.368110
+Test - acc:         0.846500 loss:        0.462511
+Sparsity :          0.0000
+Wdecay :        0.000500
+========== Epoch 97 ==========
+LR =  0.1
+Train - acc:        0.877940 loss:        0.360022
+Test - acc:         0.840300 loss:        0.497762
+Sparsity :          0.0000
+Wdecay :        0.000500
+========== Epoch 98 ==========
+LR =  0.1
+Train - acc:        0.874320 loss:        0.366885
+Test - acc:         0.806200 loss:        0.608950
+Sparsity :          0.0000
+Wdecay :        0.000500
+========== Epoch 99 ==========
+LR =  0.1
+Train - acc:        0.877240 loss:        0.362035
+Test - acc:         0.825400 loss:        0.523248
+Sparsity :          0.0000
+Wdecay :        0.000500
+========== Epoch 100 ==========
+LR =  0.1
+Train - acc:        0.877100 loss:        0.362948
+Test - acc:         0.818200 loss:        0.560487
+Sparsity :          0.0000
+Wdecay :        0.000500
+========== Epoch 101 ==========
+LR =  0.1
+Train - acc:        0.876200 loss:        0.364892
+Test - acc:         0.840900 loss:        0.494074
+Sparsity :          0.0000
+Wdecay :        0.000500
+========== Epoch 102 ==========
+LR =  0.1
+Train - acc:        0.875220 loss:        0.367843
+Test - acc:         0.810600 loss:        0.588674
+Sparsity :          0.0000
+Wdecay :        0.000500
+========== Epoch 103 ==========
+LR =  0.1
+Train - acc:        0.879140 loss:        0.359609
+Test - acc:         0.828000 loss:        0.538197
+Sparsity :          0.0000
+Wdecay :        0.000500
+========== Epoch 104 ==========
+LR =  0.1
+Train - acc:        0.872880 loss:        0.371898
+Test - acc:         0.849500 loss:        0.461650
+Sparsity :          0.0000
+Wdecay :        0.000500
+========== Epoch 105 ==========
+LR =  0.1
+Train - acc:        0.874720 loss:        0.364760
+Test - acc:         0.811900 loss:        0.594411
+Sparsity :          0.0000
+Wdecay :        0.000500
+========== Epoch 106 ==========
+LR =  0.1
+Train - acc:        0.874860 loss:        0.366808
+Test - acc:         0.815400 loss:        0.600375
+Sparsity :          0.0000
+Wdecay :        0.000500
+========== Epoch 107 ==========
+LR =  0.1
+Train - acc:        0.873640 loss:        0.366182
+Test - acc:         0.837400 loss:        0.480663
+Sparsity :          0.0000
+Wdecay :        0.000500
+========== Epoch 108 ==========
+LR =  0.1
+Train - acc:        0.874940 loss:        0.365754
+Test - acc:         0.801600 loss:        0.608958
+Sparsity :          0.0000
+Wdecay :        0.000500
+========== Epoch 109 ==========
+LR =  0.1
+Train - acc:        0.877820 loss:        0.356576
+Test - acc:         0.839500 loss:        0.487813
+Sparsity :          0.0000
+Wdecay :        0.000500
+========== Epoch 110 ==========
+LR =  0.1
+Train - acc:        0.877060 loss:        0.358896
+Test - acc:         0.846100 loss:        0.471395
+Sparsity :          0.0000
+Wdecay :        0.000500
+========== Epoch 111 ==========
+LR =  0.1
+Train - acc:        0.877620 loss:        0.361139
+Test - acc:         0.836500 loss:        0.492408
+Sparsity :          0.0000
+Wdecay :        0.000500
+========== Epoch 112 ==========
+LR =  0.1
+Train - acc:        0.876640 loss:        0.367713
+Test - acc:         0.847200 loss:        0.456855
+Sparsity :          0.0000
+Wdecay :        0.000500
+========== Epoch 113 ==========
+LR =  0.1
+Train - acc:        0.874840 loss:        0.367901
+Test - acc:         0.771000 loss:        0.774561
+Sparsity :          0.0000
+Wdecay :        0.000500
+========== Epoch 114 ==========
+LR =  0.1
+Train - acc:        0.875620 loss:        0.365004
+Test - acc:         0.829700 loss:        0.514313
+Sparsity :          0.0000
+Wdecay :        0.000500
+========== Epoch 115 ==========
+LR =  0.1
+Train - acc:        0.876540 loss:        0.360185
+Test - acc:         0.819300 loss:        0.531342
+Sparsity :          0.0000
+Wdecay :        0.000500
+========== Epoch 116 ==========
+LR =  0.1
+Train - acc:        0.878400 loss:        0.359304
+Test - acc:         0.827300 loss:        0.532782
+Sparsity :          0.0000
+Wdecay :        0.000500
+========== Epoch 117 ==========
+LR =  0.1
+Train - acc:        0.874060 loss:        0.366304
+Test - acc:         0.808200 loss:        0.588574
+Sparsity :          0.5000
+Wdecay :        0.000500
+========== Epoch 118 ==========
+LR =  0.1
+Train - acc:        0.883980 loss:        0.337338
+Test - acc:         0.844700 loss:        0.470061
+Sparsity :          0.5000
+Wdecay :        0.000500
+========== Epoch 119 ==========
+LR =  0.1
+Train - acc:        0.885640 loss:        0.334011
+Test - acc:         0.865900 loss:        0.396800
+Sparsity :          0.5000
+Wdecay :        0.000500
+========== Epoch 120 ==========
+LR =  0.1
+Train - acc:        0.883040 loss:        0.338931
+Test - acc:         0.839600 loss:        0.493800
+Sparsity :          0.5000
+Wdecay :        0.000500
+========== Epoch 121 ==========
+LR =  0.1
+Train - acc:        0.882040 loss:        0.348161
+Test - acc:         0.851000 loss:        0.444715
+Sparsity :          0.5000
+Wdecay :        0.000500
+========== Epoch 122 ==========
+LR =  0.1
+Train - acc:        0.881180 loss:        0.348242
+Test - acc:         0.798900 loss:        0.644329
+Sparsity :          0.5000
+Wdecay :        0.000500
+========== Epoch 123 ==========
+LR =  0.1
+Train - acc:        0.880220 loss:        0.349136
+Test - acc:         0.840900 loss:        0.475999
+Sparsity :          0.5000
+Wdecay :        0.000500
+========== Epoch 124 ==========
+LR =  0.1
+Train - acc:        0.880440 loss:        0.347790
+Test - acc:         0.797000 loss:        0.662202
+Sparsity :          0.5000
+Wdecay :        0.000500
+========== Epoch 125 ==========
+LR =  0.1
+Train - acc:        0.881580 loss:        0.348454
+Test - acc:         0.857700 loss:        0.427017
+Sparsity :          0.5000
+Wdecay :        0.000500
+========== Epoch 126 ==========
+LR =  0.1
+Train - acc:        0.879900 loss:        0.350000
+Test - acc:         0.835800 loss:        0.489161
+Sparsity :          0.5000
+Wdecay :        0.000500
+========== Epoch 127 ==========
+LR =  0.1
+Train - acc:        0.883680 loss:        0.341056
+Test - acc:         0.838200 loss:        0.488224
+Sparsity :          0.5000
+Wdecay :        0.000500
+========== Epoch 128 ==========
+LR =  0.1
+Train - acc:        0.881160 loss:        0.349065
+Test - acc:         0.850400 loss:        0.448032
+Sparsity :          0.5000
+Wdecay :        0.000500
+========== Epoch 129 ==========
+LR =  0.1
+Train - acc:        0.881500 loss:        0.343767
+Test - acc:         0.769600 loss:        0.729603
+Sparsity :          0.5000
+Wdecay :        0.000500
+========== Epoch 130 ==========
+LR =  0.1
+Train - acc:        0.881240 loss:        0.349333
+Test - acc:         0.816800 loss:        0.546644
+Sparsity :          0.5000
+Wdecay :        0.000500
+========== Epoch 131 ==========
+LR =  0.1
+Train - acc:        0.883260 loss:        0.343620
+Test - acc:         0.828400 loss:        0.529343
+Sparsity :          0.5000
+Wdecay :        0.000500
+========== Epoch 132 ==========
+LR =  0.1
+Train - acc:        0.881760 loss:        0.344118
+Test - acc:         0.845800 loss:        0.487079
+Sparsity :          0.5000
+Wdecay :        0.000500
+========== Epoch 133 ==========
+LR =  0.1
+Train - acc:        0.879860 loss:        0.351619
+Test - acc:         0.848500 loss:        0.458132
+Sparsity :          0.5000
+Wdecay :        0.000500
+========== Epoch 134 ==========
+LR =  0.1
+Train - acc:        0.883180 loss:        0.347259
+Test - acc:         0.833200 loss:        0.507298
+Sparsity :          0.5000
+Wdecay :        0.000500
+========== Epoch 135 ==========
+LR =  0.1
+Train - acc:        0.881520 loss:        0.347360
+Test - acc:         0.795300 loss:        0.659003
+Sparsity :          0.5000
+Wdecay :        0.000500
+========== Epoch 136 ==========
+LR =  0.1
+Train - acc:        0.881340 loss:        0.342902
+Test - acc:         0.840900 loss:        0.493694
+Sparsity :          0.5000
+Wdecay :        0.000500
+========== Epoch 137 ==========
+LR =  0.1
+Train - acc:        0.880240 loss:        0.346686
+Test - acc:         0.851600 loss:        0.443531
+Sparsity :          0.5000
+Wdecay :        0.000500
+========== Epoch 138 ==========
+LR =  0.1
+Train - acc:        0.881620 loss:        0.346042
+Test - acc:         0.822600 loss:        0.571121
+Sparsity :          0.5000
+Wdecay :        0.000500
+========== Epoch 139 ==========
+LR =  0.1
+Train - acc:        0.882220 loss:        0.349104
+Test - acc:         0.849600 loss:        0.449810
+Sparsity :          0.5000
+Wdecay :        0.000500
+========== Epoch 140 ==========
+LR =  0.1
+Train - acc:        0.883340 loss:        0.343987
+Test - acc:         0.814600 loss:        0.605949
+Sparsity :          0.5000
+Wdecay :        0.000500
+========== Epoch 141 ==========
+LR =  0.1
+Train - acc:        0.880640 loss:        0.347861
+Test - acc:         0.807900 loss:        0.602403
+Sparsity :          0.5000
+Wdecay :        0.000500
+========== Epoch 142 ==========
+LR =  0.1
+Train - acc:        0.882040 loss:        0.347128
+Test - acc:         0.860300 loss:        0.418512
+Sparsity :          0.5000
+Wdecay :        0.000500
+========== Epoch 143 ==========
+LR =  0.1
+Train - acc:        0.882800 loss:        0.344992
+Test - acc:         0.844200 loss:        0.458215
+Sparsity :          0.5000
+Wdecay :        0.000500
+========== Epoch 144 ==========
+LR =  0.1
+Train - acc:        0.882200 loss:        0.346025
+Test - acc:         0.847900 loss:        0.467983
+Sparsity :          0.5000
+Wdecay :        0.000500
+========== Epoch 145 ==========
+LR =  0.1
+Train - acc:        0.881560 loss:        0.347878
+Test - acc:         0.833300 loss:        0.498493
+Sparsity :          0.5000
+Wdecay :        0.000500
+========== Epoch 146 ==========
+LR =  0.1
+Train - acc:        0.880280 loss:        0.350787
+Test - acc:         0.777900 loss:        0.736250
+Sparsity :          0.5000
+Wdecay :        0.000500
+========== Epoch 147 ==========
+LR =  0.1
+Train - acc:        0.882020 loss:        0.345149
+Test - acc:         0.813100 loss:        0.565023
+Sparsity :          0.5000
+Wdecay :        0.000500
+========== Epoch 148 ==========
+LR =  0.1
+Train - acc:        0.881440 loss:        0.345222
+Test - acc:         0.820800 loss:        0.556724
+Sparsity :          0.5000
+Wdecay :        0.000500
+========== Epoch 149 ==========
+LR =  0.1
+Train - acc:        0.881380 loss:        0.347934
+Test - acc:         0.828700 loss:        0.520363
+Sparsity :          0.5000
+Wdecay :        0.000500
+========== Epoch 150 ==========
+LR =  0.010000000000000002
+Train - acc:        0.882780 loss:        0.347290
+Test - acc:         0.790300 loss:        0.658970
+Sparsity :          0.5000
+Wdecay :        0.000500
+========== Epoch 151 ==========
+LR =  0.010000000000000002
+Train - acc:        0.933540 loss:        0.201173
+Test - acc:         0.922400 loss:        0.227880
+Sparsity :          0.5000
+Wdecay :        0.000500
+========== Epoch 152 ==========
+LR =  0.010000000000000002
+Train - acc:        0.949320 loss:        0.152220
+Test - acc:         0.922900 loss:        0.225968
+Sparsity :          0.5000
+Wdecay :        0.000500
+========== Epoch 153 ==========
+LR =  0.010000000000000002
+Train - acc:        0.954680 loss:        0.133425
+Test - acc:         0.927800 loss:        0.213114
+Sparsity :          0.5000
+Wdecay :        0.000500
+========== Epoch 154 ==========
+LR =  0.010000000000000002
+Train - acc:        0.958300 loss:        0.120714
+Test - acc:         0.930400 loss:        0.211984
+Sparsity :          0.5000
+Wdecay :        0.000500
+========== Epoch 155 ==========
+LR =  0.010000000000000002
+Train - acc:        0.963540 loss:        0.111358
+Test - acc:         0.928100 loss:        0.215834
+Sparsity :          0.5000
+Wdecay :        0.000500
+========== Epoch 156 ==========
+LR =  0.010000000000000002
+Train - acc:        0.965580 loss:        0.100757
+Test - acc:         0.930100 loss:        0.205174
+Sparsity :          0.5000
+Wdecay :        0.000500
+========== Epoch 157 ==========
+LR =  0.010000000000000002
+Train - acc:        0.968800 loss:        0.092843
+Test - acc:         0.931900 loss:        0.211361
+Sparsity :          0.5000
+Wdecay :        0.000500
+========== Epoch 158 ==========
+LR =  0.010000000000000002
+Train - acc:        0.971000 loss:        0.087148
+Test - acc:         0.930200 loss:        0.220124
+Sparsity :          0.5000
+Wdecay :        0.000500
+========== Epoch 159 ==========
+LR =  0.010000000000000002
+Train - acc:        0.973460 loss:        0.081518
+Test - acc:         0.931300 loss:        0.218342
+Sparsity :          0.5000
+Wdecay :        0.000500
+========== Epoch 160 ==========
+LR =  0.010000000000000002
+Train - acc:        0.974700 loss:        0.074687
+Test - acc:         0.930000 loss:        0.220803
+Sparsity :          0.5000
+Wdecay :        0.000500
+========== Epoch 161 ==========
+LR =  0.010000000000000002
+Train - acc:        0.975360 loss:        0.072689
+Test - acc:         0.928700 loss:        0.230754
+Sparsity :          0.5000
+Wdecay :        0.000500
+========== Epoch 162 ==========
+LR =  0.010000000000000002
+Train - acc:        0.976400 loss:        0.070870
+Test - acc:         0.931400 loss:        0.221735
+Sparsity :          0.5000
+Wdecay :        0.000500
+========== Epoch 163 ==========
+LR =  0.010000000000000002
+Train - acc:        0.978240 loss:        0.064562
+Test - acc:         0.931300 loss:        0.219226
+Sparsity :          0.5000
+Wdecay :        0.000500
+========== Epoch 164 ==========
+LR =  0.010000000000000002
+Train - acc:        0.978980 loss:        0.063617
+Test - acc:         0.926700 loss:        0.245703
+Sparsity :          0.5000
+Wdecay :        0.000500
+========== Epoch 165 ==========
+LR =  0.010000000000000002
+Train - acc:        0.978440 loss:        0.062848
+Test - acc:         0.927500 loss:        0.245271
+Sparsity :          0.5000
+Wdecay :        0.000500
+========== Epoch 166 ==========
+LR =  0.010000000000000002
+Train - acc:        0.978680 loss:        0.062964
+Test - acc:         0.929900 loss:        0.239069
+Sparsity :          0.5000
+Wdecay :        0.000500
+========== Epoch 167 ==========
+LR =  0.010000000000000002
+Train - acc:        0.981980 loss:        0.055182
+Test - acc:         0.927600 loss:        0.234673
+Sparsity :          0.5000
+Wdecay :        0.000500
+========== Epoch 168 ==========
+LR =  0.010000000000000002
+Train - acc:        0.981120 loss:        0.056592
+Test - acc:         0.927500 loss:        0.246667
+Sparsity :          0.5000
+Wdecay :        0.000500
+========== Epoch 169 ==========
+LR =  0.010000000000000002
+Train - acc:        0.982500 loss:        0.053049
+Test - acc:         0.927700 loss:        0.237728
+Sparsity :          0.5000
+Wdecay :        0.000500
+========== Epoch 170 ==========
+LR =  0.010000000000000002
+Train - acc:        0.980480 loss:        0.056995
+Test - acc:         0.920700 loss:        0.273811
+Sparsity :          0.5000
+Wdecay :        0.000500
+========== Epoch 171 ==========
+LR =  0.010000000000000002
+Train - acc:        0.980120 loss:        0.057782
+Test - acc:         0.928300 loss:        0.241781
+Sparsity :          0.5000
+Wdecay :        0.000500
+========== Epoch 172 ==========
+LR =  0.010000000000000002
+Train - acc:        0.982680 loss:        0.053120
+Test - acc:         0.929800 loss:        0.234844
+Sparsity :          0.5000
+Wdecay :        0.000500
+========== Epoch 173 ==========
+LR =  0.010000000000000002
+Train - acc:        0.981820 loss:        0.054852
+Test - acc:         0.922700 loss:        0.266113
+Sparsity :          0.5000
+Wdecay :        0.000500
+========== Epoch 174 ==========
+LR =  0.010000000000000002
+Train - acc:        0.981960 loss:        0.053438
+Test - acc:         0.921700 loss:        0.272661
+Sparsity :          0.5000
+Wdecay :        0.000500
+========== Epoch 175 ==========
+LR =  0.010000000000000002
+Train - acc:        0.982120 loss:        0.054729
+Test - acc:         0.924500 loss:        0.258756
+Sparsity :          0.5000
+Wdecay :        0.000500
+========== Epoch 176 ==========
+LR =  0.010000000000000002
+Train - acc:        0.980400 loss:        0.057754
+Test - acc:         0.924300 loss:        0.260329
+Sparsity :          0.5000
+Wdecay :        0.000500
+========== Epoch 177 ==========
+LR =  0.010000000000000002
+Train - acc:        0.982500 loss:        0.052934
+Test - acc:         0.927800 loss:        0.253090
+Sparsity :          0.5000
+Wdecay :        0.000500
+========== Epoch 178 ==========
+LR =  0.010000000000000002
+Train - acc:        0.981760 loss:        0.055194
+Test - acc:         0.923800 loss:        0.270501
+Sparsity :          0.5000
+Wdecay :        0.000500
+========== Epoch 179 ==========
+LR =  0.010000000000000002
+Train - acc:        0.978920 loss:        0.060968
+Test - acc:         0.922600 loss:        0.277056
+Sparsity :          0.5000
+Wdecay :        0.000500
+========== Epoch 180 ==========
+LR =  0.010000000000000002
+Train - acc:        0.979640 loss:        0.058889
+Test - acc:         0.927400 loss:        0.258411
+Sparsity :          0.5000
+Wdecay :        0.000500
+========== Epoch 181 ==========
+LR =  0.010000000000000002
+Train - acc:        0.980800 loss:        0.057818
+Test - acc:         0.916300 loss:        0.290445
+Sparsity :          0.5000
+Wdecay :        0.000500
+========== Epoch 182 ==========
+LR =  0.010000000000000002
+Train - acc:        0.980240 loss:        0.058768
+Test - acc:         0.927400 loss:        0.246360
+Sparsity :          0.5000
+Wdecay :        0.000500
+========== Epoch 183 ==========
+LR =  0.010000000000000002
+Train - acc:        0.980760 loss:        0.057093
+Test - acc:         0.917100 loss:        0.293421
+Sparsity :          0.5000
+Wdecay :        0.000500
+========== Epoch 184 ==========
+LR =  0.010000000000000002
+Train - acc:        0.980560 loss:        0.058216
+Test - acc:         0.927300 loss:        0.250594
+Sparsity :          0.5000
+Wdecay :        0.000500
+========== Epoch 185 ==========
+LR =  0.010000000000000002
+Train - acc:        0.979800 loss:        0.059671
+Test - acc:         0.911300 loss:        0.299015
+Sparsity :          0.5000
+Wdecay :        0.000500
+========== Epoch 186 ==========
+LR =  0.010000000000000002
+Train - acc:        0.978960 loss:        0.062615
+Test - acc:         0.924700 loss:        0.268964
+Sparsity :          0.5000
+Wdecay :        0.000500
+========== Epoch 187 ==========
+LR =  0.010000000000000002
+Train - acc:        0.979160 loss:        0.058856
+Test - acc:         0.918300 loss:        0.295891
+Sparsity :          0.5000
+Wdecay :        0.000500
+========== Epoch 188 ==========
+LR =  0.010000000000000002
+Train - acc:        0.978540 loss:        0.061177
+Test - acc:         0.924100 loss:        0.273062
+Sparsity :          0.5000
+Wdecay :        0.000500
+========== Epoch 189 ==========
+LR =  0.010000000000000002
+Train - acc:        0.977600 loss:        0.064895
+Test - acc:         0.914600 loss:        0.298656
+Sparsity :          0.5000
+Wdecay :        0.000500
+========== Epoch 190 ==========
+LR =  0.010000000000000002
+Train - acc:        0.979620 loss:        0.059639
+Test - acc:         0.918500 loss:        0.283402
+Sparsity :          0.5000
+Wdecay :        0.000500
+========== Epoch 191 ==========
+LR =  0.010000000000000002
+Train - acc:        0.978780 loss:        0.062187
+Test - acc:         0.921200 loss:        0.289894
+Sparsity :          0.5000
+Wdecay :        0.000500
+========== Epoch 192 ==========
+LR =  0.010000000000000002
+Train - acc:        0.979240 loss:        0.062097
+Test - acc:         0.920400 loss:        0.280309
+Sparsity :          0.5000
+Wdecay :        0.000500
+========== Epoch 193 ==========
+LR =  0.010000000000000002
+Train - acc:        0.977880 loss:        0.066039
+Test - acc:         0.923500 loss:        0.269102
+Sparsity :          0.5000
+Wdecay :        0.000500
+========== Epoch 194 ==========
+LR =  0.010000000000000002
+Train - acc:        0.978960 loss:        0.062119
+Test - acc:         0.921600 loss:        0.273868
+Sparsity :          0.5000
+Wdecay :        0.000500
+========== Epoch 195 ==========
+LR =  0.010000000000000002
+Train - acc:        0.977980 loss:        0.065227
+Test - acc:         0.920600 loss:        0.294052
+Sparsity :          0.5000
+Wdecay :        0.000500
+========== Epoch 196 ==========
+LR =  0.010000000000000002
+Train - acc:        0.978920 loss:        0.062213
+Test - acc:         0.921400 loss:        0.272546
+Sparsity :          0.5000
+Wdecay :        0.000500
+========== Epoch 197 ==========
+LR =  0.010000000000000002
+Train - acc:        0.979340 loss:        0.061789
+Test - acc:         0.922600 loss:        0.276329
+Sparsity :          0.5000
+Wdecay :        0.000500
+========== Epoch 198 ==========
+LR =  0.010000000000000002
+Train - acc:        0.979000 loss:        0.062221
+Test - acc:         0.919700 loss:        0.275240
+Sparsity :          0.5000
+Wdecay :        0.000500
+========== Epoch 199 ==========
+LR =  0.010000000000000002
+Train - acc:        0.978440 loss:        0.063714
+Test - acc:         0.924000 loss:        0.263111
+Sparsity :          0.5000
+Wdecay :        0.000500
+========== Epoch 200 ==========
+LR =  0.010000000000000002
+Train - acc:        0.978600 loss:        0.063009
+Test - acc:         0.925400 loss:        0.268267
+Sparsity :          0.5000
+Wdecay :        0.000500
+========== Epoch 201 ==========
+LR =  0.010000000000000002
+Train - acc:        0.979180 loss:        0.062390
+Test - acc:         0.922200 loss:        0.281731
+Sparsity :          0.5000
+Wdecay :        0.000500
+========== Epoch 202 ==========
+LR =  0.010000000000000002
+Train - acc:        0.977660 loss:        0.065462
+Test - acc:         0.915000 loss:        0.301242
+Sparsity :          0.5000
+Wdecay :        0.000500
+========== Epoch 203 ==========
+LR =  0.010000000000000002
+Train - acc:        0.978540 loss:        0.064170
+Test - acc:         0.920600 loss:        0.271514
+Sparsity :          0.5000
+Wdecay :        0.000500
+========== Epoch 204 ==========
+LR =  0.010000000000000002
+Train - acc:        0.978740 loss:        0.063675
+Test - acc:         0.922000 loss:        0.266099
+Sparsity :          0.5000
+Wdecay :        0.000500
+========== Epoch 205 ==========
+LR =  0.010000000000000002
+Train - acc:        0.978580 loss:        0.063858
+Test - acc:         0.916900 loss:        0.292098
+Sparsity :          0.5000
+Wdecay :        0.000500
+========== Epoch 206 ==========
+LR =  0.010000000000000002
+Train - acc:        0.977300 loss:        0.068009
+Test - acc:         0.921000 loss:        0.276836
+Sparsity :          0.5000
+Wdecay :        0.000500
+========== Epoch 207 ==========
+LR =  0.010000000000000002
+Train - acc:        0.977600 loss:        0.067518
+Test - acc:         0.917600 loss:        0.293907
+Sparsity :          0.5000
+Wdecay :        0.000500
+========== Epoch 208 ==========
+LR =  0.010000000000000002
+Train - acc:        0.977940 loss:        0.067403
+Test - acc:         0.912500 loss:        0.315338
+Sparsity :          0.5000
+Wdecay :        0.000500
+========== Epoch 209 ==========
+LR =  0.010000000000000002
+Train - acc:        0.977880 loss:        0.065127
+Test - acc:         0.922800 loss:        0.257711
+Sparsity :          0.5000
+Wdecay :        0.000500
+========== Epoch 210 ==========
+LR =  0.010000000000000002
+Train - acc:        0.977520 loss:        0.068127
+Test - acc:         0.921000 loss:        0.277194
+Sparsity :          0.5000
+Wdecay :        0.000500
+========== Epoch 211 ==========
+LR =  0.010000000000000002
+Train - acc:        0.977280 loss:        0.066614
+Test - acc:         0.913300 loss:        0.302125
+Sparsity :          0.5000
+Wdecay :        0.000500
+========== Epoch 212 ==========
+LR =  0.010000000000000002
+Train - acc:        0.977780 loss:        0.063821
+Test - acc:         0.916800 loss:        0.293433
+Sparsity :          0.5000
+Wdecay :        0.000500
+========== Epoch 213 ==========
+LR =  0.010000000000000002
+Train - acc:        0.979100 loss:        0.061837
+Test - acc:         0.922600 loss:        0.276344
+Sparsity :          0.5000
+Wdecay :        0.000500
+========== Epoch 214 ==========
+LR =  0.010000000000000002
+Train - acc:        0.976080 loss:        0.069538
+Test - acc:         0.917500 loss:        0.292013
+Sparsity :          0.5000
+Wdecay :        0.000500
+========== Epoch 215 ==========
+LR =  0.010000000000000002
+Train - acc:        0.978960 loss:        0.063320
+Test - acc:         0.920400 loss:        0.288222
+Sparsity :          0.5000
+Wdecay :        0.000500
+========== Epoch 216 ==========
+LR =  0.010000000000000002
+Train - acc:        0.979740 loss:        0.061433
+Test - acc:         0.918400 loss:        0.301845
+Sparsity :          0.5000
+Wdecay :        0.000500
+========== Epoch 217 ==========
+LR =  0.010000000000000002
+Train - acc:        0.980660 loss:        0.058983
+Test - acc:         0.921200 loss:        0.293167
+Sparsity :          0.5000
+Wdecay :        0.000500
+========== Epoch 218 ==========
+LR =  0.010000000000000002
+Train - acc:        0.979080 loss:        0.063460
+Test - acc:         0.921200 loss:        0.279878
+Sparsity :          0.5000
+Wdecay :        0.000500
+========== Epoch 219 ==========
+LR =  0.010000000000000002
+Train - acc:        0.977540 loss:        0.068722
+Test - acc:         0.922300 loss:        0.279434
+Sparsity :          0.5000
+Wdecay :        0.000500
+========== Epoch 220 ==========
+LR =  0.010000000000000002
+Train - acc:        0.979200 loss:        0.063860
+Test - acc:         0.915900 loss:        0.298045
+Sparsity :          0.5000
+Wdecay :        0.000500
+========== Epoch 221 ==========
+LR =  0.010000000000000002
+Train - acc:        0.978260 loss:        0.062898
+Test - acc:         0.917100 loss:        0.287737
+Sparsity :          0.5000
+Wdecay :        0.000500
+========== Epoch 222 ==========
+LR =  0.010000000000000002
+Train - acc:        0.977120 loss:        0.067223
+Test - acc:         0.917500 loss:        0.296672
+Sparsity :          0.5000
+Wdecay :        0.000500
+========== Epoch 223 ==========
+LR =  0.010000000000000002
+Train - acc:        0.978160 loss:        0.065315
+Test - acc:         0.926500 loss:        0.255257
+Sparsity :          0.5000
+Wdecay :        0.000500
+========== Epoch 224 ==========
+LR =  0.010000000000000002
+Train - acc:        0.977840 loss:        0.064145
+Test - acc:         0.914200 loss:        0.303912
+Sparsity :          0.5000
+Wdecay :        0.000500
+========== Epoch 225 ==========
+LR =  0.010000000000000002
+Train - acc:        0.978560 loss:        0.062598
+Test - acc:         0.924400 loss:        0.273324
+Sparsity :          0.5000
+Wdecay :        0.000500
+========== Epoch 226 ==========
+LR =  0.010000000000000002
+Train - acc:        0.979000 loss:        0.061438
+Test - acc:         0.918100 loss:        0.301491
+Sparsity :          0.5000
+Wdecay :        0.000500
+========== Epoch 227 ==========
+LR =  0.010000000000000002
+Train - acc:        0.979120 loss:        0.062231
+Test - acc:         0.920100 loss:        0.281777
+Sparsity :          0.5000
+Wdecay :        0.000500
+========== Epoch 228 ==========
+LR =  0.010000000000000002
+Train - acc:        0.978860 loss:        0.062738
+Test - acc:         0.921500 loss:        0.288760
+Sparsity :          0.5000
+Wdecay :        0.000500
+========== Epoch 229 ==========
+LR =  0.010000000000000002
+Train - acc:        0.977940 loss:        0.063885
+Test - acc:         0.905300 loss:        0.342673
+Sparsity :          0.5000
+Wdecay :        0.000500
+========== Epoch 230 ==========
+LR =  0.010000000000000002
+Train - acc:        0.978220 loss:        0.064574
+Test - acc:         0.919400 loss:        0.286069
+Sparsity :          0.5000
+Wdecay :        0.000500
+========== Epoch 231 ==========
+LR =  0.010000000000000002
+Train - acc:        0.977720 loss:        0.065770
+Test - acc:         0.923700 loss:        0.272847
+Sparsity :          0.5000
+Wdecay :        0.000500
+========== Epoch 232 ==========
+LR =  0.010000000000000002
+Train - acc:        0.980620 loss:        0.059225
+Test - acc:         0.914600 loss:        0.292946
+Sparsity :          0.5000
+Wdecay :        0.000500
+========== Epoch 233 ==========
+LR =  0.010000000000000002
+Train - acc:        0.980760 loss:        0.059632
+Test - acc:         0.921800 loss:        0.280150
+Sparsity :          0.5000
+Wdecay :        0.000500
+========== Epoch 234 ==========
+LR =  0.010000000000000002
+Train - acc:        0.979860 loss:        0.061020
+Test - acc:         0.919400 loss:        0.275804
+Sparsity :          0.7500
+Wdecay :        0.000500
+========== Epoch 235 ==========
+LR =  0.010000000000000002
+Train - acc:        0.985640 loss:        0.045010
+Test - acc:         0.934700 loss:        0.237541
+Sparsity :          0.7500
+Wdecay :        0.000500
+========== Epoch 236 ==========
+LR =  0.010000000000000002
+Train - acc:        0.987540 loss:        0.038177
+Test - acc:         0.927700 loss:        0.272650
+Sparsity :          0.7500
+Wdecay :        0.000500
+========== Epoch 237 ==========
+LR =  0.010000000000000002
+Train - acc:        0.985700 loss:        0.043311
+Test - acc:         0.920500 loss:        0.279934
+Sparsity :          0.7500
+Wdecay :        0.000500
+========== Epoch 238 ==========
+LR =  0.010000000000000002
+Train - acc:        0.987900 loss:        0.037200
+Test - acc:         0.925600 loss:        0.276493
+Sparsity :          0.7500
+Wdecay :        0.000500
+========== Epoch 239 ==========
+LR =  0.010000000000000002
+Train - acc:        0.988100 loss:        0.038195
+Test - acc:         0.923100 loss:        0.295924
+Sparsity :          0.7500
+Wdecay :        0.000500
+========== Epoch 240 ==========
+LR =  0.010000000000000002
+Train - acc:        0.984080 loss:        0.048336
+Test - acc:         0.928500 loss:        0.251774
+Sparsity :          0.7500
+Wdecay :        0.000500
+========== Epoch 241 ==========
+LR =  0.010000000000000002
+Train - acc:        0.985060 loss:        0.045134
+Test - acc:         0.923100 loss:        0.283251
+Sparsity :          0.7500
+Wdecay :        0.000500
+========== Epoch 242 ==========
+LR =  0.010000000000000002
+Train - acc:        0.984400 loss:        0.047355
+Test - acc:         0.930200 loss:        0.259272
+Sparsity :          0.7500
+Wdecay :        0.000500
+========== Epoch 243 ==========
+LR =  0.010000000000000002
+Train - acc:        0.983600 loss:        0.048391
+Test - acc:         0.923600 loss:        0.286711
+Sparsity :          0.7500
+Wdecay :        0.000500
+========== Epoch 244 ==========
+LR =  0.010000000000000002
+Train - acc:        0.984580 loss:        0.046181
+Test - acc:         0.915400 loss:        0.304183
+Sparsity :          0.7500
+Wdecay :        0.000500
+========== Epoch 245 ==========
+LR =  0.010000000000000002
+Train - acc:        0.984340 loss:        0.048725
+Test - acc:         0.918900 loss:        0.303282
+Sparsity :          0.7500
+Wdecay :        0.000500
+========== Epoch 246 ==========
+LR =  0.010000000000000002
+Train - acc:        0.983380 loss:        0.048999
+Test - acc:         0.927000 loss:        0.272162
+Sparsity :          0.7500
+Wdecay :        0.000500
+========== Epoch 247 ==========
+LR =  0.010000000000000002
+Train - acc:        0.982960 loss:        0.051040
+Test - acc:         0.906200 loss:        0.348353
+Sparsity :          0.7500
+Wdecay :        0.000500
+========== Epoch 248 ==========
+LR =  0.010000000000000002
+Train - acc:        0.983080 loss:        0.050707
+Test - acc:         0.921100 loss:        0.278560
+Sparsity :          0.7500
+Wdecay :        0.000500
+========== Epoch 249 ==========
+LR =  0.010000000000000002
+Train - acc:        0.983160 loss:        0.050143
+Test - acc:         0.922100 loss:        0.289811
+Sparsity :          0.7500
+Wdecay :        0.000500
+========== Epoch 250 ==========
+LR =  0.0010000000000000002
+Train - acc:        0.984080 loss:        0.048244
+Test - acc:         0.921300 loss:        0.273621
+Sparsity :          0.7500
+Wdecay :        0.000500
+========== Epoch 251 ==========
+LR =  0.0010000000000000002
+Train - acc:        0.992500 loss:        0.025270
+Test - acc:         0.938800 loss:        0.217742
+Sparsity :          0.7500
+Wdecay :        0.000500
+========== Epoch 252 ==========
+LR =  0.0010000000000000002
+Train - acc:        0.995320 loss:        0.017124
+Test - acc:         0.941000 loss:        0.213979
+Sparsity :          0.7500
+Wdecay :        0.000500
+========== Epoch 253 ==========
+LR =  0.0010000000000000002
+Train - acc:        0.996460 loss:        0.014453
+Test - acc:         0.942600 loss:        0.213874
+Sparsity :          0.7500
+Wdecay :        0.000500
+========== Epoch 254 ==========
+LR =  0.0010000000000000002
+Train - acc:        0.997540 loss:        0.011645
+Test - acc:         0.941600 loss:        0.213362
+Sparsity :          0.7500
+Wdecay :        0.000500
+========== Epoch 255 ==========
+LR =  0.0010000000000000002
+Train - acc:        0.997720 loss:        0.010324
+Test - acc:         0.943300 loss:        0.212891
+Sparsity :          0.7500
+Wdecay :        0.000500
+========== Epoch 256 ==========
+LR =  0.0010000000000000002
+Train - acc:        0.998120 loss:        0.009640
+Test - acc:         0.943000 loss:        0.210632
+Sparsity :          0.7500
+Wdecay :        0.000500
+========== Epoch 257 ==========
+LR =  0.0010000000000000002
+Train - acc:        0.998680 loss:        0.008122
+Test - acc:         0.943600 loss:        0.211377
+Sparsity :          0.7500
+Wdecay :        0.000500
+========== Epoch 258 ==========
+LR =  0.0010000000000000002
+Train - acc:        0.997980 loss:        0.008783
+Test - acc:         0.944200 loss:        0.210687
+Sparsity :          0.7500
+Wdecay :        0.000500
+========== Epoch 259 ==========
+LR =  0.0010000000000000002
+Train - acc:        0.998560 loss:        0.007699
+Test - acc:         0.945100 loss:        0.212296
+Sparsity :          0.7500
+Wdecay :        0.000500
+========== Epoch 260 ==========
+LR =  0.0010000000000000002
+Train - acc:        0.999000 loss:        0.006946
+Test - acc:         0.945100 loss:        0.211173
+Sparsity :          0.7500
+Wdecay :        0.000500
+========== Epoch 261 ==========
+LR =  0.0010000000000000002
+Train - acc:        0.998900 loss:        0.006825
+Test - acc:         0.944700 loss:        0.210428
+Sparsity :          0.7500
+Wdecay :        0.000500
+========== Epoch 262 ==========
+LR =  0.0010000000000000002
+Train - acc:        0.998520 loss:        0.006883
+Test - acc:         0.944100 loss:        0.212557
+Sparsity :          0.7500
+Wdecay :        0.000500
+========== Epoch 263 ==========
+LR =  0.0010000000000000002
+Train - acc:        0.998880 loss:        0.006671
+Test - acc:         0.943800 loss:        0.212162
+Sparsity :          0.7500
+Wdecay :        0.000500
+========== Epoch 264 ==========
+LR =  0.0010000000000000002
+Train - acc:        0.998920 loss:        0.006061
+Test - acc:         0.943900 loss:        0.213950
+Sparsity :          0.7500
+Wdecay :        0.000500
+========== Epoch 265 ==========
+LR =  0.0010000000000000002
+Train - acc:        0.998940 loss:        0.005966
+Test - acc:         0.944800 loss:        0.211940
+Sparsity :          0.7500
+Wdecay :        0.000500
+========== Epoch 266 ==========
+LR =  0.0010000000000000002
+Train - acc:        0.999300 loss:        0.005248
+Test - acc:         0.945000 loss:        0.210542
+Sparsity :          0.7500
+Wdecay :        0.000500
+========== Epoch 267 ==========
+LR =  0.0010000000000000002
+Train - acc:        0.999260 loss:        0.005369
+Test - acc:         0.944900 loss:        0.211183
+Sparsity :          0.7500
+Wdecay :        0.000500
+========== Epoch 268 ==========
+LR =  0.0010000000000000002
+Train - acc:        0.999360 loss:        0.005058
+Test - acc:         0.944900 loss:        0.210739
+Sparsity :          0.7500
+Wdecay :        0.000500
+========== Epoch 269 ==========
+LR =  0.0010000000000000002
+Train - acc:        0.999320 loss:        0.005052
+Test - acc:         0.944600 loss:        0.210743
+Sparsity :          0.7500
+Wdecay :        0.000500
+========== Epoch 270 ==========
+LR =  0.0010000000000000002
+Train - acc:        0.999380 loss:        0.004948
+Test - acc:         0.945500 loss:        0.211798
+Sparsity :          0.7500
+Wdecay :        0.000500
+========== Epoch 271 ==========
+LR =  0.0010000000000000002
+Train - acc:        0.999560 loss:        0.004516
+Test - acc:         0.944700 loss:        0.210434
+Sparsity :          0.7500
+Wdecay :        0.000500
+========== Epoch 272 ==========
+LR =  0.0010000000000000002
+Train - acc:        0.999240 loss:        0.004857
+Test - acc:         0.945100 loss:        0.211336
+Sparsity :          0.7500
+Wdecay :        0.000500
+========== Epoch 273 ==========
+LR =  0.0010000000000000002
+Train - acc:        0.999200 loss:        0.004653
+Test - acc:         0.944700 loss:        0.211572
+Sparsity :          0.7500
+Wdecay :        0.000500
+========== Epoch 274 ==========
+LR =  0.0010000000000000002
+Train - acc:        0.999460 loss:        0.004549
+Test - acc:         0.945300 loss:        0.211609
+Sparsity :          0.7500
+Wdecay :        0.000500
+========== Epoch 275 ==========
+LR =  0.0010000000000000002
+Train - acc:        0.999280 loss:        0.004619
+Test - acc:         0.945100 loss:        0.208869
+Sparsity :          0.7500
+Wdecay :        0.000500
+========== Epoch 276 ==========
+LR =  0.0010000000000000002
+Train - acc:        0.999520 loss:        0.004246
+Test - acc:         0.945500 loss:        0.209994
+Sparsity :          0.7500
+Wdecay :        0.000500
+========== Epoch 277 ==========
+LR =  0.0010000000000000002
+Train - acc:        0.999460 loss:        0.004318
+Test - acc:         0.945400 loss:        0.210510
+Sparsity :          0.7500
+Wdecay :        0.000500
+========== Epoch 278 ==========
+LR =  0.0010000000000000002
+Train - acc:        0.999460 loss:        0.004197
+Test - acc:         0.945600 loss:        0.210248
+Sparsity :          0.7500
+Wdecay :        0.000500
+========== Epoch 279 ==========
+LR =  0.0010000000000000002
+Train - acc:        0.999600 loss:        0.004041
+Test - acc:         0.945000 loss:        0.213602
+Sparsity :          0.7500
+Wdecay :        0.000500
+========== Epoch 280 ==========
+LR =  0.0010000000000000002
+Train - acc:        0.999480 loss:        0.004031
+Test - acc:         0.944800 loss:        0.212522
+Sparsity :          0.7500
+Wdecay :        0.000500
+========== Epoch 281 ==========
+LR =  0.0010000000000000002
+Train - acc:        0.999780 loss:        0.003547
+Test - acc:         0.944100 loss:        0.210711
+Sparsity :          0.7500
+Wdecay :        0.000500
+========== Epoch 282 ==========
+LR =  0.0010000000000000002
+Train - acc:        0.999620 loss:        0.003769
+Test - acc:         0.943600 loss:        0.211067
+Sparsity :          0.7500
+Wdecay :        0.000500
+========== Epoch 283 ==========
+LR =  0.0010000000000000002
+Train - acc:        0.999560 loss:        0.003934
+Test - acc:         0.944700 loss:        0.211129
+Sparsity :          0.7500
+Wdecay :        0.000500
+========== Epoch 284 ==========
+LR =  0.0010000000000000002
+Train - acc:        0.999560 loss:        0.003887
+Test - acc:         0.943700 loss:        0.209748
+Sparsity :          0.7500
+Wdecay :        0.000500
+========== Epoch 285 ==========
+LR =  0.0010000000000000002
+Train - acc:        0.999580 loss:        0.004162
+Test - acc:         0.945400 loss:        0.209249
+Sparsity :          0.7500
+Wdecay :        0.000500
+========== Epoch 286 ==========
+LR =  0.0010000000000000002
+Train - acc:        0.999640 loss:        0.003826
+Test - acc:         0.944700 loss:        0.210511
+Sparsity :          0.7500
+Wdecay :        0.000500
+========== Epoch 287 ==========
+LR =  0.0010000000000000002
+Train - acc:        0.999700 loss:        0.003533
+Test - acc:         0.945100 loss:        0.210800
+Sparsity :          0.7500
+Wdecay :        0.000500
+========== Epoch 288 ==========
+LR =  0.0010000000000000002
+Train - acc:        0.999580 loss:        0.003553
+Test - acc:         0.945000 loss:        0.210667
+Sparsity :          0.7500
+Wdecay :        0.000500
+========== Epoch 289 ==========
+LR =  0.0010000000000000002
+Train - acc:        0.999580 loss:        0.003607
+Test - acc:         0.944400 loss:        0.210486
+Sparsity :          0.7500
+Wdecay :        0.000500
+========== Epoch 290 ==========
+LR =  0.0010000000000000002
+Train - acc:        0.999480 loss:        0.003902
+Test - acc:         0.944100 loss:        0.212474
+Sparsity :          0.7500
+Wdecay :        0.000500
+========== Epoch 291 ==========
+LR =  0.0010000000000000002
+Train - acc:        0.999700 loss:        0.003392
+Test - acc:         0.943700 loss:        0.211160
+Sparsity :          0.7500
+Wdecay :        0.000500
+========== Epoch 292 ==========
+LR =  0.0010000000000000002
+Train - acc:        0.999580 loss:        0.003408
+Test - acc:         0.944500 loss:        0.211489
+Sparsity :          0.7500
+Wdecay :        0.000500
+========== Epoch 293 ==========
+LR =  0.0010000000000000002
+Train - acc:        0.999600 loss:        0.003517
+Test - acc:         0.944900 loss:        0.210871
+Sparsity :          0.7500
+Wdecay :        0.000500
+========== Epoch 294 ==========
+LR =  0.0010000000000000002
+Train - acc:        0.999720 loss:        0.003263
+Test - acc:         0.945100 loss:        0.210483
+Sparsity :          0.7500
+Wdecay :        0.000500
+========== Epoch 295 ==========
+LR =  0.0010000000000000002
+Train - acc:        0.999540 loss:        0.003677
+Test - acc:         0.945300 loss:        0.209210
+Sparsity :          0.7500
+Wdecay :        0.000500
+========== Epoch 296 ==========
+LR =  0.0010000000000000002
+Train - acc:        0.999860 loss:        0.003048
+Test - acc:         0.945800 loss:        0.209001
+Sparsity :          0.7500
+Wdecay :        0.000500
+========== Epoch 297 ==========
+LR =  0.0010000000000000002
+Train - acc:        0.999640 loss:        0.003548
+Test - acc:         0.944800 loss:        0.209786
+Sparsity :          0.7500
+Wdecay :        0.000500
+========== Epoch 298 ==========
+LR =  0.0010000000000000002
+Train - acc:        0.999820 loss:        0.003189
+Test - acc:         0.945100 loss:        0.207199
+Sparsity :          0.7500
+Wdecay :        0.000500
+========== Epoch 299 ==========
+LR =  0.0010000000000000002
+Train - acc:        0.999720 loss:        0.003227
+Test - acc:         0.944500 loss:        0.208345
+Sparsity :          0.7500
+Wdecay :        0.000500
+========== Epoch 300 ==========
+LR =  0.0010000000000000002
+Train - acc:        0.999680 loss:        0.003319
+Test - acc:         0.945600 loss:        0.207138
+Sparsity :          0.7500
+Wdecay :        0.000500
+========== Epoch 301 ==========
+LR =  0.0010000000000000002
+Train - acc:        0.999740 loss:        0.003024
+Test - acc:         0.944900 loss:        0.207757
+Sparsity :          0.7500
+Wdecay :        0.000500
+========== Epoch 302 ==========
+LR =  0.0010000000000000002
+Train - acc:        0.999700 loss:        0.003383
+Test - acc:         0.945000 loss:        0.211334
+Sparsity :          0.7500
+Wdecay :        0.000500
+========== Epoch 303 ==========
+LR =  0.0010000000000000002
+Train - acc:        0.999840 loss:        0.002954
+Test - acc:         0.945300 loss:        0.208947
+Sparsity :          0.7500
+Wdecay :        0.000500
+========== Epoch 304 ==========
+LR =  0.0010000000000000002
+Train - acc:        0.999800 loss:        0.003069
+Test - acc:         0.945600 loss:        0.209614
+Sparsity :          0.7500
+Wdecay :        0.000500
+========== Epoch 305 ==========
+LR =  0.0010000000000000002
+Train - acc:        0.999820 loss:        0.002808
+Test - acc:         0.945100 loss:        0.208478
+Sparsity :          0.7500
+Wdecay :        0.000500
+========== Epoch 306 ==========
+LR =  0.0010000000000000002
+Train - acc:        0.999760 loss:        0.003091
+Test - acc:         0.945200 loss:        0.208939
+Sparsity :          0.7500
+Wdecay :        0.000500
+========== Epoch 307 ==========
+LR =  0.0010000000000000002
+Train - acc:        0.999680 loss:        0.003079
+Test - acc:         0.946000 loss:        0.207624
+Sparsity :          0.7500
+Wdecay :        0.000500
+========== Epoch 308 ==========
+LR =  0.0010000000000000002
+Train - acc:        0.999680 loss:        0.003066
+Test - acc:         0.945800 loss:        0.207689
+Sparsity :          0.7500
+Wdecay :        0.000500
+========== Epoch 309 ==========
+LR =  0.0010000000000000002
+Train - acc:        0.999720 loss:        0.003006
+Test - acc:         0.945300 loss:        0.206725
+Sparsity :          0.7500
+Wdecay :        0.000500
+========== Epoch 310 ==========
+LR =  0.0010000000000000002
+Train - acc:        0.999840 loss:        0.002795
+Test - acc:         0.945900 loss:        0.208018
+Sparsity :          0.7500
+Wdecay :        0.000500
+========== Epoch 311 ==========
+LR =  0.0010000000000000002
+Train - acc:        0.999800 loss:        0.002979
+Test - acc:         0.946900 loss:        0.207942
+Sparsity :          0.7500
+Wdecay :        0.000500
+========== Epoch 312 ==========
+LR =  0.0010000000000000002
+Train - acc:        0.999800 loss:        0.003083
+Test - acc:         0.945700 loss:        0.205798
+Sparsity :          0.7500
+Wdecay :        0.000500
+========== Epoch 313 ==========
+LR =  0.0010000000000000002
+Train - acc:        0.999720 loss:        0.003029
+Test - acc:         0.946700 loss:        0.205967
+Sparsity :          0.7500
+Wdecay :        0.000500
+========== Epoch 314 ==========
+LR =  0.0010000000000000002
+Train - acc:        0.999880 loss:        0.002774
+Test - acc:         0.947000 loss:        0.206281
+Sparsity :          0.7500
+Wdecay :        0.000500
+========== Epoch 315 ==========
+LR =  0.0010000000000000002
+Train - acc:        0.999780 loss:        0.002935
+Test - acc:         0.946500 loss:        0.207522
+Sparsity :          0.7500
+Wdecay :        0.000500
+========== Epoch 316 ==========
+LR =  0.0010000000000000002
+Train - acc:        0.999800 loss:        0.003073
+Test - acc:         0.946500 loss:        0.207002
+Sparsity :          0.7500
+Wdecay :        0.000500
+========== Epoch 317 ==========
+LR =  0.0010000000000000002
+Train - acc:        0.999700 loss:        0.003168
+Test - acc:         0.946100 loss:        0.208721
+Sparsity :          0.7500
+Wdecay :        0.000500
+========== Epoch 318 ==========
+LR =  0.0010000000000000002
+Train - acc:        0.999840 loss:        0.002766
+Test - acc:         0.946400 loss:        0.207551
+Sparsity :          0.7500
+Wdecay :        0.000500
+========== Epoch 319 ==========
+LR =  0.0010000000000000002
+Train - acc:        0.999780 loss:        0.002849
+Test - acc:         0.945600 loss:        0.207473
+Sparsity :          0.7500
+Wdecay :        0.000500
+========== Epoch 320 ==========
+LR =  0.0010000000000000002
+Train - acc:        0.999800 loss:        0.002954
+Test - acc:         0.945900 loss:        0.207533
+Sparsity :          0.7500
+Wdecay :        0.000500
+========== Epoch 321 ==========
+LR =  0.0010000000000000002
+Train - acc:        0.999840 loss:        0.002691
+Test - acc:         0.945900 loss:        0.206333
+Sparsity :          0.7500
+Wdecay :        0.000500
+========== Epoch 322 ==========
+LR =  0.0010000000000000002
+Train - acc:        0.999820 loss:        0.002817
+Test - acc:         0.945600 loss:        0.206869
+Sparsity :          0.7500
+Wdecay :        0.000500
+========== Epoch 323 ==========
+LR =  0.0010000000000000002
+Train - acc:        0.999820 loss:        0.002821
+Test - acc:         0.946300 loss:        0.205880
+Sparsity :          0.7500
+Wdecay :        0.000500
+========== Epoch 324 ==========
+LR =  0.0010000000000000002
+Train - acc:        0.999760 loss:        0.002891
+Test - acc:         0.945700 loss:        0.206390
+Sparsity :          0.7500
+Wdecay :        0.000500
+========== Epoch 325 ==========
+LR =  0.0010000000000000002
+Train - acc:        0.999820 loss:        0.002691
+Test - acc:         0.946300 loss:        0.205303
+Sparsity :          0.7500
+Wdecay :        0.000500
+========== Epoch 326 ==========
+LR =  0.0010000000000000002
+Train - acc:        1.000000 loss:        0.002453
+Test - acc:         0.946000 loss:        0.203753
+Sparsity :          0.7500
+Wdecay :        0.000500
+========== Epoch 327 ==========
+LR =  0.0010000000000000002
+Train - acc:        0.999840 loss:        0.002683
+Test - acc:         0.946200 loss:        0.205342
+Sparsity :          0.7500
+Wdecay :        0.000500
+========== Epoch 328 ==========
+LR =  0.0010000000000000002
+Train - acc:        0.999740 loss:        0.003078
+Test - acc:         0.946500 loss:        0.206568
+Sparsity :          0.7500
+Wdecay :        0.000500
+========== Epoch 329 ==========
+LR =  0.0010000000000000002
+Train - acc:        0.999760 loss:        0.002858
+Test - acc:         0.946200 loss:        0.203677
+Sparsity :          0.7500
+Wdecay :        0.000500
+========== Epoch 330 ==========
+LR =  0.0010000000000000002
+Train - acc:        0.999860 loss:        0.002835
+Test - acc:         0.946100 loss:        0.206666
+Sparsity :          0.7500
+Wdecay :        0.000500
+========== Epoch 331 ==========
+LR =  0.0010000000000000002
+Train - acc:        0.999860 loss:        0.002764
+Test - acc:         0.944900 loss:        0.206022
+Sparsity :          0.7500
+Wdecay :        0.000500
+========== Epoch 332 ==========
+LR =  0.0010000000000000002
+Train - acc:        0.999840 loss:        0.002658
+Test - acc:         0.945700 loss:        0.205442
+Sparsity :          0.7500
+Wdecay :        0.000500
+========== Epoch 333 ==========
+LR =  0.0010000000000000002
+Train - acc:        0.999860 loss:        0.002717
+Test - acc:         0.947600 loss:        0.205631
+Sparsity :          0.7500
+Wdecay :        0.000500
+========== Epoch 334 ==========
+LR =  0.0010000000000000002
+Train - acc:        0.999900 loss:        0.002606
+Test - acc:         0.946300 loss:        0.206251
+Sparsity :          0.7500
+Wdecay :        0.000500
+========== Epoch 335 ==========
+LR =  0.0010000000000000002
+Train - acc:        0.999840 loss:        0.002604
+Test - acc:         0.947100 loss:        0.204154
+Sparsity :          0.7500
+Wdecay :        0.000500
+========== Epoch 336 ==========
+LR =  0.0010000000000000002
+Train - acc:        0.999840 loss:        0.002714
+Test - acc:         0.945800 loss:        0.205032
+Sparsity :          0.7500
+Wdecay :        0.000500
+========== Epoch 337 ==========
+LR =  0.0010000000000000002
+Train - acc:        0.999920 loss:        0.002516
+Test - acc:         0.947100 loss:        0.206228
+Sparsity :          0.7500
+Wdecay :        0.000500
+========== Epoch 338 ==========
+LR =  0.0010000000000000002
+Train - acc:        0.999760 loss:        0.002865
+Test - acc:         0.946300 loss:        0.204384
+Sparsity :          0.7500
+Wdecay :        0.000500
+========== Epoch 339 ==========
+LR =  0.0010000000000000002
+Train - acc:        0.999960 loss:        0.002528
+Test - acc:         0.945900 loss:        0.205163
+Sparsity :          0.7500
+Wdecay :        0.000500
+========== Epoch 340 ==========
+LR =  0.0010000000000000002
+Train - acc:        0.999860 loss:        0.002622
+Test - acc:         0.945500 loss:        0.206351
+Sparsity :          0.7500
+Wdecay :        0.000500
+========== Epoch 341 ==========
+LR =  0.0010000000000000002
+Train - acc:        0.999840 loss:        0.002525
+Test - acc:         0.946700 loss:        0.206176
+Sparsity :          0.7500
+Wdecay :        0.000500
+========== Epoch 342 ==========
+LR =  0.0010000000000000002
+Train - acc:        0.999800 loss:        0.002677
+Test - acc:         0.946200 loss:        0.204964
+Sparsity :          0.7500
+Wdecay :        0.000500
+========== Epoch 343 ==========
+LR =  0.0010000000000000002
+Train - acc:        0.999820 loss:        0.002699
+Test - acc:         0.946800 loss:        0.205104
+Sparsity :          0.7500
+Wdecay :        0.000500
+========== Epoch 344 ==========
+LR =  0.0010000000000000002
+Train - acc:        0.999860 loss:        0.002655
+Test - acc:         0.945300 loss:        0.206491
+Sparsity :          0.7500
+Wdecay :        0.000500
+========== Epoch 345 ==========
+LR =  0.0010000000000000002
+Train - acc:        0.999880 loss:        0.002619
+Test - acc:         0.945700 loss:        0.205094
+Sparsity :          0.7500
+Wdecay :        0.000500
+========== Epoch 346 ==========
+LR =  0.0010000000000000002
+Train - acc:        0.999880 loss:        0.002564
+Test - acc:         0.946700 loss:        0.205533
+Sparsity :          0.7500
+Wdecay :        0.000500
+========== Epoch 347 ==========
+LR =  0.0010000000000000002
+Train - acc:        0.999920 loss:        0.002657
+Test - acc:         0.946800 loss:        0.204295
+Sparsity :          0.7500
+Wdecay :        0.000500
+========== Epoch 348 ==========
+LR =  0.0010000000000000002
+Train - acc:        0.999900 loss:        0.002544
+Test - acc:         0.947100 loss:        0.203237
+Sparsity :          0.7500
+Wdecay :        0.000500
+========== Epoch 349 ==========
+LR =  0.0010000000000000002
+Train - acc:        0.999860 loss:        0.002569
+Test - acc:         0.945500 loss:        0.204094
+Sparsity :          0.7500
+Wdecay :        0.000500
+========== Epoch 350 ==========
+LR =  0.0010000000000000002
+Train - acc:        0.999780 loss:        0.002770
+Test - acc:         0.946300 loss:        0.204966
+Sparsity :          0.7500
+Wdecay :        0.000500

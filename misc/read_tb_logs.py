@@ -27,7 +27,6 @@ layer_sparsity_dict = {key:[] for key in headers}
 for dirpath, dirs, files in os.walk(root_path):
     if dirpath==root_path:
         continue
-    print('Reading ', dirpath)
     # Gather info about hparams
     model = re_model.search(dirpath).group(0).strip()
     seed = re_seed.search(dirpath).group(0).split('=')[1]
@@ -96,4 +95,4 @@ plt.legend()
 plt.grid()
 plt.xlabel('Sparsity')
 plt.ylabel('Acc.')
-plt.savefig('./misc/' + 'vgg_19_results.png')
+plt.savefig('./misc/' + 'vgg19_results.png')

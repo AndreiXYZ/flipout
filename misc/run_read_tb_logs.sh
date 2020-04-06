@@ -1,10 +1,10 @@
 #!/bin/bash
 #SBATCH -t 48:00:00
 #SBATCH -N 1
-#SBATCH -p gpu_shared
+#SBATCH -p gpu_titanrtx_shared
 #SBATCH --mem=16000M
 #SBATCH --gres=gpu:1
-#SBATCH --output misc/output.txt
+#SBATCH --output misc/vgg19_stats.txt
 
 source activate base
 

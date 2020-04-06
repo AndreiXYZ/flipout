@@ -5,8 +5,8 @@
 #SBATCH --mem=16000M
 #SBATCH --cpus-per-task=1
 #SBATCH --array=1-30%15
-#SBATCH --job-name=weight_div_flips
-#SBATCH --output=out_files/weight_div_flips_out/array_job%a.out
+#SBATCH --job-name=prune_bnorm
+#SBATCH --output=out_files/prune_bnorm/array_job%a.out
 source activate base
 device=0;
 

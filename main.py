@@ -60,12 +60,15 @@ def train(config, writer):
 
     num_weights, num_biases = model.get_total_params()
 
-    print('Model has {} total params.\nnum_weights={}\nnum_biases={}'
-          .format(num_weights+num_biases, num_weights, num_biases)
+    print('Model has {} total params.\nnum_weights={}\nnum_biases={}\nnum.prunable={}'
+          .format(num_weights+num_biases, num_weights, num_biases,
+          model.total_prunable)
           )
     
     if not config['prune_bias']:
         print('---Biases omitted from pruning---')
+    if not config['prune_bnorm']:
+        print('---Bnorm omitted from pruning---')
     
     for epoch_num in range(1, config['epochs']+1):
         print('='*10 + ' Epoch ' + str(epoch_num) + ' ' + '='*10)

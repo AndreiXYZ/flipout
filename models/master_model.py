@@ -20,10 +20,12 @@ class CustomDataParallel(nn.DataParallel):
 def init_attrs(model, config):
     from itertools import chain
     # Only prune linear and conv2d models (not batchnorm)
-    prunable_modules = (nn.Linear, nn.Conv2d)
+    prunable_modules = [nn.Linear, nn.Conv2d]
     
     if config['prune_bnorm']:
         prunable_modules.append(nn.BatchNorm2d)
+    
+    prunable_modules = tuple(prunable_modules)
     
     if config['prune_bias']:
         model.prunable_params = list(chain.from_iterable(
