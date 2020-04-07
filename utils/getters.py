@@ -16,7 +16,7 @@ def get_model(config):
                   'resnet18': ResNet18,
                   'l0lenet5': L0LeNet5,
                   'l0lenet300': L0MLP,
-                  'densenet161': DenseNet161
+                  'densenet121': DenseNet121
                   }
     
     # Grab appropriate class and instantiate it
@@ -112,7 +112,7 @@ def get_epoch_type(config):
     from utils.epoch_funcs import epoch_l0, epoch_flips, regular_epoch
 
     if config['prune_criterion'] in ['flip', 'topflip', 'topflip_layer',
-    'weight_div_flips']:
+    'weight_div_flips', 'weight_squared_div_flips']:
         return epoch_flips
     elif config['prune_criterion'] == 'l0':
         return epoch_l0

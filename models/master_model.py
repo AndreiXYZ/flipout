@@ -269,6 +269,27 @@ class MasterModel(nn.Module):
 
             for layer, layer_mask in zip(self.prunable_params, self.mask):
                 layer.data = layer*layer_mask
+    
+    def update_mask_weight_squared_div_flips(self, rate):
+        with torch.no_grad():
+            flat_mask = torch.cat([layer_mask.view(-1) for layer_mask in self.mask])
+            flat_magnitudes = torch.cat([layer.view(-1) for layer in self.prunable_params])
+            flip_cts = torch.cat([layer_flips.view(-1) for layer_flips in self.flip_counts])
+
+            # Determine how many we need to prune
+            num_pruned = (flat_mask==0).sum().item()
+            num_to_prune = int((self.total_prunable-num_pruned)*rate)
+
+            # Do weight divided by number of flips
+            # add a 1 to denominator to avoid division by 0
+            criterion = flat_magnitudes.pow(2)/(flip_cts+1)
+            to_prune = criterion.argsort(descending=False)[:num_pruned+num_to_prune]
+            flat_mask[to_prune] = 0.
+            self.mask = self.unflatten_tensor(flat_mask, self.mask)
+
+            for layer, layer_mask in zip(self.prunable_params, self.mask):
+                layer.data = layer*layer_mask
+
             
     def update_mask_random(self, rate, config):
         # Get prob distribution
