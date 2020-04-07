@@ -64,6 +64,12 @@ def cifar10_dataloaders(config):
 
 def image_loader(path):
     img = Image.open(path)
+    # Check if image is not a grayscale
+    if img.mode!='RGB':
+        arr = np.array(img)
+        new_arr = arr[:, :, np.newaxis]
+        new_arr = np.repeat(new_arr, repeats=3, axis=2)
+        img = Image.fromarray(new_arr)
     return img
 
 def is_valid_file(path):
@@ -76,10 +82,14 @@ def imagenette_dataloaders(config):
     transforms_train = transforms.Compose([transforms.Resize((224,224)),
                                            transforms.RandomCrop(224, padding=28),
                                            transforms.RandomHorizontalFlip(),
-                                           transforms.ToTensor()])
+                                           transforms.ToTensor(),
+                                           transforms.Normalize((0.4625, 0.4580, 0.4295),(0.3901, 0.3880, 0.4042))
+                                           ])
 
     transforms_test = transforms.Compose([transforms.Resize((224,224)),
-                                          transforms.ToTensor()])
+                                          transforms.ToTensor(),
+                                          transforms.Normalize((0.4625, 0.4580, 0.4295),(0.3901, 0.3880, 0.4042))
+                                          ])
 
     train_set = datasets.DatasetFolder(root='./data/imagenette2/train', loader=image_loader,
                                     is_valid_file=is_valid_file, transform=transforms_train)
