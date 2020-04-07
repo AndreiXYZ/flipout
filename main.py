@@ -160,14 +160,14 @@ def main():
 
 def parse_args():
     model_choices = ['lenet300', 'lenet5', 'conv6', 'vgg19', 'resnet18',
-                     'l0lenet5', 'l0lenet300']
+                     'l0lenet5', 'l0lenet300', 'desnenet161']
     
     pruning_choices = ['magnitude', 'flip', 'topflip', 'topflip_layer', 
                        'random', 'snip', 'l0', 'none', 'sensitivity',
                        'global_magnitude', 'historical_magnitude',
                        'weight_div_flips']
     
-    dataset_choices = ['mnist', 'cifar10']
+    dataset_choices = ['mnist', 'cifar10', 'imagenette']
     opt_choices = ['sgd', 'rmsprop', 'adam', 'rmspropw']
     reg_type_choices = ['wdecay', 'l1', 'l2', 'hs']
     dataset_choices = ['mnist', 'cifar10']

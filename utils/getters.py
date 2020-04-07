@@ -4,6 +4,7 @@ from utils import data_loaders
 from models.cifar10_models import *
 from models.mnist_models import *
 from models.L0_models import *
+from models.imagenette_models import *
 from rmspropw import RMSpropW
 
 def get_model(config):
@@ -15,6 +16,7 @@ def get_model(config):
                   'resnet18': ResNet18,
                   'l0lenet5': L0LeNet5,
                   'l0lenet300': L0MLP,
+                  'densenet161': DenseNet161
                   }
     
     # Grab appropriate class and instantiate it
@@ -40,7 +42,8 @@ def get_dataloaders(config):
         train_loader, test_loader = data_loaders.mnist_dataloaders(config)
     elif config['dataset'] == 'cifar10':
         train_loader, test_loader = data_loaders.cifar10_dataloaders(config)
-    
+    elif config['dataset'] == 'imagenette':
+        train_loader, test_loader = data_loaders.imagenette_dataloaders(config)
 
     return train_loader, test_loader
 

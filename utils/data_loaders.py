@@ -68,7 +68,7 @@ def cifar10_dataloaders(config):
 
 def image_loader(path):
     img = Image.open(path)
-    # Check if image is not a grayscale
+    # Convert image to rgb if it's grayscale
     if img.mode!='RGB':
         arr = np.array(img)
         new_arr = arr[:, :, np.newaxis]
