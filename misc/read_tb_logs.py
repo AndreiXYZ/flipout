@@ -90,9 +90,9 @@ for k, v in plot_dict.items():
     plt.xticks(np.arange(len(v['sparsities'])), truncated)
     break
 
-plt.title('Sparsity vs. acc (VGG-19 CIFAR-10)')
+plt.title('Sparsity vs. acc (Resnet18-19 CIFAR-10) with bnorm pruning')
 plt.legend()
 plt.grid()
 plt.xlabel('Sparsity')
 plt.ylabel('Acc.')
-plt.savefig('./misc/' + 'vgg19_results.png')
+plt.savefig('./misc/' + 'resnet18_prune_bnorm_results.png')

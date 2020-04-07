@@ -1,0 +1,22 @@
+      Model       Prune crit.  Sparsity  Mean acc.
+0  resnet18  global_magnitude    0.7500   0.955467
+1  resnet18  global_magnitude    0.9375   0.952800
+2  resnet18  global_magnitude    0.9844   0.940467
+3  resnet18  global_magnitude    0.9961   0.906400
+4  resnet18  global_magnitude    0.9990   0.740733
+5  resnet18  weight_div_flips    0.7500   0.947033
+6  resnet18  weight_div_flips    0.9375   0.944000
+7  resnet18  weight_div_flips    0.9844   0.938000
+8  resnet18  weight_div_flips    0.9961   0.907867
+9  resnet18  weight_div_flips    0.9990   0.761433
+      Model       Prune crit.  Sparsity  Std. acc.
+0  resnet18  global_magnitude    0.7500   0.001815
+1  resnet18  global_magnitude    0.9375   0.001652
+2  resnet18  global_magnitude    0.9844   0.001290
+3  resnet18  global_magnitude    0.9961   0.003214
+4  resnet18  global_magnitude    0.9990   0.010914
+5  resnet18  weight_div_flips    0.7500   0.001656
+6  resnet18  weight_div_flips    0.9375   0.000265
+7  resnet18  weight_div_flips    0.9844   0.000693
+8  resnet18  weight_div_flips    0.9961   0.001124
+9  resnet18  weight_div_flips    0.9990   0.010852
