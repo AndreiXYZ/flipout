@@ -1,0 +1,65 @@
+Running --model densenet121 --dataset imagenette --seed 42 --logdir=criterion_experiment_no_bias/densenet121 --prune_criterion magnitude --prune_freq 50 --prune_rate 0.5 --comment=densenet121_crit=magnitude_pf=50_seed=42 --save_model=pre-finetune/densenet121_magnitude_pf50_s42
+******************************
+Running
+{
+    "model": "densenet121",
+    "dataset": "imagenette",
+    "batch_size": 128,
+    "test_batch_size": 500,
+    "epochs": 350,
+    "lr": 0.1,
+    "device": "cuda",
+    "seed": 42,
+    "prune_criterion": "magnitude",
+    "prune_freq": 50,
+    "prune_rate": 0.5,
+    "sensitivity": 0,
+    "flip_threshold": 1,
+    "stop_pruning_at": -1,
+    "prune_bias": false,
+    "prune_bnorm": false,
+    "use_ema_flips": false,
+    "beta_ema_flips": null,
+    "reset_flip_cts": false,
+    "normalize_magnitudes": false,
+    "beta_ema_maghists": null,
+    "logdir": "criterion_experiment_no_bias/densenet121",
+    "opt": "sgd",
+    "momentum": 0.9,
+    "use_scheduler": true,
+    "milestones": [
+        150,
+        250
+    ],
+    "reg_type": "wdecay",
+    "lambda": 0.0005,
+    "anneal_lambda": false,
+    "anneal_lr": false,
+    "add_noise": false,
+    "scale_noise_by_lr": false,
+    "stop_noise_at": -1,
+    "noise_only_prunable": false,
+    "noise_scale_factor": 1,
+    "snip_sparsity": 0.0,
+    "beta_ema": 0.999,
+    "lambas": [
+        1.0,
+        1.0,
+        1.0,
+        1.0
+    ],
+    "local_rep": false,
+    "temperature": 0.6666666666666666,
+    "save_model": "pre-finetune/densenet121_magnitude_pf50_s42",
+    "load_model": null,
+    "parallel": false
+}
+******************************
+Total prunable params of model: 6880448
+Model has 6964106 total params.
+num_weights=6922272
+num_biases=41834
+num.prunable=6880448
+---Biases omitted from pruning---
+---Bnorm omitted from pruning---
+========== Epoch 1 ==========

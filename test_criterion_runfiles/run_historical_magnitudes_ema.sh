@@ -6,7 +6,7 @@
 #SBATCH --gres=gpu:1
 #SBATCH --output=out_files/historical_magnitude_normalized_ema
 source activate base
-device=0;
+# device=0;
 seed=42;
 echo "Running historical magnitudes with normalization.";
 for prune_freq in 50 39; do
