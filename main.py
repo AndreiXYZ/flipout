@@ -107,6 +107,8 @@ def train(config, writer):
                     model.update_mask_weight_div_flips(config['prune_rate'])
                 elif config['prune_criterion'] == 'weight_squared_div_flips':
                     model.update_mask_weight_squared_div_flips(config['prune_rate'])
+                elif config['prune_criterion'] == 'weight_div_squared_flips':
+                    model.update_mask_weight_div_squared_flips(config['prune_rate'])
 
                 # Plot layerwise sparsity
                 # plotters.plot_layerwise_sparsity(model, writer, epoch_num)
@@ -166,7 +168,8 @@ def parse_args():
     pruning_choices = ['magnitude', 'flip', 'topflip', 'topflip_layer', 
                        'random', 'snip', 'l0', 'none', 'sensitivity',
                        'global_magnitude', 'historical_magnitude',
-                       'weight_div_flips', 'weight_squared_div_flips']
+                       'weight_div_flips', 'weight_squared_div_flips',
+                       'weight_div_squared_flips']
     
     opt_choices = ['sgd', 'rmsprop', 'adam', 'rmspropw']
     reg_type_choices = ['wdecay', 'l1', 'l2', 'hs']
