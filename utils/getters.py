@@ -112,7 +112,7 @@ def get_epoch_type(config):
     from utils.epoch_funcs import epoch_l0, epoch_flips, regular_epoch
 
     if config['prune_criterion'] in ['flip', 'topflip', 'topflip_layer',
-    'weight_div_flips', 'weight_squared_div_flips']:
+    'weight_div_flips', 'weight_squared_div_flips', 'weight_div_squared_flips']:
         return epoch_flips
     
     elif config['prune_criterion'] == 'l0':

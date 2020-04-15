@@ -14,9 +14,9 @@ config = vars(parser.parse_args())
 root_path = config['log_folder']
 
 # Prepare regexes
-re_crit = re.compile(r'crit=(.\w+)')
+re_model = re.compile(r' (\w+)[_| ]')
 re_seed = re.compile(r'seed=(.\w+)')
-re_model = re.compile(r' (\w+) ')
+re_crit = re.compile(r'crit=[a-z|_]+[_| ]')
 
 headers=['Model', 'Seed', 'Prune crit.', 'Sparsity']
 metrics = ['Test acc.']
@@ -28,9 +28,9 @@ for dirpath, dirs, files in os.walk(root_path):
     if dirpath==root_path:
         continue
     # Gather info about hparams
-    model = re_model.search(dirpath).group(0).strip()
+    model = re_model.search(dirpath).group(0)[:-1].strip()
     seed = re_seed.search(dirpath).group(0).split('=')[1]
-    crit = re_crit.search(dirpath).group(0).split('=')[1]
+    crit = re_crit.search(dirpath).group(0).split('=')[1][:-1]
     
     # Open TB event file
     tb_event_file = os.path.join(dirpath, files[0])
@@ -90,9 +90,9 @@ for k, v in plot_dict.items():
     plt.xticks(np.arange(len(v['sparsities'])), truncated)
     break
 
-plt.title('Sparsity vs. acc (Resnet18-19 CIFAR-10) with bnorm pruning')
+plt.title('Sparsity vs. acc (ResNet-18 Imagenette)')
 plt.legend()
 plt.grid()
 plt.xlabel('Sparsity')
 plt.ylabel('Acc.')
-plt.savefig('./misc/' + 'resnet18_prune_bnorm_results.png')
+plt.savefig('./misc/' + 'resnet18_results.png')

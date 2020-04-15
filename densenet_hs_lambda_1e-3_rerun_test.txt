@@ -1,0 +1,99 @@
+******************************
+Running
+{
+    "model": "densenet121",
+    "dataset": "imagenette",
+    "batch_size": 128,
+    "test_batch_size": 2000,
+    "epochs": 350,
+    "lr": 0.1,
+    "device": "cuda",
+    "seed": 42,
+    "prune_criterion": "global_magnitude",
+    "prune_freq": 32,
+    "prune_rate": 0.5,
+    "sensitivity": 0,
+    "flip_threshold": 1,
+    "stop_pruning_at": -1,
+    "prune_bias": false,
+    "prune_bnorm": false,
+    "use_ema_flips": false,
+    "beta_ema_flips": null,
+    "reset_flip_cts": false,
+    "normalize_magnitudes": false,
+    "beta_ema_maghists": null,
+    "logdir": "test",
+    "opt": "sgd",
+    "momentum": 0.9,
+    "use_scheduler": true,
+    "milestones": [
+        150,
+        250
+    ],
+    "reg_type": "hs",
+    "lambda": 0.001,
+    "anneal_lambda": false,
+    "anneal_lr": false,
+    "add_noise": false,
+    "scale_noise_by_lr": false,
+    "stop_noise_at": -1,
+    "noise_only_prunable": false,
+    "noise_scale_factor": 1,
+    "global_noise": false,
+    "snip_sparsity": 0.0,
+    "beta_ema": 0.999,
+    "lambas": [
+        1.0,
+        1.0,
+        1.0,
+        1.0
+    ],
+    "local_rep": false,
+    "temperature": 0.6666666666666666,
+    "save_model": null,
+    "load_model": null,
+    "parallel": false
+}
+******************************
+Total prunable params of model: 6880448
+Model has 6964106 total params.
+num_weights=6922272
+num_biases=41834
+num.prunable=6880448
+---Biases omitted from pruning---
+---Bnorm omitted from pruning---
+========== Epoch 1 ==========
+Traceback (most recent call last):
+  File "main.py", line 243, in <module>
+    main()
+  File "main.py", line 155, in main
+    model, opt = train(config, writer)
+  File "main.py", line 82, in train
+    test_acc, test_loss = epoch(epoch_num, test_loader, test_dataset_size, model, opt, writer, config)
+  File "/home/andreia/thesis/utils/epoch_funcs.py", line 115, in regular_epoch
+    out = model.forward(x)
+  File "/home/andreia/thesis/models/imagenette_models.py", line 14, in forward
+    return self.model.forward(x)
+  File "/home/andreia/anaconda3/lib/python3.7/site-packages/torchvision/models/densenet.py", line 194, in forward
+    features = self.features(x)
+  File "/home/andreia/anaconda3/lib/python3.7/site-packages/torch/nn/modules/module.py", line 532, in __call__
+    result = self.forward(*input, **kwargs)
+  File "/home/andreia/anaconda3/lib/python3.7/site-packages/torch/nn/modules/container.py", line 100, in forward
+    input = module(input)
+  File "/home/andreia/anaconda3/lib/python3.7/site-packages/torch/nn/modules/module.py", line 532, in __call__
+    result = self.forward(*input, **kwargs)
+  File "/home/andreia/anaconda3/lib/python3.7/site-packages/torchvision/models/densenet.py", line 111, in forward
+    new_features = layer(features)
+  File "/home/andreia/anaconda3/lib/python3.7/site-packages/torch/nn/modules/module.py", line 532, in __call__
+    result = self.forward(*input, **kwargs)
+  File "/home/andreia/anaconda3/lib/python3.7/site-packages/torchvision/models/densenet.py", line 84, in forward
+    bottleneck_output = self.bn_function(prev_features)
+  File "/home/andreia/anaconda3/lib/python3.7/site-packages/torchvision/models/densenet.py", line 41, in bn_function
+    bottleneck_output = self.conv1(self.relu1(self.norm1(concated_features)))  # noqa: T484
+  File "/home/andreia/anaconda3/lib/python3.7/site-packages/torch/nn/modules/module.py", line 532, in __call__
+    result = self.forward(*input, **kwargs)
+  File "/home/andreia/anaconda3/lib/python3.7/site-packages/torch/nn/modules/batchnorm.py", line 107, in forward
+    exponential_average_factor, self.eps)
+  File "/home/andreia/anaconda3/lib/python3.7/site-packages/torch/nn/functional.py", line 1670, in batch_norm
+    training, momentum, eps, torch.backends.cudnn.enabled
+RuntimeError: CUDA out of memory. Tried to allocate 5.23 GiB (GPU 0; 23.62 GiB total capacity; 11.70 GiB already allocated; 1.37 GiB free; 21.46 GiB reserved in total by PyTorch)

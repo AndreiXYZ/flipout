@@ -8,4 +8,4 @@ data/*
 *.swo
 *.swp
 runs/*/*
-out_files/*
+out_files/

@@ -221,6 +221,7 @@ def parse_args():
     parser.add_argument('--stop_noise_at', type=int, default=-1)
     parser.add_argument('--noise_only_prunable', action='store_true', default=False)
     parser.add_argument('--noise_scale_factor', type=float, default=1)
+    parser.add_argument('--global_noise', action='store_true', default=False)
     # SNIP params
     parser.add_argument('--snip_sparsity', type=float, required=False, default=0.)
     # L0 params

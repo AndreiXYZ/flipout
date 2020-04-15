@@ -4,8 +4,8 @@
 #SBATCH -p gpu_titanrtx_shared
 #SBATCH --mem=16000M
 #SBATCH --gres=gpu:1
-#SBATCH --output misc/densenet121_stats.txt
+#SBATCH --output misc/resnet18_stats.txt
 
 source activate base
 
-python misc/read_tb_logs.py --log_folder runs/criterion_experiment_no_bias/densenet121
+python misc/read_tb_logs.py --log_folder runs/criterion_experiment_no_bias/resnet18
