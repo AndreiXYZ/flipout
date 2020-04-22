@@ -174,7 +174,7 @@ def parse_args():
                        'weight_div_squared_flips', 'threshold']
     
     opt_choices = ['sgd', 'rmsprop', 'adam', 'rmspropw']
-    reg_type_choices = ['wdecay', 'l1', 'l2', 'hs']
+    reg_type_choices = ['wdecay', 'l1', 'l2']
     dataset_choices = ['mnist', 'cifar10', 'imagenette']
 
     parser = argparse.ArgumentParser()
@@ -197,6 +197,9 @@ def parse_args():
     parser.add_argument('--stop_pruning_at', type=int, default=-1)
     parser.add_argument('--prune_bias', action='store_true', default=False)
     parser.add_argument('--prune_bnorm', action='store_true', default=False)
+    # Deep Hoyer regularizer
+    parser.add_argument('--add_hs', action='store_true', default=False)
+    parser.add_argument('--hoyer_lambda', type=float, default=0)
     # Flip pruning EMA
     parser.add_argument('--use_ema_flips', dest='use_ema_flips', action='store_true', default=False)
     parser.add_argument('--beta_ema_flips', type=float, default=None)

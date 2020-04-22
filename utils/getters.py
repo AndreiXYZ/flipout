@@ -94,19 +94,25 @@ def get_weight_penalty(model, config):
                 penalty = layer.norm(p=2)**2
             else:
                 penalty = penalty + layer.norm(p=2)**2
-
-    elif config['reg_type'] == 'hs':
-        for layer in model.parameters():
-            if layer.requires_grad and layer.abs().sum() > 0:
-                if penalty is None:
-                    penalty = (layer.abs().sum()**2)/((layer.abs()**2).sum())
-                else:
-                    penalty += (layer.abs().sum()**2)/((layer.abs()**2).sum())
-    
     else:
         penalty = 0
+    
+    penalty = penalty*config['lambda']
 
-    return penalty
+    hs_penalty = None
+    if config['add_hs']:
+        for layer in model.parameters():
+            if layer.requires_grad and layer.abs().sum() > 0:
+                if hs_penalty is None:
+                    hs_penalty = (layer.abs().sum()**2)/((layer.abs()**2).sum())
+                else:
+                    hs_penalty += (layer.abs().sum()**2)/((layer.abs()**2).sum())
+    else:
+        hs_penalty = 0
+    
+    hs_penalty = hs_penalty*config['hoyer_lambda']
+
+    return penalty + hs_penalty
 
 def get_epoch_type(config):
     from utils.epoch_funcs import epoch_l0, epoch_flips, regular_epoch

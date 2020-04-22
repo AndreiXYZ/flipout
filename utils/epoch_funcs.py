@@ -21,7 +21,7 @@ def epoch_flips(epoch_num, loader, dataset_size, model, opt, writer, config):
         if config['anneal_lambda'] == True:
             weight_penalty *= (1-sparsity)
         
-        loss = F.cross_entropy(out, y) + weight_penalty*config['lambda']
+        loss = F.cross_entropy(out, y) + weight_penalty
         
         if model.training:       
             model.save_weights()
@@ -120,7 +120,7 @@ def regular_epoch(epoch_num, loader, dataset_size, model, opt, writer, config):
         if config['anneal_lambda'] == True:
             weight_penalty *= (1-sparsity)
 
-        loss = F.cross_entropy(out, y) + weight_penalty*config['lambda']
+        loss = F.cross_entropy(out, y) + weight_penalty
         
         if model.training:       
             loss.backward()
