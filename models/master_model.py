@@ -337,6 +337,13 @@ class MasterModel(nn.Module):
                 layer_mask.data = ~(layer.abs() < threshold)
                 layer.data = layer*layer_mask
     
+    def update_mask_threshold(self, threshold):
+        # Prune all weights below a threshold
+        with torch.no_grad():
+            for layer, layer_mask in zip(self.prunable_params, self.mask):
+                layer_mask.data = ~(layer.abs() < threshold)*layer_mask
+                layer.data = layer*layer_mask
+    
     def reset_flip_counts(self):
         for layer_flips, layer_ema_flips in zip(self.flip_counts, self.ema_flip_counts):
             layer_flips.data = torch.zeros_like(layer_flips)

@@ -30,7 +30,8 @@ for dirpath, dirs, files in os.walk(root_path):
     # Gather info about hparams
     model = re_model.search(dirpath).group(0)[:-1].strip()
     seed = re_seed.search(dirpath).group(0).split('=')[1].strip()
-    crit = re_crit.search(dirpath).group(0).split('=')[1]
+    crit = re_crit.search(dirpath).group(0).split('=')[1].strip()
+
     # Split from left to right by space or underscore, grab last elem
     # then re-reverse string
     crit = re.split('[ |_]', crit[::-1], maxsplit=1)[-1][::-1]
@@ -44,6 +45,16 @@ for dirpath, dirs, files in os.walk(root_path):
     sparsity = event_accum.Scalars('sparsity/sparsity')[-1].value
     sparsity = round(sparsity, 4)
 
+    # Do this for the case where we get NaNs in ResNet18
+    if sparsity==0:
+        continue
+    # Remove some unwanted criteria
+    if crit in ['magnitude', 'topflip', 'weight_div_flips', 'weight_div_squared_flips']:
+        continue
+    
+    if 'weight_squared_div_flips' in crit and ('1.30' in crit or '1.4' in crit or '1.35' in crit):
+        continue
+    
     run_keys = (model, seed, crit, sparsity)
     run_metrics = (test_acc,)
 
@@ -69,8 +80,10 @@ means = grouped.mean().reset_index()
 means = means.rename(columns={'Test acc.': 'Mean acc.'})
 stds = grouped.std().reset_index()
 stds = stds.rename(columns={'Test acc.': 'Std. acc.'})
-print(means)
-print(stds)
+
+print(means.to_string())
+print(stds.to_string())
+
 results = means.merge(stds, on=groupby_keys)
 # Build the plot dictionary
 prune_crits = results['Prune crit.'].unique()
@@ -93,9 +106,9 @@ for k, v in plot_dict.items():
     plt.xticks(np.arange(len(v['sparsities'])), truncated)
     break
 
-plt.title('Sparsity vs. acc (DenseNet-121 ImageNette)')
+plt.title('Sparsity vs. acc (ResNet18 CIFAR10)')
 plt.legend()
 plt.grid()
 plt.xlabel('Sparsity')
 plt.ylabel('Acc.')
-plt.savefig('./misc/' + 'densenet121_results.png')
+plt.savefig('./misc/' + 'resnet18_results.png')

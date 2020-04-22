@@ -1,0 +1,9 @@
+--model resnet18 --dataset cifar10 --seed 42 --logdir=unpruned_baselines/resnet18 -tbs 5000 --comment=resnet18_unpruned_seed=42
+--model resnet18 --dataset cifar10 --seed 43 --logdir=unpruned_baselines/resnet18 -tbs 5000 --comment=resnet18_unpruned_seed=43
+--model resnet18 --dataset cifar10 --seed 44 --logdir=unpruned_baselines/resnet18 -tbs 5000 --comment=resnet18_unpruned_seed=44
+--model vgg19 --dataset cifar10 --seed 42 --logdir=unpruned_baselines/vgg19 -tbs 5000 --comment=vgg19_unpruned_seed=42
+--model vgg19 --dataset cifar10 --seed 43 --logdir=unpruned_baselines/vgg19 -tbs 5000 --comment=vgg19_unpruned_seed=43
+--model vgg19 --dataset cifar10 --seed 44 --logdir=unpruned_baselines/vgg19 -tbs 5000 --comment=vgg19_unpruned_seed=44
+--model densenet121 --dataset imagenette --seed 42 --logdir=unpruned_baselines/densenet121 -tbs 1000 --comment=densenet121_unpruned_seed=42
+--model densenet121 --dataset imagenette --seed 43 --logdir=unpruned_baselines/densenet121 -tbs 1000 --comment=densenet121_unpruned_seed=43
+--model densenet121 --dataset imagenette --seed 44 --logdir=unpruned_baselines/densenet121 -tbs 1000 --comment=densenet121_unpruned_seed=44

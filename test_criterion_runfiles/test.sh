@@ -8,9 +8,9 @@
 source activate base
 device=0;
 
-seed=42;
+seed=43;
 # Test weights squared divided by flips
-CUDA_VISIBLE_DEVICES=${device} python main.py -m densenet121 -d imagenette -bs 128 -tbs 2000 -e 350 -lr 0.1 \
+CUDA_VISIBLE_DEVICES=${device} python main.py -m densenet121 -d imagenette -bs 128 -tbs 1000 -e 350 -lr 0.1 \
                 --prune_criterion global_magnitude --prune_rate 0.5 --prune_freq 32 \
                 --seed ${seed} --opt sgd --momentum 0.9 --reg_type hs --lambda 0.001 \
                 --use_scheduler --milestones 150 250 \
