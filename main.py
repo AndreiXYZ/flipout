@@ -109,6 +109,8 @@ def train(config, writer):
                     model.update_mask_weight_squared_div_flips(config['prune_rate'])
                 elif config['prune_criterion'] == 'weight_div_squared_flips':
                     model.update_mask_weight_div_squared_flips(config['prune_rate'])
+                elif config['prune_criterion'] == 'threshold':
+                    model.update_mask_threshold(config['magnitude_threshold'])
 
                 # Plot layerwise sparsity
                 # plotters.plot_layerwise_sparsity(model, writer, epoch_num)
@@ -169,7 +171,7 @@ def parse_args():
                        'random', 'snip', 'l0', 'none', 'sensitivity',
                        'global_magnitude', 'historical_magnitude',
                        'weight_div_flips', 'weight_squared_div_flips',
-                       'weight_div_squared_flips']
+                       'weight_div_squared_flips', 'threshold']
     
     opt_choices = ['sgd', 'rmsprop', 'adam', 'rmspropw']
     reg_type_choices = ['wdecay', 'l1', 'l2', 'hs']
@@ -191,6 +193,7 @@ def parse_args():
     parser.add_argument('--prune_rate', type=float, default=0.2) # for magnitude pruning
     parser.add_argument('--sensitivity', type=float, default=0)
     parser.add_argument('--flip_threshold', type=int, default=1) # for flip pruning
+    parser.add_argument('--magnitude_threshold', type=float, default=0)
     parser.add_argument('--stop_pruning_at', type=int, default=-1)
     parser.add_argument('--prune_bias', action='store_true', default=False)
     parser.add_argument('--prune_bnorm', action='store_true', default=False)
