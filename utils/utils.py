@@ -6,7 +6,6 @@ import torch.nn.functional as F
 import numpy as np
 
 from datetime import datetime
-from rmspropw import RMSpropW
 from models.cifar10_models import *
 from models.mnist_models import *
 from models.L0_models import L0LeNet5, L0MLP
@@ -69,7 +68,7 @@ def save_run(model, opt, config):
     save_fpath = './chkpts/' + config['logdir'] + '/' + config['save_model'] + '.pt'
 
     save_dir = '/'.join(save_fpath.split('/')[:-1])
-
+    
     if not os.path.exists(save_dir):
         os.makedirs(save_dir, 0o777)
     

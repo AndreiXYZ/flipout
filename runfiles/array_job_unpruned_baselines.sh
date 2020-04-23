@@ -1,16 +1,16 @@
 #!/bin/bash
-#SBATCH --time=24:00:00
+#SBATCH --time=20:00:00
 #SBATCH --partition=gpu_titanrtx_shared
 #SBATCH --gres=gpu:1
 #SBATCH --mem=16000M
 #SBATCH --cpus-per-task=1
-#SBATCH --array=1-15%5
-#SBATCH --job-name=noisy_global_magnitude_rn18
-#SBATCH --output=out_files/noisy_global_magnitude_rn18/array_job%a.out
+#SBATCH --array=1-9
+#SBATCH --job-name=unpruned_baselines
+#SBATCH --output=out_files/unpruned_baselines/array_job%a.out
 source activate base
 device=0;
 
-param_folder='test_criterion_runfiles/args_noisy_global_magnitude';
+param_folder='runfiles/args_unpruned_baselines';
 run_params=`sed -n ${SLURM_ARRAY_TASK_ID}p ${param_folder}`;
 echo Running ${run_params};
 
