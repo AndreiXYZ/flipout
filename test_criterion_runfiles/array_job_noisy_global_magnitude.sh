@@ -1,10 +1,10 @@
 #!/bin/bash
-#SBATCH --time=8:00:00
+#SBATCH --time=24:00:00
 #SBATCH --partition=gpu_titanrtx_shared
 #SBATCH --gres=gpu:1
 #SBATCH --mem=16000M
 #SBATCH --cpus-per-task=1
-#SBATCH --array=1-15
+#SBATCH --array=1-15%5
 #SBATCH --job-name=noisy_global_magnitude_rn18
 #SBATCH --output=out_files/noisy_global_magnitude_rn18/array_job%a.out
 source activate base

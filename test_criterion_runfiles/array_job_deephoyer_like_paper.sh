@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --time=8:00:00
+#SBATCH --time=24:00:00
 #SBATCH --partition=gpu_titanrtx_shared
 #SBATCH --gres=gpu:1
 #SBATCH --mem=16000M
