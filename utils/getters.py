@@ -5,7 +5,6 @@ from models.cifar10_models import *
 from models.mnist_models import *
 from models.L0_models import *
 from models.imagenette_models import *
-from rmspropw import RMSpropW
 
 def get_model(config):
     init_param = 'VGG19' if config['model'] == 'vgg19' else None

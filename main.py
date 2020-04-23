@@ -173,7 +173,7 @@ def parse_args():
                        'weight_div_flips', 'weight_squared_div_flips',
                        'weight_div_squared_flips', 'threshold']
     
-    opt_choices = ['sgd', 'rmsprop', 'adam', 'rmspropw']
+    opt_choices = ['sgd', 'rmsprop', 'adam']
     reg_type_choices = ['wdecay', 'l1', 'l2']
     dataset_choices = ['mnist', 'cifar10', 'imagenette']
 
