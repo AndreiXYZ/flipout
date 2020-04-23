@@ -76,7 +76,7 @@ def get_opt(config, model):
     
     return opt
 
-def get_weight_penalty(model, config):
+def get_weight_penalty(model, config, epoch_num):
     if 'l0' in config['model']:
         return 0
     
@@ -100,13 +100,14 @@ def get_weight_penalty(model, config):
     penalty = penalty*config['lambda']
 
     hs_penalty = None
-    if config['add_hs']:
-        for layer in model.parameters():
-            if layer.requires_grad and layer.abs().sum() > 0:
-                if hs_penalty is None:
-                    hs_penalty = (layer.abs().sum()**2)/((layer.abs()**2).sum())
-                else:
-                    hs_penalty += (layer.abs().sum()**2)/((layer.abs()**2).sum())
+    if 'stop_hoyer_at' not in config or epoch_num <= config['stop_hoyer_at']:
+        if config['add_hs']:
+            for layer in model.parameters():
+                if layer.requires_grad and layer.abs().sum() > 0:
+                    if hs_penalty is None:
+                        hs_penalty = (layer.abs().sum()**2)/((layer.abs()**2).sum())
+                    else:
+                        hs_penalty += (layer.abs().sum()**2)/((layer.abs()**2).sum())
     else:
         hs_penalty = 0
     

@@ -16,7 +16,7 @@ def epoch_flips(epoch_num, loader, dataset_size, model, opt, writer, config):
         out = model.forward(x)
 
         sparsity = model.sparsity
-        weight_penalty = getters.get_weight_penalty(model, config)
+        weight_penalty = getters.get_weight_penalty(model, config, epoch_num)
 
         if config['anneal_lambda'] == True:
             weight_penalty *= (1-sparsity)
@@ -115,7 +115,7 @@ def regular_epoch(epoch_num, loader, dataset_size, model, opt, writer, config):
         out = model.forward(x)
 
         sparsity = model.sparsity
-        weight_penalty = getters.get_weight_penalty(model, config)
+        weight_penalty = getters.get_weight_penalty(model, config, epoch_num)
 
         if config['anneal_lambda'] == True:
             weight_penalty *= (1-sparsity)
