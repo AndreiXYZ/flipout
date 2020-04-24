@@ -65,7 +65,7 @@ def get_opt(config, model):
     opt_dict = {'adam': optim.Adam,
                 'sgd': optim.SGD,
                 'rmsprop': optim.RMSprop,
-                'rmspropw': RMSpropW}
+                }
     
     opt = opt_dict[config['opt']](**kwargs)
 

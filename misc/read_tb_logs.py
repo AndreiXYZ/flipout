@@ -24,6 +24,8 @@ metrics = ['Test acc.']
 run_dict = {key:[] for key in headers+metrics}
 layer_sparsity_dict = {key:[] for key in headers}
 
+hoyersquare_finetune_stats = []
+
 for dirpath, dirs, files in os.walk(root_path):
     if dirpath==root_path:
         continue
@@ -53,6 +55,10 @@ for dirpath, dirs, files in os.walk(root_path):
         continue
     
     if 'weight_squared_div_flips' in crit and ('1.30' in crit or '1.4' in crit or '1.35' in crit):
+        continue
+    
+    if 'hoyersquare_threshold_finetuned' in crit:
+        hoyersquare_finetune_stats.append((sparsity, test_acc))
         continue
     
     run_keys = (model, seed, crit, sparsity)
@@ -93,22 +99,40 @@ for idx, row in results.iterrows():
     prune_crit = row['Prune crit.']
     plot_dict[prune_crit]['means'].append(row['Mean acc.'])
     plot_dict[prune_crit]['stds'].append(row['Std. acc.'])
-    plot_dict[prune_crit]['sparsities'].append(row['Sparsity'])
+    plot_dict[prune_crit]['sparsities'].append(round(row['Sparsity']*100, 2))
+
+
+# Plot horizontal line of unpruned baseline
+unpruned_baselines = {'resnet18': 0.9537,
+                      'vgg19': 0.9358,
+                      'densenet121': 0.9162}
+
+plt.axhline(y=unpruned_baselines['resnet18'], linestyle='--', color='k')
 
 # Actually do the plots
 for k, v in plot_dict.items():
-    plot_length = np.arange(len(v['sparsities']))
-    plt.errorbar(plot_length, v['means'], v['stds'], label=k)
+    # plot_length = np.arange(len(v['sparsities']))
+    plt.errorbar(v['sparsities'], v['means'], v['stds'], label=k, marker='s', capsize=6)
+    plt.xticks(v['sparsities'], v['sparsities'])
 
 # Dirty hack for xticks
-for k, v in plot_dict.items():
-    truncated = list(map(lambda x: f"{x:.4f}", v['sparsities']))
-    plt.xticks(np.arange(len(v['sparsities'])), truncated)
-    break
+# for k, v in plot_dict.items():
+#     truncated = list(map(lambda x: f"{x:.4f}", v['sparsities']))
+#     plt.xticks(np.arange(len(v['sparsities'])), truncated)
+#     break
 
+# Plot hoyersquare finetune stuff
+hoyersquare_finetune_stats = sorted(hoyersquare_finetune_stats, key=lambda x: x[0])
+hoyersquare_sparsities = [round(elem[0]*100,2) for elem in hoyersquare_finetune_stats]
+hoyersquare_accs = [elem[1] for elem in hoyersquare_finetune_stats]
+plt.plot(hoyersquare_sparsities, hoyersquare_accs, 's-')
+
+# Boilerplate stuff for plot to look good
 plt.title('Sparsity vs. acc (ResNet18 CIFAR10)')
 plt.legend()
+plt.ylim(bottom=0.75)
 plt.grid()
 plt.xlabel('Sparsity')
 plt.ylabel('Acc.')
-plt.savefig('./misc/' + 'resnet18_results.png')
+# plt.savefig('./misc/' + 'resnet18_results.png')
+plt.show()
