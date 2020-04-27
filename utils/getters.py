@@ -99,7 +99,8 @@ def get_weight_penalty(model, config, epoch_num):
     penalty = penalty*config['lambda']
 
     hs_penalty = None
-    if 'stop_hoyer_at' not in config or epoch_num <= config['stop_hoyer_at']:
+    if 'stop_hoyer_at' not in config or (
+        'stop_hoyer_at' in config and epoch_num <= config['stop_hoyer_at']):
         if config['add_hs']:
             for layer in model.parameters():
                 if layer.requires_grad and layer.abs().sum() > 0:

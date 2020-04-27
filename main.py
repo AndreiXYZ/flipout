@@ -200,7 +200,7 @@ def parse_args():
     # Deep Hoyer regularizer
     parser.add_argument('--add_hs', action='store_true', default=False)
     parser.add_argument('--hoyer_lambda', type=float, default=0)
-    parser.add_argument('--stop_hoyer_at', type=int, required=False)
+    parser.add_argument('--stop_hoyer_at', type=int, default=-1)
     # Flip pruning EMA
     parser.add_argument('--use_ema_flips', dest='use_ema_flips', action='store_true', default=False)
     parser.add_argument('--beta_ema_flips', type=float, default=None)
