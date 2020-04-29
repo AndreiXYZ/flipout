@@ -222,6 +222,10 @@ def parse_args():
     parser.add_argument('--lambda', type=float, default=0)
     parser.add_argument('--anneal_lambda', dest='anneal_lambda', action='store_true', default=False)
     parser.add_argument('--anneal_lr', dest='anneal_lr', action='store_true', default=False)
+    # Params for gradient norm clipping
+    parser.add_argument('--clip_grad', action='store_true', default=False)
+    parser.add_argument('--max_norm', type=float, default=None)
+
     # Add noise or not
     parser.add_argument('--noise', dest='add_noise', action='store_true', default=False)
     parser.add_argument('--scale_noise_by_lr', dest='scale_noise_by_lr', action='store_true', default=False)

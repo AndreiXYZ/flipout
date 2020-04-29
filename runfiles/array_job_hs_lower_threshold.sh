@@ -5,16 +5,16 @@
 #SBATCH --mem=16000M
 #SBATCH --cpus-per-task=1
 #SBATCH --array=1-15%5
-#SBATCH --job-name=noisy_global_magnitude_rn18
-#SBATCH --output=out_files/noisy_global_magnitude_rn18/array_job%a.out
+#SBATCH --job-name=hs_lower_threshold
+#SBATCH --output=out_files/hoyer_square_lower_threshold/array_job%a.out
 source activate base
 device=0;
 
-param_folder='runfiles/args_noisy_global_magnitude';
+param_folder='runfiles/args_hs_lower_threshold';
 run_params=`sed -n ${SLURM_ARRAY_TASK_ID}p ${param_folder}`;
 echo Running ${run_params};
 
-CUDA_VISIBLE_DEVICES=${device} python main.py -bs 128 -e 350 -lr 0.1 \
+CUDA_VISIBLE_DEVICES=${device} python main.py -bs 128 -e 500 -lr 0.1 \
                 --opt sgd --momentum 0.9 --reg_type wdecay --lambda 5e-4 --use_scheduler \
                 --milestones 150 250 \
                 ${run_params}

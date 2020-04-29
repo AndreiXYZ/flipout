@@ -117,22 +117,18 @@ plt.axhline(y=unpruned_baselines[model.lower()], linestyle='--', color='k', labe
 
 # Actually do the plots
 for k, v in plot_dict.items():
-    # plot_length = np.arange(len(v['sparsities']))
     plt.errorbar(v['sparsities'], v['means'], v['stds'], label=k, marker='s', capsize=6)
-    # ax = plt.gca()
-    # ax.get_xaxis().set_major_formatter(matplotlib.ticker.ScalarFormatter())
-    # plt.xticks(v['sparsities'], v['sparsities'])
-# Dirty hack for xticks
 
 # Plot hoyersquare finetune stuff
 hoyersquare_finetune_stats = sorted(hoyersquare_finetune_stats, key=lambda x: x[0])
 hoyersquare_sparsities = [elem[0] for elem in hoyersquare_finetune_stats]
 hoyersquare_accs = [elem[1] for elem in hoyersquare_finetune_stats]
 plt.plot(hoyersquare_sparsities, hoyersquare_accs, 's-', label='hoyersquare_finetuned')
-
+print(hoyersquare_sparsities)
+print(len(list(set(hoyersquare_sparsities))))
 
 # Boilerplate stuff for plot to look good
-plt.title('Sparsity vs. acc (ResNet18 CIFAR10)')
+plt.title('Sparsity vs. acc (VGG19 CIFAR10)')
 plt.legend()
 # plt.ylim(bottom=0.75, top=0.96)
 # plt.xlim(left=0.75)
