@@ -26,6 +26,7 @@ run_dict = {key:[] for key in headers+metrics}
 layer_sparsity_dict = {key:[] for key in headers}
 
 hoyersquare_finetune_stats = []
+hoyersquare_low_thresh_stats = []
 
 for dirpath, dirs, files in os.walk(root_path):
     if dirpath==root_path:
@@ -59,7 +60,10 @@ for dirpath, dirs, files in os.walk(root_path):
         continue
     
     if 'hoyersquare_threshold_finetuned' in crit:
-        hoyersquare_finetune_stats.append((sparsity, test_acc))
+        if 'thresh_' not in crit:
+            hoyersquare_finetune_stats.append((sparsity, test_acc))
+        else:
+            hoyersquare_low_thresh_stats.append((sparsity, test_acc))
         continue
     
     # Skip the old hoyersquare method:
@@ -121,11 +125,22 @@ for k, v in plot_dict.items():
 
 # Plot hoyersquare finetune stuff
 hoyersquare_finetune_stats = sorted(hoyersquare_finetune_stats, key=lambda x: x[0])
-hoyersquare_sparsities = [elem[0] for elem in hoyersquare_finetune_stats]
-hoyersquare_accs = [elem[1] for elem in hoyersquare_finetune_stats]
-plt.plot(hoyersquare_sparsities, hoyersquare_accs, 's-', label='hoyersquare_finetuned')
-print(hoyersquare_sparsities)
-print(len(list(set(hoyersquare_sparsities))))
+sparsities = [elem[0] for elem in hoyersquare_finetune_stats]
+accs = [elem[1] for elem in hoyersquare_finetune_stats]
+plt.plot(sparsities, accs, 's-', label='hoyersquare_finetuned')
+
+for elem in hoyersquare_finetune_stats:
+    print(elem)
+
+# Repeat for the lower sparsity ones
+hoyersquare_low_thresh_stats = sorted(hoyersquare_low_thresh_stats, key=lambda x: x[0])
+sparsities = [elem[0] for elem in hoyersquare_low_thresh_stats]
+accs = [elem[1] for elem in hoyersquare_low_thresh_stats]
+if len(hoyersquare_low_thresh_stats) > 0:
+    plt.plot(sparsities, accs, 's-', label='hoyersquare_lower_thresh')
+    print('-'*30)
+    for elem in hoyersquare_low_thresh_stats:
+        print(elem)
 
 # Boilerplate stuff for plot to look good
 plt.title('Sparsity vs. acc (VGG19 CIFAR10)')

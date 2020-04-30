@@ -4,7 +4,7 @@
 #SBATCH --gres=gpu:1
 #SBATCH --mem=16000M
 #SBATCH --cpus-per-task=1
-#SBATCH --array=1-14%7
+#SBATCH --array=1-28%14
 #SBATCH --job-name=noisy_mag_gridsearch
 #SBATCH --output=out_files/noisy_magnitude_gridsearch/array_job%a.out
 source activate base
