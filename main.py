@@ -10,8 +10,9 @@ import json
 import utils.utils as utils
 import utils.plotters as plotters
 import utils.getters as getters
-from utils.data_loaders import *
 
+from torch.utils.data import Subset
+from utils.data_loaders import *
 from torch.utils.tensorboard import SummaryWriter
 from models.master_model import init_attrs, CustomDataParallel
 from models.L0_models import L0MLP, L0LeNet5
@@ -26,6 +27,9 @@ def train(config, writer):
     # model = nn.DataParallel(model)
     # Get train and test loaders
     train_loader, test_loader = getters.get_dataloaders(config)
+    # Create a subset of a single mini-batch for the FLOP calculation
+    subset_train = Subset(train_loader.dataset, [0])
+    mb_x, mb_y = next(iter(subset_train))
 
     train_dataset_size, test_dataset_size = len(train_loader.dataset), len(test_loader.dataset)
 
@@ -132,6 +136,15 @@ def train(config, writer):
         
         print('Sparsity : {:>15.4f}'.format(model.sparsity))
         print('Wdecay : {:>15.6f}'.format(opt.param_groups[0]['weight_decay']))
+        
+        # Grab single mini-batch for FLOPs calculation
+        
+        total_flops, nonzero_flops = get_flops(model, mb_x)
+
+        print('#FLOPs : total={} nonzero={} reduction rate={}'.format{
+            total_flops, nonzero_flops, float(nonzero_flops)/total_flops
+        })
+        
         plotters.plot_stats(train_acc, train_loss, test_acc, test_loss, 
                     model, writer, epoch_num, config, cls_module)
     
