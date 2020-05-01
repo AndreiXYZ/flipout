@@ -27,9 +27,11 @@ def train(config, writer):
     # model = nn.DataParallel(model)
     # Get train and test loaders
     train_loader, test_loader = getters.get_dataloaders(config)
-    # Create a subset of a single mini-batch for the FLOP calculation
+    # Create a subset of a single sample for the FLOP calculation
     subset_train = Subset(train_loader.dataset, [0])
     mb_x, mb_y = next(iter(subset_train))
+    mb_x = mb_x.unsqueeze(0)
+    mb_x = mb_x.to(config['device'])
 
     train_dataset_size, test_dataset_size = len(train_loader.dataset), len(test_loader.dataset)
 
@@ -141,9 +143,9 @@ def train(config, writer):
         
         total_flops, nonzero_flops = get_flops(model, mb_x)
 
-        print('#FLOPs : total={} nonzero={} reduction rate={}'.format{
-            total_flops, nonzero_flops, float(nonzero_flops)/total_flops
-        })
+        print('#FLOPs : total={} nonzero={} reduction rate={}'.format(
+            total_flops, nonzero_flops, float(total_flops)/nonzero_flops
+        ))
         
         plotters.plot_stats(train_acc, train_loss, test_acc, test_loss, 
                     model, writer, epoch_num, config, cls_module)
