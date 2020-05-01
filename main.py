@@ -16,7 +16,7 @@ from torch.utils.tensorboard import SummaryWriter
 from models.master_model import init_attrs, CustomDataParallel
 from models.L0_models import L0MLP, L0LeNet5
 from snip import SNIP, apply_prune_mask
-
+from utils.calc_flops import get_flops
 
 def train(config, writer):
     device = config['device']
@@ -159,6 +159,8 @@ def main():
     writer.flush()
     writer.close()
 
+    utils.print_nonzeros(model)
+    
     if config['save_model'] is not None:
         utils.save_run(model, opt, config)
 

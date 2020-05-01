@@ -102,7 +102,7 @@ def get_weight_penalty(model, config, epoch_num):
     if 'stop_hoyer_at' not in config or (
         'stop_hoyer_at' in config and epoch_num <= config['stop_hoyer_at']):
 
-        
+
         if config['add_hs']:
             for layer in model.parameters():
                 if layer.requires_grad and layer.abs().sum() > 0:
@@ -117,15 +117,15 @@ def get_weight_penalty(model, config, epoch_num):
                     
                     if len(layer.shape) == 4:
                         if hoyer_penalty is None:
-                            hoyer_penalty = ((param**2).sum((0,2,3)).sqrt().sum()**2 + (param**2).sum((1,2,3)).sqrt().sum()**2) / (param**2).sum()
+                            hoyer_penalty = ((layer**2).sum((0,2,3)).sqrt().sum()**2 + (layer**2).sum((1,2,3)).sqrt().sum()**2) / (layer**2).sum()
                         else:
-                            hoyer_penalty += ((param**2).sum((0,2,3)).sqrt().sum()**2 + (param**2).sum((1,2,3)).sqrt().sum()**2) / (param**2).sum()
+                            hoyer_penalty += ((layer**2).sum((0,2,3)).sqrt().sum()**2 + (layer**2).sum((1,2,3)).sqrt().sum()**2) / (layer**2).sum()
                     
                     elif len(layer.shape) == 2:
                         if hoyer_penalty is None:
-                            hoyer_penalty = ((param**2).sum(0).sqrt().sum()**2 + (param**2).sum(1).sqrt().sum()**2)/ (param**2).sum()
+                            hoyer_penalty = ((layer**2).sum(0).sqrt().sum()**2 + (layer**2).sum(1).sqrt().sum()**2)/ (layer**2).sum()
                         else:
-                            hoyer_penalty += ((param**2).sum(0).sqrt().sum()**2 + (param**2).sum(1).sqrt().sum()**2)/ (param**2).sum()
+                            hoyer_penalty += ((layer**2).sum(0).sqrt().sum()**2 + (layer**2).sum(1).sqrt().sum()**2)/ (layer**2).sum()
                         
         else:
             hoyer_penalty = 0
