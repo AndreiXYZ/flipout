@@ -198,6 +198,7 @@ def parse_args():
     parser.add_argument('--prune_bias', action='store_true', default=False)
     parser.add_argument('--prune_bnorm', action='store_true', default=False)
     # Deep Hoyer regularizer
+    parser.add_argument('--add_ghs', action='store_true', default=False)
     parser.add_argument('--add_hs', action='store_true', default=False)
     parser.add_argument('--hoyer_lambda', type=float, default=0)
     parser.add_argument('--stop_hoyer_at', type=int, default=-1)
