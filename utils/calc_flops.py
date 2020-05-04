@@ -4,7 +4,7 @@ import numpy as np
 from collections import OrderedDict
 
 def dense_flops(in_neurons, out_neurons):
-    """Compute the number of multiply-adds used by a Dense (Linear) layer"""
+    """Compute the number of multiply-adds used by a Dense (Linear) layer"""    
     return in_neurons * out_neurons
 
 
@@ -54,15 +54,6 @@ def conv2d_flops(in_channels, out_channels, input_shape, kernel_shape,
     # total work = work per output position * number of output positions
     return nflops * int(np.prod(output_shape))
 
-def nonzero(tensor):
-    """Returns absolute number of values different from 0
-    Arguments:
-        tensor {numpy.ndarray} -- Array to compute over
-    Returns:
-        int -- Number of nonzero elements
-    """
-    return np.sum(tensor != 0.0)
-
 
 def _conv2d_flops(module, activation):
     # Auxiliary func to use abstract flop computation
@@ -71,18 +62,31 @@ def _conv2d_flops(module, activation):
     # unlike shape they have to match to in_channels
     input_shape = activation.shape[2:]
     # TODO Add support for dilation and padding size
-    return conv2d_flops(in_channels=module.in_channels,
+    total_flops = conv2d_flops(in_channels=module.in_channels,
                         out_channels=module.out_channels,
                         input_shape=input_shape,
                         kernel_shape=module.kernel_size,
                         padding=module.padding_mode,
                         strides=module.stride,
                         dilation=module.dilation)
-
+    nonzero_in, nonzero_out = get_nonzeros(module)
+    nonzero_flops = conv2d_flops(in_channels=nonzero_in,
+                        out_channels=nonzero_out,
+                        input_shape=input_shape,
+                        kernel_shape=module.kernel_size,
+                        padding=module.padding_mode,
+                        strides=module.stride,
+                        dilation=module.dilation)
+    
+    return total_flops, nonzero_flops
 
 def _linear_flops(module, activation):
     # Auxiliary func to use abstract flop computation
-    return dense_flops(module.in_features, module.out_features)
+    total_flops = dense_flops(module.in_features, module.out_features)
+    nonzero_in, nonzero_out = get_nonzeros(module)
+    nonzero_flops = dense_flops(nonzero_in, nonzero_out)
+
+    return total_flops, nonzero_flops
 
 
 def hook_applyfn(hook, model, forward=False, backward=False):
@@ -155,6 +159,10 @@ def get_flops(model, input):
         - int - Number of total FLOPs
         - int - Number of FLOPs related to nonzero parameters
     """
+
+    # TODO this only works if, when pruning a filter,
+    # I also prune the corresponding channels in the next
+    # layer
     FLOP_fn = {
         nn.Conv2d: _conv2d_flops,
         nn.Linear: _linear_flops
@@ -167,10 +175,25 @@ def get_flops(model, input):
     for m, (act, _) in activations.items():
         if m.__class__ in FLOP_fn:
             w = m.weight.detach().cpu().numpy().copy()
-            module_flops = FLOP_fn[m.__class__](m, act)
-            total_flops += module_flops
-            # For our operations, all weights are symmetric so we can just
-            # do simple rule of three for the estimation
-            nonzero_flops += module_flops * nonzero(w).sum() / np.prod(w.shape)
-
+            total_flops_module, nonzero_flops_module = FLOP_fn[m.__class__](m, act)
+            total_flops += total_flops_module
+            nonzero_flops += nonzero_flops_module
+        
     return total_flops, nonzero_flops
+
+
+def get_nonzeros(module):
+    assert (hasattr(module, 'weight')), 'The passed module has no weight parameter.'
+
+    weight = module.weight.detach().cpu().numpy().copy()
+
+    if isinstance(module, nn.Conv2d):
+        dim0 = np.sum(np.sum(weight, axis=0),axis=(1,2))
+        dim1 = np.sum(np.sum(weight, axis=1),axis=(1,2))
+    if isinstance(module, nn.Linear):
+        dim0 = np.sum(weight, axis=0)
+        dim1 = np.sum(weight, axis=1)
+    nz_count0 = np.count_nonzero(dim0)
+    nz_count1 = np.count_nonzero(dim1)
+
+    return nz_count0, nz_count1

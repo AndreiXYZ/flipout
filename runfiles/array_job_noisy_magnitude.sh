@@ -4,13 +4,13 @@
 #SBATCH --gres=gpu:1
 #SBATCH --mem=16000M
 #SBATCH --cpus-per-task=1
-#SBATCH --array=1-28%14
-#SBATCH --job-name=noisy_mag_gridsearch
-#SBATCH --output=out_files/noisy_magnitude_gridsearch/array_job%a.out
+#SBATCH --array=1-45%15
+#SBATCH --job-name=noisy_mag
+#SBATCH --output=out_files/noisy_magnitude/array_job%a.out
 source activate base
 device=0;
 
-param_folder='runfiles/args_noisy_magnitude_gridsearch';
+param_folder='runfiles/args_noisy_magnitude';
 run_params=`sed -n ${SLURM_ARRAY_TASK_ID}p ${param_folder}`;
 echo Running ${run_params};
 
