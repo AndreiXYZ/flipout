@@ -135,8 +135,13 @@ def get_activations(model, input):
         assert module not in activations, \
             f"{module} already in activations"
         # TODO [0] means first input, not all models have a single input
-        activations[module] = (input[0].detach().cpu().numpy().copy(),
-                               output.detach().cpu().numpy().copy(),)
+        if isinstance(input[0], list):
+            inp = torch.cat(input[0], 1)
+        else:
+            inp = input[0]
+        
+        activations[module] = (inp.detach().cpu().numpy().copy(),
+                                output.detach().cpu().numpy().copy(),)
 
     fn, hooks = hook_applyfn(store_activations, model, forward=True)
     model.apply(fn)
