@@ -117,7 +117,8 @@ def train(config, writer):
                     model.update_mask_weight_div_squared_flips(config['prune_rate'])
                 elif config['prune_criterion'] == 'threshold':
                     model.update_mask_threshold(config['magnitude_threshold'])
-
+                elif config['prune_criterion'] == 'structured_magnitude':
+                    model.update_mask_structured_magnitudes(config)
                 # Plot layerwise sparsity
                 # plotters.plot_layerwise_sparsity(model, writer, epoch_num)
         
@@ -149,7 +150,8 @@ def train(config, writer):
         
         plotters.plot_stats(train_acc, train_loss, test_acc, test_loss, 
                     model, writer, epoch_num, config, cls_module)
-    
+
+        utils.print_nonzeros(model)
     # After training is done, log the hparams and the metrics
     # plot_hparams(writer, config, train_acc, test_acc, train_loss, test_loss, model.sparsity)
     return model, opt
@@ -188,7 +190,8 @@ def parse_args():
                        'random', 'snip', 'l0', 'none', 'sensitivity',
                        'global_magnitude', 'historical_magnitude',
                        'weight_div_flips', 'weight_squared_div_flips',
-                       'weight_div_squared_flips', 'threshold']
+                       'weight_div_squared_flips', 'threshold',
+                       'structured_magnitude']
     
     opt_choices = ['sgd', 'rmsprop', 'adam']
     reg_type_choices = ['wdecay', 'l1', 'l2']

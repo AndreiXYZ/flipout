@@ -29,7 +29,7 @@ def init_attrs(model, config):
     
     if config['prune_bias']:
         model.prunable_params = list(chain.from_iterable(
-        [[module.weight, module.bias] for layer in model.modules()
+        [[layer.weight, layer.bias] for layer in model.modules()
                                  if isinstance(module, prunable_modules)
                                  and module.weight.requires_grad
                                  and module.bias.requires_grad]
@@ -126,7 +126,49 @@ class MasterModel(nn.Module):
             for weights, layer_mask in zip(self.prunable_params, self.mask):
                 weights.grad.data = weights.grad.data*layer_mask
 
-    
+    def mask_filter(self, layer, filter_num, config):
+        # TODO this does not take into account residual connections
+        # Prune the actual filter
+        self.prunable_params[layer][filter_num, :, :, :] = 0.
+        self.mask[layer][filter_num, :, :, :] = 0.
+        # If pruning bias, prune bias corresponding to that filter
+        # and then prune the corresponding channels in next layer
+        if config['prune_bias']:
+            assert len(self.prunable_params[layer+1].size()) == 1
+            self.prunabe_modules[layer+1][filter_num] = 0.
+            self.mask[layer+1][filter_num] = 0.
+            # Prune channels of next layer only if it is not linear
+            if len(self.prunable_params[layer+2].size()) == 4:
+                self.prunable_params[layer+2][:, filter_num, :, :] = 0.
+                self.mask[layer+2][:, filter_num, :, :] = 0.
+        else:
+            # Otherwise just prune corresponding channels in next layer
+            if len(self.prunable_params[layer+1].size()) == 4:
+                self.prunable_params[layer+1][:, filter_num, :, :] = 0.
+                self.mask[layer+1][:, filter_num, :, :] = 0.
+
+    def update_mask_structured_magnitudes(self, config):
+        with torch.no_grad():
+            all_units = []
+
+            for idx_layer, (layer, layer_mask) in enumerate(zip(self.prunable_params, self.mask)):
+                if len(layer.size()) == 4:
+                    # size = (num_filters, num_channels, width, height)
+                    all_units.extend([(idx_layer, idx_filt, filt.abs().mean()) 
+                                    for idx_filt,filt in enumerate(layer.unbind(dim=0))])
+
+            dtype = np.dtype([('layer_idx', np.int32), ('filt_idx', np.int32), 
+                            ('value', torch.Tensor)])
+            
+            all_units_arr = np.array(all_units, dtype=dtype)
+            idxs = np.argsort(all_units_arr, order='value')
+            # Prune first 5 for testing purposes
+            for idx_to_prune in idxs[:5]:
+                layer_idx = all_units_arr[idx_to_prune][0]
+                filt_idx = all_units_arr[idx_to_prune][1]
+                self.mask_filter(layer_idx, filt_idx, config)
+
+        
     def update_mask_magnitudes(self, rate):
         # Prune parameters of the network according to lowest magnitude
         with torch.no_grad():
