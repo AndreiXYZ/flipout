@@ -30,9 +30,9 @@ def init_attrs(model, config):
     if config['prune_bias']:
         model.prunable_params = list(chain.from_iterable(
         [[layer.weight, layer.bias] for layer in model.modules()
-                                 if isinstance(module, prunable_modules)
-                                 and module.weight.requires_grad
-                                 and module.bias.requires_grad]
+                                 if isinstance(layer, prunable_modules)
+                                 and layer.weight.requires_grad
+                                 and layer.bias.requires_grad]
         ))
     
     else:
@@ -135,7 +135,7 @@ class MasterModel(nn.Module):
         # and then prune the corresponding channels in next layer
         if config['prune_bias']:
             assert len(self.prunable_params[layer+1].size()) == 1
-            self.prunabe_modules[layer+1][filter_num] = 0.
+            self.prunable_params[layer+1][filter_num] = 0.
             self.mask[layer+1][filter_num] = 0.
             # Prune channels of next layer only if it is not linear
             if len(self.prunable_params[layer+2].size()) == 4:
@@ -161,9 +161,11 @@ class MasterModel(nn.Module):
                             ('value', torch.Tensor)])
             
             all_units_arr = np.array(all_units, dtype=dtype)
+            num_pruned = sum([1 if elem[2] == 0. else 0 for elem in all_units_arr])
+            num_to_prune = int((len(all_units_arr) - num_pruned)*config['prune_rate'])
             idxs = np.argsort(all_units_arr, order='value')
-            # Prune first 5 for testing purposes
-            for idx_to_prune in idxs[:5]:
+            # Actually do the pruning
+            for idx_to_prune in idxs[:num_pruned + num_to_prune]:
                 layer_idx = all_units_arr[idx_to_prune][0]
                 filt_idx = all_units_arr[idx_to_prune][1]
                 self.mask_filter(layer_idx, filt_idx, config)

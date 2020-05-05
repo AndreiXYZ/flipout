@@ -119,6 +119,9 @@ def train(config, writer):
                     model.update_mask_threshold(config['magnitude_threshold'])
                 elif config['prune_criterion'] == 'structured_magnitude':
                     model.update_mask_structured_magnitudes(config)
+                # Always also print the nonzeros to see which layers get pruned
+                utils.print_nonzeros(model)
+
                 # Plot layerwise sparsity
                 # plotters.plot_layerwise_sparsity(model, writer, epoch_num)
         
@@ -151,7 +154,7 @@ def train(config, writer):
         plotters.plot_stats(train_acc, train_loss, test_acc, test_loss, 
                     model, writer, epoch_num, config, cls_module)
 
-        utils.print_nonzeros(model)
+        
     # After training is done, log the hparams and the metrics
     # plot_hparams(writer, config, train_acc, test_acc, train_loss, test_loss, model.sparsity)
     return model, opt
