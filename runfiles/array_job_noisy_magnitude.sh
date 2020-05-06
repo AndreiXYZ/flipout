@@ -4,7 +4,7 @@
 #SBATCH --gres=gpu:1
 #SBATCH --mem=16000M
 #SBATCH --cpus-per-task=1
-#SBATCH --array=31-45%15
+#SBATCH --array=44
 #SBATCH --job-name=noisy_mag
 #SBATCH --output=out_files/noisy_magnitude/array_job%a.out
 source activate base

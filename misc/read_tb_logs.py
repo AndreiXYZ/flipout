@@ -59,6 +59,17 @@ for dirpath, dirs, files in os.walk(root_path):
     if 'weight_squared_div_flips' in crit and ('1.30' in crit or '1.4' in crit or '1.35' in crit):
         continue
     
+    # Skip stuff that I do in the ablation studies#
+    if 'noisy_global_magnitude' in crit:
+        continue
+    
+    if 'scaling_factor' in crit:
+        continue
+
+    if 'hoyersquare_lower_thresh' in crit:
+        continue
+    ################################################
+
     if 'hoyersquare_threshold_finetuned' in crit:
         if 'thresh_' not in crit:
             hoyersquare_finetune_stats.append((sparsity, test_acc))
@@ -127,10 +138,9 @@ for k, v in plot_dict.items():
 hoyersquare_finetune_stats = sorted(hoyersquare_finetune_stats, key=lambda x: x[0])
 sparsities = [elem[0] for elem in hoyersquare_finetune_stats]
 accs = [elem[1] for elem in hoyersquare_finetune_stats]
-plt.plot(sparsities, accs, 's-', label='hoyersquare_finetuned')
+if len(hoyersquare_finetune_stats) > 0:
+    plt.plot(sparsities, accs, 's-', label='hoyersquare_finetuned')
 
-for elem in hoyersquare_finetune_stats:
-    print(elem)
 
 # Repeat for the lower sparsity ones
 hoyersquare_low_thresh_stats = sorted(hoyersquare_low_thresh_stats, key=lambda x: x[0])
@@ -155,7 +165,7 @@ ax.get_xaxis().set_major_formatter(matplotlib.ticker.ScalarFormatter())
 plt.xticks(v['sparsities'], v['sparsities'])
 plt.minorticks_off()
 
-plt.xlabel('Sparsity')
-plt.ylabel('Acc.')
+plt.xlabel('Sparsity (%)')
+plt.ylabel('Acc. (%)')
 # plt.savefig('./misc/' + 'resnet18_results.png')
 plt.show()

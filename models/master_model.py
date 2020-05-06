@@ -34,7 +34,6 @@ def init_attrs(model, config):
                                  and layer.weight.requires_grad
                                  and layer.bias.requires_grad]
         ))
-    
     else:
         model.prunable_params = [module.weight for module in model.modules()
                                  if isinstance(module, prunable_modules)
@@ -126,8 +125,14 @@ class MasterModel(nn.Module):
             for weights, layer_mask in zip(self.prunable_params, self.mask):
                 weights.grad.data = weights.grad.data*layer_mask
 
-    def mask_filter(self, layer, filter_num, config):
+    def mask_bnorms(self):
+        # Mask the associated batch normalization parameters when doing
+        # structural pruning
+        pass
+    
+    def mask_filter(self, layer, filter_num, total_layers, config):
         # TODO this does not take into account residual connections
+
         # Prune the actual filter
         self.prunable_params[layer][filter_num, :, :, :] = 0.
         self.mask[layer][filter_num, :, :, :] = 0.
@@ -141,22 +146,35 @@ class MasterModel(nn.Module):
             if len(self.prunable_params[layer+2].size()) == 4:
                 self.prunable_params[layer+2][:, filter_num, :, :] = 0.
                 self.mask[layer+2][:, filter_num, :, :] = 0.
+            # If it is the classification layer, prune associated neurons
+            elif len(self.prunable_params[layer+2].size()) == 2:
+                self.prunable_params[layer+2][:, filter_num] = 0.
+                self.mask[layer+2][:, filter_num] = 0.
         else:
+            # assert len(self.prunable_params[layer+1].size())==4
             # Otherwise just prune corresponding channels in next layer
             if len(self.prunable_params[layer+1].size()) == 4:
                 self.prunable_params[layer+1][:, filter_num, :, :] = 0.
                 self.mask[layer+1][:, filter_num, :, :] = 0.
+            # Or corresponding neurons in the classification layer
+            elif len(self.prunable_params[layer+1].size()) == 2:
+                self.prunable_params[layer+1][:, filter_num] = 0.
+                self.mask[layer+1][:, filter_num] = 0.
 
     def update_mask_structured_magnitudes(self, config):
         with torch.no_grad():
             all_units = []
 
+            for param in self.prunable_params:
+                print(param.size())
+            
             for idx_layer, (layer, layer_mask) in enumerate(zip(self.prunable_params, self.mask)):
                 if len(layer.size()) == 4:
                     # size = (num_filters, num_channels, width, height)
                     all_units.extend([(idx_layer, idx_filt, filt.abs().mean()) 
                                     for idx_filt,filt in enumerate(layer.unbind(dim=0))])
 
+            total_layers = idx_layer
             dtype = np.dtype([('layer_idx', np.int32), ('filt_idx', np.int32), 
                             ('value', torch.Tensor)])
             
@@ -168,7 +186,7 @@ class MasterModel(nn.Module):
             for idx_to_prune in idxs[:num_pruned + num_to_prune]:
                 layer_idx = all_units_arr[idx_to_prune][0]
                 filt_idx = all_units_arr[idx_to_prune][1]
-                self.mask_filter(layer_idx, filt_idx, config)
+                self.mask_filter(layer_idx, filt_idx, total_layers, config)
 
         
     def update_mask_magnitudes(self, rate):

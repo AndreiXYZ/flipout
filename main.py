@@ -179,7 +179,7 @@ def main():
     writer.flush()
     writer.close()
 
-    # utils.print_nonzeros(model)
+    utils.print_nonzeros(model)
     
     if config['save_model'] is not None:
         utils.save_run(model, opt, config)
