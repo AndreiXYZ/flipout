@@ -4,9 +4,9 @@
 #SBATCH --gres=gpu:1
 #SBATCH --mem=16000M
 #SBATCH --cpus-per-task=1
-#SBATCH --array=1-45%15
-#SBATCH --job-name=noise_ablation_rerun
-#SBATCH --output=out_files/noise_ablation_rerun/array_job%a.out
+#SBATCH --array=1-30%15
+#SBATCH --job-name=noise_ablation_rerun_densenet121
+#SBATCH --output=out_files/noise_ablation_rerun/rerun2_densenet/array_job%a.out
 source activate base
 device=0;
 

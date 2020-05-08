@@ -187,8 +187,8 @@ def main():
 
 
 def parse_args():
-    model_choices = ['lenet300', 'lenet5', 'conv6', 'vgg19', 'resnet18',
-                     'l0lenet5', 'l0lenet300', 'densenet121']
+    model_choices = ['lenet300', 'lenet5', 'conv6', 'vgg19', 'vgg16', 'vgg13',
+                     'resnet18', 'l0lenet5', 'l0lenet300', 'densenet121']
     
     pruning_choices = ['magnitude', 'flip', 'topflip', 'topflip_layer', 
                        'random', 'snip', 'l0', 'none', 'sensitivity',

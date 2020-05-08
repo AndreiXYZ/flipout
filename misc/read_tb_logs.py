@@ -56,29 +56,33 @@ for dirpath, dirs, files in os.walk(root_path):
     if crit in ['magnitude', 'topflip', 'weight_div_flips', 'weight_div_squared_flips']:
         continue
     
-    if 'weight_squared_div_flips' in crit and ('1.30' in crit or '1.4' in crit or '1.35' in crit):
-        continue
+    # if 'weight_squared_div_flips' in crit and ('1.30' in crit or '1.4' in crit or '1.35' in crit):
+    #     continue
     
     # Skip stuff that I do in the ablation studies#
-    if 'noisy_global_magnitude' in crit:
-        continue
+    # if 'noisy_global_magnitude' in crit:
+    #     continue
     
-    if 'scaling_factor' in crit:
-        continue
+    # if 'scaling_factor' in crit:
+    #     continue
 
+    if '0.75' in crit or '0.8' in crit:
+        continue
+    # For ablation on vgg
+    # if '0.8' in crit:
+    #     continue
     ################################################
 
     if 'hoyersquare_threshold_finetuned' in crit:
         if 'thresh_' not in crit:
             hoyersquare_finetune_stats.append((sparsity, test_acc))
+        else:
+            hoyersquare_low_thresh_stats.append((sparsity, test_acc))
         continue
-        # else:
-        #     hoyersquare_low_thresh_stats.append((sparsity, test_acc))
-        # continue
     
     # Skip the old hoyersquare method:
-    if 'hoyer_square_lambda' in crit:
-        continue
+    # if 'hoyer_square_lambda' in crit:
+    #     continue
     
     run_keys = (model, seed, crit, sparsity)
     run_metrics = (test_acc,)
@@ -152,7 +156,7 @@ if len(hoyersquare_low_thresh_stats) > 0:
         print(elem)
 
 # Boilerplate stuff for plot to look good
-plt.title('Sparsity vs. acc (VGG19 CIFAR10)')
+plt.title('Sparsity vs. acc (DenseNet121 Imagenette)')
 plt.legend()
 # plt.ylim(bottom=0.75, top=0.96)
 # plt.xlim(left=0.75)

@@ -21,6 +21,10 @@ def get_model(config):
     # Grab appropriate class and instantiate it
     if config['model'] == 'vgg19':
         model = VGG('VGG19')
+    elif config['model'] == 'vgg16':
+        model = VGG('VGG16')
+    elif config['model'] == 'vgg13':
+        model = VGG('VGG13')
 
     elif 'l0' in config['model']:
         model = model_dict[config['model']](N=60000, weight_decay=config['lambda'],
