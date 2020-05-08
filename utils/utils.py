@@ -32,30 +32,6 @@ def get_num_connections(module):
     sum_connections = module.weight.sum(dim=1)
     return (sum_connections!=0.).sum().item()
 
-
-def torch_profile(func):
-    def wrapper_profile(*args, **kwargs): 
-        use_cuda = True if kwargs['device'] == 'cuda' else False
-        with torch.autograd.profiler.profile(use_cuda=use_cuda) as prof:
-            func(*args, **kwargs)
-        print(prof)
-    return wrapper_profile
-
-def torch_timeit(func):
-    def wrapper_func(*args, **kwargs):
-        t1 = torch.cuda.Event(enable_timing=True)
-        t2 = torch.cuda.Event(enable_timing=True)
-
-        t1.record()
-        res = func(*args, **kwargs)
-        t2.record()
-
-        torch.cuda.synchronize()
-        print('Elapsed time = {}ms'.format(t1.elapsed_time(t2)))
-
-        return res
-    return wrapper_func
-
 def save_run(model, opt, config):
     import os
 
@@ -66,7 +42,7 @@ def save_run(model, opt, config):
                  }
     
     save_fpath = './chkpts/' + config['logdir'] + '/' + config['save_model'] + '.pt'
-
+    
     save_dir = '/'.join(save_fpath.split('/')[:-1])
     
     if not os.path.exists(save_dir):
@@ -95,7 +71,7 @@ def print_nonzeros(model):
         nz_count0 = np.count_nonzero(dim0)
         nz_count1 = np.count_nonzero(dim1)
         print(f'{name:20} | dim0 = {nz_count0:7} / {len(dim0):7} ({100 * nz_count0 / len(dim0):6.2f}%) | dim1 = {nz_count1:7} / {len(dim1):7} ({100 * nz_count1 / len(dim1):6.2f}%)')
-    print(f'alive: {nonzero}, pruned : {total - nonzero}, total: {total}, Compression rate : {total/nonzero:10.2f}x  ({100 * (total-nonzero) / total:6.2f}% pruned)')
+    # print(f'alive: {nonzero}, pruned : {total - nonzero}, total: {total}, Compression rate : {total/nonzero:10.2f}x  ({100 * (total-nonzero) / total:6.2f}% pruned)')
 
 
 

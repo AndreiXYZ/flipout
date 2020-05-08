@@ -66,16 +66,15 @@ for dirpath, dirs, files in os.walk(root_path):
     if 'scaling_factor' in crit:
         continue
 
-    if 'hoyersquare_lower_thresh' in crit:
-        continue
     ################################################
 
     if 'hoyersquare_threshold_finetuned' in crit:
         if 'thresh_' not in crit:
             hoyersquare_finetune_stats.append((sparsity, test_acc))
-        else:
-            hoyersquare_low_thresh_stats.append((sparsity, test_acc))
         continue
+        # else:
+        #     hoyersquare_low_thresh_stats.append((sparsity, test_acc))
+        # continue
     
     # Skip the old hoyersquare method:
     if 'hoyer_square_lambda' in crit:

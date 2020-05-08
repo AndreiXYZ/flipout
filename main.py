@@ -120,7 +120,8 @@ def train(config, writer):
                 elif config['prune_criterion'] == 'structured_magnitude':
                     model.update_mask_structured_magnitudes(config)
                 # Always also print the nonzeros to see which layers get pruned
-                utils.print_nonzeros(model)
+                if config['prune_criterion'] != 'none':
+                    utils.print_nonzeros(model)
 
                 # Plot layerwise sparsity
                 # plotters.plot_layerwise_sparsity(model, writer, epoch_num)

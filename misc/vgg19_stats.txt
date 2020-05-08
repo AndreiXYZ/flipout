@@ -1,99 +1,42 @@
-    Model                                  Prune crit.  Sparsity  Mean acc.
-0   vgg19                             global_magnitude    0.7500   0.937767
-1   vgg19                             global_magnitude    0.9375   0.937267
-2   vgg19                             global_magnitude    0.9844   0.932133
-3   vgg19                             global_magnitude    0.9961   0.912733
-4   vgg19                             global_magnitude    0.9990   0.828900
-5   vgg19                       noisy_global_magnitude    0.7500   0.928367
-6   vgg19                       noisy_global_magnitude    0.9375   0.928367
-7   vgg19                       noisy_global_magnitude    0.9844   0.925800
-8   vgg19                       noisy_global_magnitude    0.9961   0.911467
-9   vgg19                       noisy_global_magnitude    0.9990   0.861333
-10  vgg19                                       random    0.7500   0.919167
-11  vgg19                                       random    0.9375   0.847333
-12  vgg19                                       random    0.9844   0.734800
-13  vgg19                                       random    0.9961   0.157667
-14  vgg19                                       random    0.9990   0.100000
-15  vgg19                                         snip    0.7500   0.937467
-16  vgg19                                         snip    0.9375   0.933933
-17  vgg19                                         snip    0.9844   0.100000
-18  vgg19                                         snip    0.9961   0.100000
-19  vgg19                                         snip    0.9990   0.100000
-20  vgg19                     weight_squared_div_flips    0.7500   0.927700
-21  vgg19                     weight_squared_div_flips    0.9375   0.927833
-22  vgg19                     weight_squared_div_flips    0.9844   0.924033
-23  vgg19                     weight_squared_div_flips    0.9961   0.914833
-24  vgg19                     weight_squared_div_flips    0.9990   0.873967
-25  vgg19  weight_squared_div_flips_scaling_factor_0.8    0.7500   0.930000
-26  vgg19  weight_squared_div_flips_scaling_factor_0.8    0.9375   0.931367
-27  vgg19  weight_squared_div_flips_scaling_factor_0.8    0.9844   0.927233
-28  vgg19  weight_squared_div_flips_scaling_factor_0.8    0.9961   0.912533
-29  vgg19  weight_squared_div_flips_scaling_factor_0.8    0.9990   0.869267
-    Model                                  Prune crit.  Sparsity  Std. acc.
-0   vgg19                             global_magnitude    0.7500   0.002409
-1   vgg19                             global_magnitude    0.9375   0.001060
-2   vgg19                             global_magnitude    0.9844   0.002479
-3   vgg19                             global_magnitude    0.9961   0.001365
-4   vgg19                             global_magnitude    0.9990   0.020065
-5   vgg19                       noisy_global_magnitude    0.7500   0.001601
-6   vgg19                       noisy_global_magnitude    0.9375   0.000850
-7   vgg19                       noisy_global_magnitude    0.9844   0.001493
-8   vgg19                       noisy_global_magnitude    0.9961   0.000971
-9   vgg19                       noisy_global_magnitude    0.9990   0.006799
-10  vgg19                                       random    0.7500   0.002183
-11  vgg19                                       random    0.9375   0.010429
-12  vgg19                                       random    0.9844   0.008504
-13  vgg19                                       random    0.9961   0.056489
-14  vgg19                                       random    0.9990   0.000000
-15  vgg19                                         snip    0.7500   0.002650
-16  vgg19                                         snip    0.9375   0.000862
-17  vgg19                                         snip    0.9844   0.000000
-18  vgg19                                         snip    0.9961   0.000000
-19  vgg19                                         snip    0.9990   0.000000
-20  vgg19                     weight_squared_div_flips    0.7500   0.000819
-21  vgg19                     weight_squared_div_flips    0.9375   0.000802
-22  vgg19                     weight_squared_div_flips    0.9844   0.002285
-23  vgg19                     weight_squared_div_flips    0.9961   0.001710
-24  vgg19                     weight_squared_div_flips    0.9990   0.002307
-25  vgg19  weight_squared_div_flips_scaling_factor_0.8    0.7500   0.001253
-26  vgg19  weight_squared_div_flips_scaling_factor_0.8    0.9375   0.000851
-27  vgg19  weight_squared_div_flips_scaling_factor_0.8    0.9844   0.001650
-28  vgg19  weight_squared_div_flips_scaling_factor_0.8    0.9961   0.003190
-29  vgg19  weight_squared_div_flips_scaling_factor_0.8    0.9990   0.006982
-
-------------------------------
-Hoyer square new
-------------------------------
-(0.9608, 0.9312999844551086)
-(0.9799, 0.9203000068664551)
-(0.9869, 0.9164000153541565)
-(0.9906, 0.9042999744415283)
-(0.996, 0.8845000267028809)
-(0.9973, 0.8806999921798706)
-(0.9982, 0.8511999845504761)
-(0.9986, 0.8367999792098999)
-(0.9989, 0.8278999924659729)
-(0.9992, 0.8041999936103821)
-(0.9996, 0.7437999844551086)
-(0.9998, 0.6383000016212463)
-(0.9999, 0.5931000113487244)
-(1.0, 0.10000000149011612)
-(1.0, 0.10000000149011612)
-------------------------------
-Hoyer square new lower threshold
-------------------------------
-(0.9579, 0.9327999949455261)
-(0.9783, 0.9225000143051147)
-(0.9868, 0.9203000068664551)
-(0.9909, 0.9054999947547913)
-(0.9954, 0.8902000188827515)
-(0.9973, 0.871999979019165)
-(0.9984, 0.8496000170707703)
-(0.9984, 0.8543999791145325)
-(0.9988, 0.829800009727478)
-(0.9993, 0.7689999938011169)
-(0.9995, 0.746999979019165)
-(0.9998, 0.6503999829292297)
-(0.9998, 0.10000000149011612)
-(0.9999, 0.4876999855041504)
-(1.0, 0.10000000149011612)
+    Model               Prune crit.  Sparsity  Mean acc.
+0   vgg19          global_magnitude    0.7500   0.937767
+1   vgg19          global_magnitude    0.9375   0.937267
+2   vgg19          global_magnitude    0.9844   0.932133
+3   vgg19          global_magnitude    0.9961   0.912733
+4   vgg19          global_magnitude    0.9990   0.828900
+5   vgg19                    random    0.7500   0.919167
+6   vgg19                    random    0.9375   0.847333
+7   vgg19                    random    0.9844   0.734800
+8   vgg19                    random    0.9961   0.157667
+9   vgg19                    random    0.9990   0.100000
+10  vgg19                      snip    0.7500   0.937467
+11  vgg19                      snip    0.9375   0.933933
+12  vgg19                      snip    0.9844   0.100000
+13  vgg19                      snip    0.9961   0.100000
+14  vgg19                      snip    0.9990   0.100000
+15  vgg19  weight_squared_div_flips    0.7500   0.927700
+16  vgg19  weight_squared_div_flips    0.9375   0.927833
+17  vgg19  weight_squared_div_flips    0.9844   0.924033
+18  vgg19  weight_squared_div_flips    0.9961   0.914833
+19  vgg19  weight_squared_div_flips    0.9990   0.873967
+    Model               Prune crit.  Sparsity  Std. acc.
+0   vgg19          global_magnitude    0.7500   0.002409
+1   vgg19          global_magnitude    0.9375   0.001060
+2   vgg19          global_magnitude    0.9844   0.002479
+3   vgg19          global_magnitude    0.9961   0.001365
+4   vgg19          global_magnitude    0.9990   0.020065
+5   vgg19                    random    0.7500   0.002183
+6   vgg19                    random    0.9375   0.010429
+7   vgg19                    random    0.9844   0.008504
+8   vgg19                    random    0.9961   0.056489
+9   vgg19                    random    0.9990   0.000000
+10  vgg19                      snip    0.7500   0.002650
+11  vgg19                      snip    0.9375   0.000862
+12  vgg19                      snip    0.9844   0.000000
+13  vgg19                      snip    0.9961   0.000000
+14  vgg19                      snip    0.9990   0.000000
+15  vgg19  weight_squared_div_flips    0.7500   0.000819
+16  vgg19  weight_squared_div_flips    0.9375   0.000802
+17  vgg19  weight_squared_div_flips    0.9844   0.002285
+18  vgg19  weight_squared_div_flips    0.9961   0.001710
+19  vgg19  weight_squared_div_flips    0.9990   0.002307
