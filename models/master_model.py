@@ -132,7 +132,7 @@ class MasterModel(nn.Module):
     
     def mask_filter(self, layer, filter_num, total_layers, config):
         # TODO this does not take into account residual connections
-
+        # however I will be running only on vgg nets
         # Prune the actual filter
         self.prunable_params[layer][filter_num, :, :, :] = 0.
         self.mask[layer][filter_num, :, :, :] = 0.

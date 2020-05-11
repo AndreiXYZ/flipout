@@ -1,16 +1,16 @@
 #!/bin/bash
-#SBATCH --time=24:00:00
+#SBATCH --time=8:00:00
 #SBATCH --partition=gpu_titanrtx_shared
 #SBATCH --gres=gpu:1
 #SBATCH --mem=16000M
 #SBATCH --cpus-per-task=1
-#SBATCH --array=1-15%5
-#SBATCH --job-name=hs_lower_threshold
-#SBATCH --output=out_files/hoyer_square_lower_threshold/array_job%a.out
+#SBATCH --array=1-45%15
+#SBATCH --job-name=ghs
+#SBATCH --output=out_files/ghs/array_job%a.out
 source activate base
 device=0;
 
-param_folder='runfiles/args_hs_lower_threshold';
+param_folder='runfiles/args_ghs';
 run_params=`sed -n ${SLURM_ARRAY_TASK_ID}p ${param_folder}`;
 echo Running ${run_params};
 
