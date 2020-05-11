@@ -58,10 +58,11 @@ def plot_hparams(writer, config, train_acc, test_acc, train_loss, test_loss, spa
     writer.add_hparams(hparams, metrics)
 
 
-def plot_stats(train_acc, train_loss, test_acc, test_loss, model, writer, epoch_num, config, cls_module):
+def plot_stats(train_acc, train_loss, test_acc, test_loss, flop_reduction_rate, model, writer, epoch_num, config, cls_module):
         writer.add_scalar('acc/train', train_acc, epoch_num)
         writer.add_scalar('acc/test', test_acc, epoch_num)
         writer.add_scalar('acc/generalization_err', train_acc-test_acc, epoch_num)
+        writer.add_scalar('flops/reduction_rate', flop_reduction_rate, epoch_num)
         writer.add_scalar('loss/train', train_loss, epoch_num)
         writer.add_scalar('loss/test', test_loss, epoch_num)
         writer.add_scalar('sparsity/sparsity', model.sparsity, epoch_num)

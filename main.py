@@ -54,6 +54,8 @@ def train(config, writer):
     # Init the mask from the loader if it is the case
     if config['load_model'] is not None:
         checkpoint = torch.load(config['load_model'], map_location='cuda')
+        model.load_state_dict(checkpoint['model_state'])
+        opt.load_state_dict(checkpoint['opt_state'])
         model.mask = checkpoint['mask']
     
     if config['parallel']:
@@ -148,12 +150,14 @@ def train(config, writer):
         
         total_flops, nonzero_flops = get_flops(model, mb_x)
 
+        flop_reduction_rate = float(total_flops)/nonzero_flops
         print('#FLOPs : total={} nonzero={} reduction rate={}'.format(
-            total_flops, nonzero_flops, float(total_flops)/nonzero_flops
+            total_flops, nonzero_flops, flop_reduction_rate
         ))
         
         plotters.plot_stats(train_acc, train_loss, test_acc, test_loss, 
-                    model, writer, epoch_num, config, cls_module)
+                    flop_reduction_rate, model, writer, 
+                    epoch_num, config, cls_module)
 
         
     # After training is done, log the hparams and the metrics

@@ -66,9 +66,14 @@ for dirpath, dirs, files in os.walk(root_path):
     # if 'scaling_factor' in crit:
     #     continue
 
-    if '0.75' in crit or '0.8' in crit:
-        continue
-    # For ablation on vgg
+
+    # if '0.75' in crit or '0.8' in crit:
+    #     continue
+    
+    # Stuff for DenseNet121
+    # if 'weight_squared_div_flips_scaling_factor_1.15' in crit or 'weight_squared_div_flips_scaling_factor_1.30' in crit:
+    #     continue
+    # # For ablation on vgg
     # if '0.8' in crit:
     #     continue
     ################################################
@@ -168,7 +173,7 @@ ax.get_xaxis().set_major_formatter(matplotlib.ticker.ScalarFormatter())
 plt.xticks(v['sparsities'], v['sparsities'])
 plt.minorticks_off()
 
-plt.xlabel('Sparsity (%)')
-plt.ylabel('Acc. (%)')
+plt.xlabel('Sparsity')
+plt.ylabel('Acc.')
 # plt.savefig('./misc/' + 'resnet18_results.png')
 plt.show()
