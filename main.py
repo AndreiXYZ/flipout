@@ -224,7 +224,6 @@ def parse_args():
     parser.add_argument('--magnitude_threshold', type=float, default=0)
     parser.add_argument('--stop_pruning_at', type=int, default=-1)
     parser.add_argument('--prune_bias', action='store_true', default=False)
-    parser.add_argument('--prune_bnorm', action='store_true', default=False)
     # Deep Hoyer regularizer
     parser.add_argument('--add_ghs', action='store_true', default=False)
     parser.add_argument('--add_hs', action='store_true', default=False)
