@@ -21,7 +21,10 @@ def init_attrs(model, config):
     from itertools import chain
     # Only prune linear and conv2d models (not batchnorm)
     prunable_modules = [nn.Linear, nn.Conv2d]
-    
+
+    if config['prune_bnorm']:
+        prunable_modules.append(nn.BatchNorm2d)
+
     prunable_modules = tuple(prunable_modules)
     
     if config['prune_bias']:
@@ -67,6 +70,9 @@ def init_attrs(model, config):
     
     model.live_connections = None
     model.sparsity = 0
+    # for module in model.prunable_params:
+    #     print(module.size())
+    # sys.exit()
 
 class MasterModel(nn.Module):
     def __init__(self):
@@ -122,48 +128,47 @@ class MasterModel(nn.Module):
             for weights, layer_mask in zip(self.prunable_params, self.mask):
                 weights.grad.data = weights.grad.data*layer_mask
 
-    def mask_bnorms(self):
-        # Mask the associated batch normalization parameters when doing
-        # structural pruning
-        pass
-    
     def mask_filter(self, layer, filter_num, total_layers, config):
         # TODO this does not take into account residual connections
         # however I will be running only on vgg nets
+        assert config['prune_bias'] and config['prune_bnorm'], \
+        'prune_bias and prune_bnorm must both be set to true for structured pruning'
+
         # Prune the actual filter
         self.prunable_params[layer][filter_num, :, :, :] = 0.
         self.mask[layer][filter_num, :, :, :] = 0.
         # If pruning bias, prune bias corresponding to that filter
         # and then prune the corresponding channels in next layer
+        
         if config['prune_bias']:
-            assert len(self.prunable_params[layer+1].size()) == 1
+            # Mask bias parameters of the layer
             self.prunable_params[layer+1][filter_num] = 0.
             self.mask[layer+1][filter_num] = 0.
-            # Prune channels of next layer only if it is not linear
-            if len(self.prunable_params[layer+2].size()) == 4:
-                self.prunable_params[layer+2][:, filter_num, :, :] = 0.
-                self.mask[layer+2][:, filter_num, :, :] = 0.
-            # If it is the classification layer, prune associated neurons
-            elif len(self.prunable_params[layer+2].size()) == 2:
-                self.prunable_params[layer+2][:, filter_num] = 0.
-                self.mask[layer+2][:, filter_num] = 0.
-        else:
-            # assert len(self.prunable_params[layer+1].size())==4
-            # Otherwise just prune corresponding channels in next layer
-            if len(self.prunable_params[layer+1].size()) == 4:
-                self.prunable_params[layer+1][:, filter_num, :, :] = 0.
-                self.mask[layer+1][:, filter_num, :, :] = 0.
-            # Or corresponding neurons in the classification layer
-            elif len(self.prunable_params[layer+1].size()) == 2:
-                self.prunable_params[layer+1][:, filter_num] = 0.
-                self.mask[layer+1][:, filter_num] = 0.
+            
+        # Prune weight and bias of next bnorm layer
+        if config['prune_bnorm']:
+            # Mask the bnorm bias and weight associated with the filter
+            self.prunable_params[layer+2][filter_num] = 0.
+            self.mask[layer+2][filter_num] = 0.
+
+            self.prunable_params[layer+3][filter_num] = 0.
+            self.mask[layer+3][filter_num] = 0.
+    
+        
+        # Now either remove channels in next conv layer or the neurons in the
+        # classification layer
+        if len(self.prunable_params[layer+4].size()) == 4:
+            self.prunable_params[layer+4][:, filter_num, :, :] = 0.
+            self.mask[layer+4][:, filter_num, :, :] = 0.
+            
+        elif len(self.prunable_params[layer+4].size()) == 2:
+            self.prunable_params[layer+4][:, filter_num] = 0.
+            self.mask[layer+4][:, filter_num] = 0.
+            
 
     def update_mask_structured_magnitudes(self, config):
         with torch.no_grad():
             all_units = []
-
-            for param in self.prunable_params:
-                print(param.size())
             
             for idx_layer, (layer, layer_mask) in enumerate(zip(self.prunable_params, self.mask)):
                 if len(layer.size()) == 4:

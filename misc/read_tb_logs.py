@@ -6,7 +6,6 @@ import matplotlib
 from tensorboard.backend.event_processing.event_accumulator import EventAccumulator
 from tabulate import tabulate
 import argparse
-
 parser = argparse.ArgumentParser()
 parser.add_argument('--log_folder', type=str, help='Which folder to read for generating plots.')
 
@@ -35,11 +34,23 @@ for dirpath, dirs, files in os.walk(root_path):
     model = re_model.search(dirpath).group(0)[:-1].strip()
     seed = re_seed.search(dirpath).group(0).split('=')[1].strip()
     crit = re_crit.search(dirpath).group(0).split('=')[1].strip()
-
     # Split from left to right by space or underscore, grab last elem
     # then re-reverse string
     crit = re.split('[ |_]', crit[::-1], maxsplit=1)[-1][::-1]
     
+    if crit in ['magnitude', 'topflip', 'weight_div_flips', 'weight_div_squared_flips']:
+        continue
+    
+    # if '0.8' in crit or '1.15' in crit or '1.25' in crit or '1.30' in crit:
+    #     continue
+    # if 'scaling_factor' in crit:
+    #     continue
+    
+    if 'hoyer_square_lambda' in crit:
+        continue
+
+    # if 'noisy_global_magnitude' in crit:
+    #     continue
     # Open TB event file
     tb_event_file = os.path.join(dirpath, files[0])
     event_accum = EventAccumulator(tb_event_file)
@@ -52,30 +63,7 @@ for dirpath, dirs, files in os.walk(root_path):
     # Do this for the case where we get NaNs in ResNet18
     if sparsity==0:
         continue
-    # Remove some unwanted criteria
-    if crit in ['magnitude', 'topflip', 'weight_div_flips', 'weight_div_squared_flips']:
-        continue
     
-    # if 'weight_squared_div_flips' in crit and ('1.30' in crit or '1.4' in crit or '1.35' in crit):
-    #     continue
-    
-    # Skip stuff that I do in the ablation studies#
-    # if 'noisy_global_magnitude' in crit:
-    #     continue
-    
-    # if 'scaling_factor' in crit:
-    #     continue
-
-
-    # if '0.75' in crit or '0.8' in crit:
-    #     continue
-    
-    # Stuff for DenseNet121
-    # if 'weight_squared_div_flips_scaling_factor_1.15' in crit or 'weight_squared_div_flips_scaling_factor_1.30' in crit:
-    #     continue
-    # # For ablation on vgg
-    # if '0.8' in crit:
-    #     continue
     ################################################
 
     if 'hoyersquare_threshold_finetuned' in crit:
@@ -136,10 +124,27 @@ unpruned_baselines = {'resnet18': 0.9537,
                       'densenet121': 0.9162}
 
 
-plt.axhline(y=unpruned_baselines[model.lower()], linestyle='--', color='k', label='unpruned')
+plt.axhline(y=unpruned_baselines[model.lower()], linestyle='--', color='k', label='Unpruned')
 
 # Actually do the plots
 for k, v in plot_dict.items():
+    # Determine label
+    if k=='global_magnitude':
+        k = 'Global magnitude'
+    elif 'weight_squared_div_flips' in k:
+        if 'scaling_factor' in k:
+            k = r'FlipOut $\lambda=' + k[-4:] + '$'
+        else:
+            k = r'FlipOut $\lambda=1$'
+    elif 'noisy_global_magnitude' in k:
+        if 'lambda' in k:
+            k = r'Noisy global magnitude $\lambda=' + k[-4:] + '$'
+        else:
+            k = r'Noisy global magnitude $\lambda=1$'
+    elif k=='random':
+        k = 'Random'
+    elif k=='snip':
+        k = 'SNIP'
     plt.errorbar(v['sparsities'], v['means'], v['stds'], label=k, marker='s', capsize=6)
 
 # Plot hoyersquare finetune stuff
@@ -147,7 +152,7 @@ hoyersquare_finetune_stats = sorted(hoyersquare_finetune_stats, key=lambda x: x[
 sparsities = [elem[0] for elem in hoyersquare_finetune_stats]
 accs = [elem[1] for elem in hoyersquare_finetune_stats]
 if len(hoyersquare_finetune_stats) > 0:
-    plt.plot(sparsities, accs, 's-', label='hoyersquare_finetuned')
+    plt.plot(sparsities, accs, 's-', label='Hoyer-Square')
 
 
 # Repeat for the lower sparsity ones
@@ -175,5 +180,6 @@ plt.minorticks_off()
 
 plt.xlabel('Sparsity')
 plt.ylabel('Acc.')
-# plt.savefig('./misc/' + 'resnet18_results.png')
+plt.yticks(np.arange(0, 1, 0.025))
+# plt.savefig('/home/apo/Desktop/kek.png')
 plt.show()

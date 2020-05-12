@@ -4,7 +4,7 @@
 #SBATCH --gres=gpu:1
 #SBATCH --mem=16000M
 #SBATCH --cpus-per-task=1
-#SBATCH --array=1-45%15
+#SBATCH --array=16-45%15
 #SBATCH --job-name=ghs
 #SBATCH --output=out_files/ghs/array_job%a.out
 source activate base
