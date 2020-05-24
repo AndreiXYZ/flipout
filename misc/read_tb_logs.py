@@ -43,11 +43,12 @@ for dirpath, dirs, files in os.walk(root_path):
     
     # if '0.8' in crit or '1.15' in crit or '1.25' in crit or '1.30' in crit:
     #     continue
+
     # if 'scaling_factor' in crit:
     #     continue
     
-    if 'hoyer_square_lambda' in crit:
-        continue
+    # if 'hoyer_square_lambda' in crit:
+    #     continue
 
     # if 'noisy_global_magnitude' in crit:
     #     continue
@@ -153,7 +154,9 @@ sparsities = [elem[0] for elem in hoyersquare_finetune_stats]
 accs = [elem[1] for elem in hoyersquare_finetune_stats]
 if len(hoyersquare_finetune_stats) > 0:
     plt.plot(sparsities, accs, 's-', label='Hoyer-Square')
-
+    print('-'*30)
+    for elem in hoyersquare_finetune_stats:
+        print(elem)
 
 # Repeat for the lower sparsity ones
 hoyersquare_low_thresh_stats = sorted(hoyersquare_low_thresh_stats, key=lambda x: x[0])
