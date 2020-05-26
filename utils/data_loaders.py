@@ -96,6 +96,22 @@ def cifar10_dataloaders(config):
             num_workers = 8,
             drop_last = False)
         
+        val_size = 0
+        for x,y in val_loader:
+            val_size += y.size()[0]
+        
+        train_size = 0
+        for x,y in train_loader:
+            train_size += y.size()[0]
+
+        test_size = 0
+        for x,y in test_loader:
+            test_size += y.size()[0]
+        
+        print(train_size, val_size, test_size)
+        
+        import sys; sys.exit()
+        
         return train_loader, val_loader, test_loader
 
 def image_loader(path):
@@ -179,5 +195,21 @@ def imagenette_dataloaders(config):
                         pin_memory = True,
                         num_workers = 8,
                         drop_last = False)
+
+        val_size = 0
+        for x,y in val_loader:
+            val_size += y.size()[0]
+        
+        train_size = 0
+        for x,y in train_loader:
+            train_size += y.size()[0]
+
+        test_size = 0
+        for x,y in test_loader:
+            test_size += y.size()[0]
+        
+        print(train_size, val_size, test_size)
+        
+        import sys; sys.exit()
 
         return train_loader, val_loader, test_loader

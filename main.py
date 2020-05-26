@@ -40,10 +40,6 @@ def train(config, writer):
         train_dataset_size = len(train_loader.dataset) - config['val_size']
         test_dataset_size = config['val_size']
 
-    print(train_dataset_size)
-    print(test_dataset_size)
-    import sys
-    sys.exit()
     opt = getters.get_opt(config, model)
     epoch = getters.get_epoch_type(config)
 
