@@ -219,14 +219,16 @@ def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('-m', '--model', type=str, choices=model_choices, default='lenet300')
     parser.add_argument('-d', '--dataset', type=str, choices=dataset_choices, default='mnist')
-    parser.add_argument('--val', action='store_true', default=False)
-    parser.add_argument('--val_size', type=int, default=0)
     parser.add_argument('-bs', '--batch_size', type=int, default=32)
     parser.add_argument('-tbs', '--test_batch_size', type=int, default=32)
     parser.add_argument('-e', '--epochs', type=int, default=100)
     parser.add_argument('-lr', type=float, default=1e-4)
     parser.add_argument('--device', type=str, default='cuda')
     parser.add_argument('--seed', type=int, default=42)
+    # Args for val set
+    parser.add_argument('--val', action='store_true', default=False)
+    parser.add_argument('--val_size', type=int, default=0)
+    parser.add_argument('--evaluate_on_val', action='store_true', default=False)
 
     # Pruning
     parser.add_argument('--prune_criterion', type=str, choices=pruning_choices, default='none')

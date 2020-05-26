@@ -41,6 +41,8 @@ for dirpath, dirs, files in os.walk(root_path):
     if crit in ['magnitude', 'topflip', 'weight_div_flips', 'weight_div_squared_flips']:
         continue
     
+    if 'lambda' in crit or 'scaling_factor' in crit:
+        continue
     # if '0.8' in crit or '1.15' in crit or '1.25' in crit or '1.30' in crit:
     #     continue
 
