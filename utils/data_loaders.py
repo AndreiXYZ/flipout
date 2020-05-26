@@ -1,8 +1,10 @@
 import torch
+import math
 import numpy as np
 from PIL import Image
 from torchvision import transforms, datasets
 from torch.utils.data import DataLoader
+from torch.utils.data.sampler import SubsetRandomSampler
 
 def mnist_dataloaders(config):
     transformations = transforms.Compose([
@@ -46,25 +48,48 @@ def cifar10_dataloaders(config):
     ])
     
     train_set = datasets.CIFAR10(root='./data', train=True, download=True, transform=transform_train)
+    val_set = datasets.CIFAR10(root='./data', train=True, download=True, transform=transform_test)
     test_set = datasets.CIFAR10(root='./data', train=False, download=True, transform=transform_test)
 
-    train_loader = DataLoader(train_set,
-                              batch_size = config['batch_size'],
-                              shuffle = True,
-                              pin_memory = True,
-                              num_workers = 8,
-                              drop_last = False)
-
     test_loader = DataLoader(test_set,
-                             batch_size = config['test_batch_size'],
-                             shuffle = False,
-                             pin_memory = True,
-                             num_workers = 8,
-                             drop_last = False)
+                        batch_size = config['test_batch_size'],
+                        shuffle = False,
+                        pin_memory = True,
+                        num_workers = 8,
+                        drop_last = False)
     
+    # Grab train and test sets if not using validation
+    if not config['val']:
+        train_loader = DataLoader(train_set,
+                                batch_size = config['batch_size'],
+                                shuffle = True,
+                                pin_memory = True,
+                                num_workers = 8,
+                                drop_last = False)
 
-    return train_loader, test_loader
+        return train_loader, test_loader
+    
+    else:
+        idxs = list(range(len(train_set)))
+        train_idxs = len(train_set) - config['val_size']
+        train_sampler = SubsetRandomSampler(idxs[:train_idxs])
+        val_sampler = SubsetRandomSampler(idxs[train_idxs:])
 
+        train_loader = DataLoader(train_set,
+                        batch_size = config['batch_size'],
+                        sampler=train_sampler,
+                        pin_memory = True,
+                        num_workers = 8,
+                        drop_last = False)
+        
+        val_loader = DataLoader(val_set,
+                        batch_size=config['test_batch_size'],
+                        sampler=val_sampler,
+                        pin_memory=True,
+                        num_workers= 8,
+                        drop_last=False)
+        
+        return train_loader, val_loader
 
 def image_loader(path):
     img = Image.open(path)

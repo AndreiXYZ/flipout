@@ -33,8 +33,17 @@ def train(config, writer):
     mb_x = mb_x.unsqueeze(0)
     mb_x = mb_x.to(config['device'])
 
-    train_dataset_size, test_dataset_size = len(train_loader.dataset), len(test_loader.dataset)
+    if not config['val']:
+        train_dataset_size = len(train_loader.dataset) 
+        test_dataset_size = len(test_loader.dataset)
+    else:
+        train_dataset_size = len(train_loader.dataset) - config['val_size']
+        test_dataset_size = config['val_size']
 
+    print(train_dataset_size)
+    print(test_dataset_size)
+    import sys
+    sys.exit()
     opt = getters.get_opt(config, model)
     epoch = getters.get_epoch_type(config)
 
@@ -88,6 +97,8 @@ def train(config, writer):
         model.eval()
         with torch.no_grad():
             test_acc, test_loss = epoch(epoch_num, test_loader, test_dataset_size, model, opt, writer, config)
+            if config['val']:
+                val_acc, val_loss = epoch(epoch_num, val_loader, )
 
         if config['use_scheduler']:
             scheduler.step()
@@ -208,6 +219,8 @@ def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('-m', '--model', type=str, choices=model_choices, default='lenet300')
     parser.add_argument('-d', '--dataset', type=str, choices=dataset_choices, default='mnist')
+    parser.add_argument('--val', action='store_true', default=False)
+    parser.add_argument('--val_size', type=int, default=0)
     parser.add_argument('-bs', '--batch_size', type=int, default=32)
     parser.add_argument('-tbs', '--test_batch_size', type=int, default=32)
     parser.add_argument('-e', '--epochs', type=int, default=100)
