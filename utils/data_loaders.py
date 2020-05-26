@@ -53,6 +53,10 @@ def cifar10_dataloaders(config):
 
     # Grab train and test sets if not using validation
     if not config['val']:
+        train_size = len(train_set)
+        val_size = 0
+        test_size = len(test_set)
+
         train_loader = DataLoader(train_set,
                                 batch_size = config['batch_size'],
                                 shuffle = True,
@@ -60,20 +64,24 @@ def cifar10_dataloaders(config):
                                 num_workers = 8,
                                 drop_last = False)
         
+        val_loader = None
         test_loader = DataLoader(test_set,
                     batch_size = config['test_batch_size'],
                     shuffle = False,
                     pin_memory = True,
                     num_workers = 8,
                     drop_last = False)
-        
-        return train_loader, None, test_loader
     
     else:
         idxs = list(range(len(train_set)))
         train_idxs = len(train_set) - config['val_size']
         train_sampler = SubsetRandomSampler(idxs[:train_idxs])
         val_sampler = SubsetRandomSampler(idxs[train_idxs:])
+
+        # Determine sizes
+        train_size = len(train_set) - config['val_size']
+        val_size = config['val_size']
+        test_size = len(test_set)
 
         train_loader = DataLoader(train_set,
                         batch_size = config['batch_size'],
@@ -95,24 +103,8 @@ def cifar10_dataloaders(config):
             pin_memory = True,
             num_workers = 8,
             drop_last = False)
-        
-        val_size = 0
-        for x,y in val_loader:
-            val_size += y.size()[0]
-        
-        train_size = 0
-        for x,y in train_loader:
-            train_size += y.size()[0]
 
-        test_size = 0
-        for x,y in test_loader:
-            test_size += y.size()[0]
-        
-        print(train_size, val_size, test_size)
-        
-        import sys; sys.exit()
-        
-        return train_loader, val_loader, test_loader
+    return (train_loader, val_loader, test_loader), (train_size, val_size, test_size)
 
 def image_loader(path):
     img = Image.open(path)
@@ -153,6 +145,10 @@ def imagenette_dataloaders(config):
                                     is_valid_file=is_valid_file, transform=transforms_test)
 
     if not config['val']:
+        train_size = len(train_set)
+        val_size = 0
+        test_size = len(test_set)
+
         train_loader = DataLoader(train_set, 
                                     batch_size = config['batch_size'],
                                     shuffle = True, 
@@ -160,20 +156,27 @@ def imagenette_dataloaders(config):
                                     num_workers = 8,
                                     drop_last = False)
 
+        val_loader = None
+        
         test_loader = DataLoader(test_set,
                                     batch_size = config['test_batch_size'],
                                     shuffle=False,
                                     pin_memory = True,
                                     num_workers = 8,
                                     drop_last = False)
-        
-        return train_loader, None, test_loader
 
     else:
-        idxs = list(range(len(test_set)))
+        idxs = np.arange(len(test_set))
         test_idxs = len(test_set) - config['val_size']
+        # Shufflle it before split
+        np.random.shuffle(idxs)
         test_sampler = SubsetRandomSampler(idxs[:test_idxs])
         val_sampler = SubsetRandomSampler(idxs[test_idxs:])
+        
+        # Determine sizes
+        train_size = len(train_set)
+        val_size = config['val_size']
+        test_size = len(test_set) - config['val_size']
 
         train_loader = DataLoader(train_set,
                         batch_size = config['batch_size'],
@@ -196,20 +199,4 @@ def imagenette_dataloaders(config):
                         num_workers = 8,
                         drop_last = False)
 
-        val_size = 0
-        for x,y in val_loader:
-            val_size += y.size()[0]
-        
-        train_size = 0
-        for x,y in train_loader:
-            train_size += y.size()[0]
-
-        test_size = 0
-        for x,y in test_loader:
-            test_size += y.size()[0]
-        
-        print(train_size, val_size, test_size)
-        
-        import sys; sys.exit()
-
-        return train_loader, val_loader, test_loader
+    return (train_loader, val_loader, test_loader), (train_size, val_size, test_size)

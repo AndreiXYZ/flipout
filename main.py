@@ -26,19 +26,26 @@ def train(config, writer):
     model = model.to(device)
     # model = nn.DataParallel(model)
     # Get train and test loaders
-    train_loader, test_loader = getters.get_dataloaders(config)
+    loaders, sizes = getters.get_dataloaders(config)
+    train_loader, val_loader, test_loader = loaders
+    train_size, val_size, test_size = sizes
+
+    print('Train samples : ' +  train_size)
+    print('Val samples : ', val_size)
+    print('Test samples : ', test_size)
+    
+    # Evaluate on val set if it is the case
+    if config['evaluate_on_val']:
+        test_loader = val_loader
+        test_size = val_size
+    
+
     # Create a subset of a single sample for the FLOP calculation
     subset_train = Subset(train_loader.dataset, [0])
     mb_x, mb_y = next(iter(subset_train))
     mb_x = mb_x.unsqueeze(0)
     mb_x = mb_x.to(config['device'])
 
-    if not config['val']:
-        train_dataset_size = len(train_loader.dataset) 
-        test_dataset_size = len(test_loader.dataset)
-    else:
-        train_dataset_size = len(train_loader.dataset) - config['val_size']
-        test_dataset_size = config['val_size']
 
     opt = getters.get_opt(config, model)
     epoch = getters.get_epoch_type(config)
@@ -88,13 +95,11 @@ def train(config, writer):
         
         model.train()
         # Anneal wdecay
-        train_acc, train_loss = epoch(epoch_num, train_loader, train_dataset_size, model, opt, writer, config)
+        train_acc, train_loss = epoch(epoch_num, train_loader, train_size, model, opt, writer, config)
         
         model.eval()
         with torch.no_grad():
-            test_acc, test_loss = epoch(epoch_num, test_loader, test_dataset_size, model, opt, writer, config)
-            if config['val']:
-                val_acc, val_loss = epoch(epoch_num, val_loader, )
+            test_acc, test_loss = epoch(epoch_num, test_loader, test_size, model, opt, writer, config)
 
         if config['use_scheduler']:
             scheduler.step()

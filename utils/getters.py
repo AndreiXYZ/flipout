@@ -44,11 +44,11 @@ def get_dataloaders(config):
     if config['dataset'] == 'mnist':
         train_loader, test_loader = data_loaders.mnist_dataloaders(config)
     elif config['dataset'] == 'cifar10':
-        train_loader, val_loader, test_loader = data_loaders.cifar10_dataloaders(config)
+        loaders, sizes = data_loaders.cifar10_dataloaders(config)
     elif config['dataset'] == 'imagenette':
-        train_loader, val_loader, test_loader = data_loaders.imagenette_dataloaders(config)
+        loaders, sizes = data_loaders.imagenette_dataloaders(config)
 
-    return train_loader, test_loader
+    return loaders, sizes
 
 
 def get_opt(config, model):
