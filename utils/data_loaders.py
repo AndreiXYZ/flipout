@@ -154,14 +154,14 @@ def imagenette_dataloaders(config):
         return train_loader, None, test_loader
 
     else:
-        idxs = list(range(len(train_set)))
-        train_idxs = len(train_set) - config['val_size']
-        train_sampler = SubsetRandomSampler(idxs[:train_idxs])
-        val_sampler = SubsetRandomSampler(idxs[train_idxs:])
+        idxs = list(range(len(test_set)))
+        test_idxs = len(test_set) - config['val_size']
+        test_sampler = SubsetRandomSampler(idxs[:test_idxs])
+        val_sampler = SubsetRandomSampler(idxs[test_idxs:])
 
         train_loader = DataLoader(train_set,
                         batch_size = config['batch_size'],
-                        sampler=train_sampler,
+                        shuffle = True,
                         pin_memory = True,
                         num_workers = 8,
                         drop_last = False)
@@ -175,7 +175,7 @@ def imagenette_dataloaders(config):
 
         test_loader = DataLoader(test_set,
                         batch_size = config['test_batch_size'],
-                        shuffle=False,
+                        sampler = test_sampler,
                         pin_memory = True,
                         num_workers = 8,
                         drop_last = False)
