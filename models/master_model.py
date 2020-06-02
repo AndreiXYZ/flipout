@@ -250,54 +250,21 @@ class MasterModel(nn.Module):
 
     def update_mask_topflips(self, rate, use_ema, reset_flips):
         with torch.no_grad():
-            # Prune parameters of the network according to highest flips
-            # Flatten everything
-            if use_ema:
-                flip_cts = self.ema_flip_counts
-            else:
-                flip_cts = self.flip_counts
-            
-            flip_cts = torch.cat([layer_flips.clone().view(-1) 
-                                    for layer_flips in flip_cts])
-            flat_mask = torch.cat([layer_mask.clone().view(-1)
-                                    for layer_mask in self.mask])
-            flat_params = torch.cat([layer.clone().view(-1)
-                                    for layer in self.prunable_params])
-            
-            # Get first n% flips
-            num_pruned = (flat_mask==0).sum().item()
-            num_to_prune = int((self.total_prunable - num_pruned)*rate)
-            to_prune = flip_cts.argsort(descending=True)[:num_to_prune]
-            # Grab only those who are different than 0
-            to_prune = to_prune[flip_cts[to_prune] > 0]
-            # Update mask and flip counts
-            flat_mask[to_prune] = 0
-            flip_cts[to_prune] = 0
-            # Replace mask and update parameters
-            self.mask = self.unflatten_tensor(flat_mask, self.mask)
-            
-            for layer, layer_mask in zip(self.prunable_params, self.mask):
-                layer.data = layer*layer_mask
+            flat_mask = torch.cat([layer_mask.view(-1) for layer_mask in self.mask])
+            flat_magnitudes = torch.cat([layer.view(-1) for layer in self.prunable_params])
+            flip_cts = torch.cat([layer_flips.view(-1) for layer_flips in self.flip_counts])
 
-            # Reset flip counts after pruning
-            if reset_flips:
-                self.reset_flip_counts()
-            
-    def update_mask_topflips_layerwise(self, rate):
-        with torch.no_grad():
-            for layer, layer_mask, layer_flips in zip(self.prunable_params, self.mask, self.flip_counts):
-                # Calc how many weights we still need to prune
-                num_pruned = (layer_mask==0).sum().item()
-                num_to_prune = (layer.numel() - num_pruned)*rate
-                
-                # Get index of the weights that are to be pruned
-                to_prune = layer_flips.view(-1).argsort(descending=True)[:int(num_to_prune)]
-                # Only prune those that have more than 0 flips
-                to_prune = to_prune[layer_flips.view(-1)[to_prune] > 0]
-                # Update mask and multiply layer by mask
-                layer_mask.data.view(-1)[to_prune] = 0
-                layer_flips.data.view(-1)[to_prune] = 0
-                
+            # Determine how many we need to prune
+            num_pruned = (flat_mask==0).sum().item()
+            num_to_prune = int((self.total_prunable-num_pruned)*rate)
+            # Do weight divided by number of flips
+            # add a 1 to denominator to avoid division by 0
+            criterion = 1.0/(flip_cts+1)
+            to_prune = criterion.argsort(descending=False)[:num_pruned+num_to_prune]
+            flat_mask[to_prune] = 0.
+            self.mask = self.unflatten_tensor(flat_mask, self.mask)
+
+            for layer, layer_mask in zip(self.prunable_params, self.mask):
                 layer.data = layer*layer_mask
     
     def update_mask_weight_div_flips(self, rate):
