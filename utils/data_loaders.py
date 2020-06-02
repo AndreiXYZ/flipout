@@ -138,7 +138,7 @@ def imagenette_dataloaders(config):
     train_set = datasets.DatasetFolder(root='./data/imagenette2/train', loader=image_loader,
                                     is_valid_file=is_valid_file, transform=transforms_train)
 
-    val_set = datasets.DatasetFolder(root='./data/imagenette2/val', loader=image_loader,
+    val_set = datasets.DatasetFolder(root='./data/imagenette2/train', loader=image_loader,
                                     is_valid_file=is_valid_file, transform=transforms_test)
     
     test_set = datasets.DatasetFolder(root='./data/imagenette2/val', loader=image_loader,
@@ -166,17 +166,15 @@ def imagenette_dataloaders(config):
                                     drop_last = False)
 
     else:
-        idxs = np.arange(len(test_set))
-        test_idxs = len(test_set) - config['val_size']
-        # Shufflle it before split
-        np.random.shuffle(idxs)
-        test_sampler = SubsetRandomSampler(idxs[:test_idxs])
-        val_sampler = SubsetRandomSampler(idxs[test_idxs:])
-        
+        idxs = list(range(len(train_set)))
+        train_idxs = len(train_set) - config['val_size']
+        train_sampler = SubsetRandomSampler(idxs[:train_idxs])
+        val_sampler = SubsetRandomSampler(idxs[train_idxs:])
+
         # Determine sizes
-        train_size = len(train_set)
+        train_size = len(train_set) - config['val_size']
         val_size = config['val_size']
-        test_size = len(test_set) - config['val_size']
+        test_size = len(test_set)
 
         train_loader = DataLoader(train_set,
                         batch_size = config['batch_size'],
