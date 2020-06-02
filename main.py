@@ -29,17 +29,12 @@ def train(config, writer):
     loaders, sizes = getters.get_dataloaders(config)
     train_loader, val_loader, test_loader = loaders
     train_size, val_size, test_size = sizes
-
-    print('Train samples : ' +  train_size)
-    print('Val samples : ', val_size)
-    print('Test samples : ', test_size)
     
     # Evaluate on val set if it is the case
     if config['evaluate_on_val']:
         test_loader = val_loader
         test_size = val_size
     
-
     # Create a subset of a single sample for the FLOP calculation
     subset_train = Subset(train_loader.dataset, [0])
     mb_x, mb_y = next(iter(subset_train))
@@ -160,13 +155,13 @@ def train(config, writer):
         
         # Grab single mini-batch for FLOPs calculation
         
-        total_flops, nonzero_flops = get_flops(model, mb_x)
+        # total_flops, nonzero_flops = get_flops(model, mb_x)
 
-        flop_reduction_rate = float(total_flops)/nonzero_flops
-        print('#FLOPs : total={} nonzero={} reduction rate={}'.format(
-            total_flops, nonzero_flops, flop_reduction_rate
-        ))
-        
+        # flop_reduction_rate = float(total_flops)/nonzero_flops
+        # print('#FLOPs : total={} nonzero={} reduction rate={}'.format(
+        #     total_flops, nonzero_flops, flop_reduction_rate
+        # ))
+        flop_reduction_rate = 0
         plotters.plot_stats(train_acc, train_loss, test_acc, test_loss, 
                     flop_reduction_rate, model, writer, 
                     epoch_num, config, cls_module)
