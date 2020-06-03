@@ -104,6 +104,13 @@ def cifar10_dataloaders(config):
             num_workers = 8,
             drop_last = False)
 
+    for x,y in val_loader:
+        unique, counts = y.unique(return_counts=True)
+        break
+    print(unique)
+    print(counts)
+    import sys; sys.exit()
+
     return (train_loader, val_loader, test_loader), (train_size, val_size, test_size)
 
 def image_loader(path):
@@ -167,6 +174,8 @@ def imagenette_dataloaders(config):
 
     else:
         idxs = list(range(len(train_set)))
+        idxs = np.array(idxs)
+        np.random.shuffle(idxs)
         train_idxs = len(train_set) - config['val_size']
         train_sampler = SubsetRandomSampler(idxs[:train_idxs])
         val_sampler = SubsetRandomSampler(idxs[train_idxs:])
@@ -195,5 +204,5 @@ def imagenette_dataloaders(config):
                         pin_memory = True,
                         num_workers = 8,
                         drop_last = False)
-    
+        
     return (train_loader, val_loader, test_loader), (train_size, val_size, test_size)

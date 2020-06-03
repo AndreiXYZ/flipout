@@ -30,11 +30,6 @@ def train(config, writer):
     train_loader, val_loader, test_loader = loaders
     train_size, val_size, test_size = sizes
     
-    # Evaluate on val set if it is the case
-    if config['evaluate_on_val']:
-        test_loader = val_loader
-        test_size = val_size
-    
     # Create a subset of a single sample for the FLOP calculation
     subset_train = Subset(train_loader.dataset, [0])
     mb_x, mb_y = next(iter(subset_train))
@@ -94,7 +89,10 @@ def train(config, writer):
         
         model.eval()
         with torch.no_grad():
-            test_acc, test_loss = epoch(epoch_num, test_loader, test_size, model, opt, writer, config)
+            if config['evaluate_on_val']:
+                test_acc, test_loss = epoch(epoch_num, val_loader, val_size, model, opt, writer, config)
+            else:
+                test_acc, test_loss = epoch(epoch_num, test_loader, test_size, model, opt, writer, config)
 
         if config['use_scheduler']:
             scheduler.step()
