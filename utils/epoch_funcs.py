@@ -6,7 +6,6 @@ import utils.getters as getters
 from torch.nn.utils.clip_grad import clip_grad_norm_
 
 def epoch_flips(epoch_num, loader, dataset_size, model, opt, writer, config):
-    print('Dataset size = ', dataset_size)
     epoch_acc = 0
     epoch_loss = 0
     curr_lr = opt.param_groups[0]['lr']

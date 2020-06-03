@@ -104,13 +104,6 @@ def cifar10_dataloaders(config):
             num_workers = 8,
             drop_last = False)
 
-    for x,y in val_loader:
-        unique, counts = y.unique(return_counts=True)
-        break
-    print(unique)
-    print(counts)
-    import sys; sys.exit()
-
     return (train_loader, val_loader, test_loader), (train_size, val_size, test_size)
 
 def image_loader(path):
