@@ -8,7 +8,6 @@ import numpy as np
 from datetime import datetime
 from models.cifar10_models import *
 from models.mnist_models import *
-from models.L0_models import L0LeNet5, L0MLP
 
 def accuracy(out, y):
     preds = out.argmax(dim=1, keepdim=True).squeeze()
@@ -32,15 +31,13 @@ def get_num_connections(module):
     sum_connections = module.weight.sum(dim=1)
     return (sum_connections!=0.).sum().item()
 
-def plot_stats(train_acc, train_loss, test_acc, test_loss, flop_reduction_rate, model, writer, epoch_num, config, cls_module):
+def plot_stats(train_acc, train_loss, test_acc, test_loss, model, writer, epoch_num, config):
         writer.add_scalar('acc/train', train_acc, epoch_num)
         writer.add_scalar('acc/test', test_acc, epoch_num)
         writer.add_scalar('acc/generalization_err', train_acc-test_acc, epoch_num)
-        writer.add_scalar('flops/reduction_rate', flop_reduction_rate, epoch_num)
         writer.add_scalar('loss/train', train_loss, epoch_num)
         writer.add_scalar('loss/test', test_loss, epoch_num)
         writer.add_scalar('sparsity/sparsity', model.sparsity, epoch_num)
-        writer.add_scalar('sparsity/remaining_connections', utils.get_num_connections(cls_module), epoch_num)
 
 def save_run(model, opt, config):
     import os

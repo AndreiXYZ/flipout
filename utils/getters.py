@@ -3,7 +3,6 @@ import torch.optim as optim
 from utils import data_loaders
 from models.cifar10_models import *
 from models.mnist_models import *
-from models.L0_models import *
 from models.imagenette_models import *
 
 def get_model(config):
@@ -13,8 +12,6 @@ def get_model(config):
                   'conv6': Conv6,
                   'vgg19': VGG,
                   'resnet18': ResNet18,
-                  'l0lenet5': L0LeNet5,
-                  'l0lenet300': L0MLP,
                   'densenet121': DenseNet121
                   }
     
@@ -25,11 +22,6 @@ def get_model(config):
         model = VGG('VGG16')
     elif config['model'] == 'vgg13':
         model = VGG('VGG13')
-
-    elif 'l0' in config['model']:
-        model = model_dict[config['model']](N=60000, weight_decay=config['lambda'],
-                                            lambas=config['lambas'], local_rep=config['local_rep'],
-                                            temperature=config['temperature'], beta_ema=config['beta_ema'])
     else:
         model = model_dict[config['model']]()
     
@@ -105,32 +97,13 @@ def get_weight_penalty(model, config, epoch_num):
     hoyer_penalty = None
     if 'stop_hoyer_at' not in config or (
         'stop_hoyer_at' in config and epoch_num <= config['stop_hoyer_at']):
-
-
         if config['add_hs']:
             for layer in model.parameters():
                 if layer.requires_grad and layer.abs().sum() > 0:
                     if hoyer_penalty is None:
                         hoyer_penalty = (layer.abs().sum()**2)/((layer.abs()**2).sum())
                     else:
-                        hoyer_penalty += (layer.abs().sum()**2)/((layer.abs()**2).sum())
-        
-        elif config['add_ghs']:
-            for layer in model.parameters():
-                if layer.requires_grad and layer.abs().sum() > 0 and len(layer.shape)>1:
-                    
-                    if len(layer.shape) == 4:
-                        if hoyer_penalty is None:
-                            hoyer_penalty = ((layer**2).sum((0,2,3)).sqrt().sum()**2 + (layer**2).sum((1,2,3)).sqrt().sum()**2) / (layer**2).sum()
-                        else:
-                            hoyer_penalty += ((layer**2).sum((0,2,3)).sqrt().sum()**2 + (layer**2).sum((1,2,3)).sqrt().sum()**2) / (layer**2).sum()
-                    
-                    elif len(layer.shape) == 2:
-                        if hoyer_penalty is None:
-                            hoyer_penalty = ((layer**2).sum(0).sqrt().sum()**2 + (layer**2).sum(1).sqrt().sum()**2)/ (layer**2).sum()
-                        else:
-                            hoyer_penalty += ((layer**2).sum(0).sqrt().sum()**2 + (layer**2).sum(1).sqrt().sum()**2)/ (layer**2).sum()
-                        
+                        hoyer_penalty += (layer.abs().sum()**2)/((layer.abs()**2).sum())        
         else:
             hoyer_penalty = 0
     else:
@@ -141,13 +114,10 @@ def get_weight_penalty(model, config, epoch_num):
     return penalty + hoyer_penalty
 
 def get_epoch_type(config):
-    from utils.epoch_funcs import epoch_l0, epoch_flips, regular_epoch
+    from utils.epoch_funcs import epoch_flips, regular_epoch
 
     if config['prune_criterion'] in ['flip', 'topflip', 'topflip_layer',
     'weight_div_flips', 'weight_squared_div_flips', 'weight_div_squared_flips']:
         return epoch_flips
-    
-    elif config['prune_criterion'] == 'l0':
-        return epoch_l0
         
     return regular_epoch

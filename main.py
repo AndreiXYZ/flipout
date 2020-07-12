@@ -8,14 +8,12 @@ import torch.nn.functional as F
 import json
 
 import utils.utils as utils
-import utils.plotters as plotters
 import utils.getters as getters
 
 from torch.utils.data import Subset
 from utils.data_loaders import *
 from torch.utils.tensorboard import SummaryWriter
 from models.master_model import init_attrs, CustomDataParallel
-from models.L0_models import L0MLP, L0LeNet5
 from snip import SNIP, apply_prune_mask
 from utils.calc_flops import get_flops
 
@@ -102,36 +100,25 @@ def train(config, writer):
             if epoch_num%config['prune_freq'] == 0 and epoch_num != config['epochs']:
                 if config['prune_criterion'] == 'magnitude':
                     model.update_mask_magnitudes(config['prune_rate'])
-                elif config['prune_criterion'] == 'flip':
-                    model.update_mask_flips(config['flip_threshold'])
-                elif config['prune_criterion'] == 'topflip':
-                    model.update_mask_topflips(config['prune_rate'], config['use_ema_flips'], config['reset_flip_cts'])
-                elif config['prune_criterion'] == 'topflip_layer':
-                    model.update_mask_topflips_layerwise(config['prune_rate'])
                 elif config['prune_criterion'] == 'random':
                     model.update_mask_random(config['prune_rate'], config)
-                elif config['prune_criterion'] == 'sensitivity':
-                    model.update_mask_sensitivity(config['sensitivity'])
                 elif  config['prune_criterion'] == 'global_magnitude':
                     model.update_mask_global_magnitudes(config['prune_rate'])
-                elif config['prune_criterion'] == 'historical_magnitude':
-                    model.update_mask_historical_magnitudes(config['prune_rate'])
                 elif config['prune_criterion'] == 'weight_div_flips':
                     model.update_mask_weight_div_flips(config['prune_rate'])
                 elif config['prune_criterion'] == 'weight_squared_div_flips':
                     model.update_mask_weight_squared_div_flips(config['prune_rate'])
                 elif config['prune_criterion'] == 'weight_div_squared_flips':
                     model.update_mask_weight_div_squared_flips(config['prune_rate'])
+                elif config['prune_criterion'] == 'weight_fourth_div_flips':
+                    model.update_mask_weight_fourth_div_flips(config['prune_rate'])
+                elif config['prune_criterion'] == 'weight_eighth_div_flips':
+                    model.update_mask_weight_eighth_div_flips(config['prune_rate'])
                 elif config['prune_criterion'] == 'threshold':
-                    model.update_mask_threshold(config['magnitude_threshold'])
-                elif config['prune_criterion'] == 'structured_magnitude':
-                    model.update_mask_structured_magnitudes(config)
+                    model.update_mask_threshold(config['threshold'])
                 # Always also print the nonzeros to see which layers get pruned
                 if config['prune_criterion'] != 'none':
                     utils.print_nonzeros(model)
-
-                # Plot layerwise sparsity
-                # plotters.plot_layerwise_sparsity(model, writer, epoch_num)
         
         # Update model's sparsity
         model.sparsity = model.get_sparsity(config)
@@ -150,23 +137,10 @@ def train(config, writer):
         
         print('Sparsity : {:>15.4f}'.format(model.sparsity))
         print('Wdecay : {:>15.6f}'.format(opt.param_groups[0]['weight_decay']))
-        
-        # Grab single mini-batch for FLOPs calculation
-        
-        # total_flops, nonzero_flops = get_flops(model, mb_x)
 
-        # flop_reduction_rate = float(total_flops)/nonzero_flops
-        # print('#FLOPs : total={} nonzero={} reduction rate={}'.format(
-        #     total_flops, nonzero_flops, flop_reduction_rate
-        # ))
-        flop_reduction_rate = 0
-        plotters.plot_stats(train_acc, train_loss, test_acc, test_loss, 
-                    flop_reduction_rate, model, writer, 
-                    epoch_num, config, cls_module)
-
+        utils.plot_stats(train_acc, train_loss, test_acc, test_loss, 
+                    model, writer, epoch_num, config)
         
-    # After training is done, log the hparams and the metrics
-    # plot_hparams(writer, config, train_acc, test_acc, train_loss, test_loss, model.sparsity)
     return model, opt
 
 def main():
@@ -197,14 +171,15 @@ def main():
 
 def parse_args():
     model_choices = ['lenet300', 'lenet5', 'conv6', 'vgg19', 'vgg16', 'vgg13',
-                     'resnet18', 'l0lenet5', 'l0lenet300', 'densenet121']
+                     'resnet18', 'densenet121']
     
-    pruning_choices = ['magnitude', 'flip', 'topflip', 'topflip_layer', 
-                       'random', 'snip', 'l0', 'none', 'sensitivity',
-                       'global_magnitude', 'historical_magnitude',
-                       'weight_div_flips', 'weight_squared_div_flips',
-                       'weight_div_squared_flips', 'threshold',
-                       'structured_magnitude']
+    pruning_choices = ['magnitude', 'random', 'snip', 'none', 
+                       'global_magnitude', 'weight_div_flips', 
+                       'weight_squared_div_flips',
+                       'weight_div_squared_flips', 
+                       'weight_fourth_div_flips',
+                       'weight_eighth_div_flips',
+                       'threshold']
     
     opt_choices = ['sgd', 'rmsprop', 'adam']
     reg_type_choices = ['wdecay', 'l1', 'l2']
@@ -228,7 +203,6 @@ def parse_args():
     parser.add_argument('--prune_criterion', type=str, choices=pruning_choices, default='none')
     parser.add_argument('--prune_freq', type=int, default=1)
     parser.add_argument('--prune_rate', type=float, default=0.2) # for magnitude pruning
-    parser.add_argument('--sensitivity', type=float, default=0)
     parser.add_argument('--flip_threshold', type=int, default=1) # for flip pruning
     parser.add_argument('--magnitude_threshold', type=float, default=0)
     parser.add_argument('--stop_pruning_at', type=int, default=-1)

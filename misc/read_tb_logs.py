@@ -38,11 +38,17 @@ for dirpath, dirs, files in os.walk(root_path):
     # then re-reverse string
     crit = re.split('[ |_]', crit[::-1], maxsplit=1)[-1][::-1]
     
-    if crit in ['magnitude', 'topflip', 'weight_div_flips', 'weight_div_squared_flips']:
+    if crit in ['weight_div_squared_flips', 'topflip', 'weight_div_flips', 'snip', 'random', 'magnitude']:
         continue
+    if 'scaling_factor' in crit:
+        continue
+    if 'hoyer' in crit:
+        continue
+    # if crit in ['magnitude', 'topflip', 'weight_div_flips', 'weight_div_squared_flips']:
+        # continue
     
-    if 'lambda' in crit or 'scaling_factor' in crit:
-        continue
+    # if 'lambda' in crit or 'scaling_factor' in crit:
+    #     continue
     # if '0.8' in crit or '1.15' in crit or '1.25' in crit or '1.30' in crit:
     #     continue
 
@@ -71,7 +77,8 @@ for dirpath, dirs, files in os.walk(root_path):
 
     if 'hoyersquare_threshold_finetuned' in crit:
         if 'thresh_' not in crit:
-            hoyersquare_finetune_stats.append((sparsity, test_acc))
+            hs_lambda = crit.split('_')[-1]
+            hoyersquare_finetune_stats.append((hs_lambda, sparsity, test_acc))
         else:
             hoyersquare_low_thresh_stats.append((sparsity, test_acc))
         continue
@@ -134,20 +141,18 @@ for k, v in plot_dict.items():
     # Determine label
     if k=='global_magnitude':
         k = 'Global magnitude'
-    elif 'weight_squared_div_flips' in k:
+    elif k=='weight_squared_div_flips':
         if 'scaling_factor' in k:
             k = r'FlipOut $\lambda=' + k[-4:] + '$'
         else:
             k = r'FlipOut $\lambda=1$'
-    elif 'noisy_global_magnitude' in k:
+    elif k=='noisy_global_magnitude':
         if 'lambda' in k:
             k = r'Noisy global magnitude $\lambda=' + k[-4:] + '$'
         else:
             k = r'Noisy global magnitude $\lambda=1$'
-    elif k=='random':
-        k = 'Random'
-    elif k=='snip':
-        k = 'SNIP'
+    elif k=='weight_squared_div_flips_no_noise':
+        k = r'FlipOut $\lambda=0$'
     plt.errorbar(v['sparsities'], v['means'], v['stds'], label=k, marker='s', capsize=6)
 
 # Plot hoyersquare finetune stuff
