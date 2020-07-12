@@ -198,7 +198,6 @@ def parse_args():
     parser.add_argument('--val', action='store_true', default=False)
     parser.add_argument('--val_size', type=int, default=0)
     parser.add_argument('--evaluate_on_val', action='store_true', default=False)
-
     # Pruning
     parser.add_argument('--prune_criterion', type=str, choices=pruning_choices, default='none')
     parser.add_argument('--prune_freq', type=int, default=1)
@@ -209,17 +208,9 @@ def parse_args():
     parser.add_argument('--prune_bias', action='store_true', default=False)
     parser.add_argument('--prune_bnorm', action='store_true', default=False)
     # Deep Hoyer regularizer
-    parser.add_argument('--add_ghs', action='store_true', default=False)
     parser.add_argument('--add_hs', action='store_true', default=False)
     parser.add_argument('--hoyer_lambda', type=float, default=0)
     parser.add_argument('--stop_hoyer_at', type=int, default=-1)
-    # Flip pruning EMA
-    parser.add_argument('--use_ema_flips', dest='use_ema_flips', action='store_true', default=False)
-    parser.add_argument('--beta_ema_flips', type=float, default=None)
-    parser.add_argument('--reset_flip_cts', action='store_true', default=False)
-    # Historical magnitudes params
-    parser.add_argument('--normalize_magnitudes', action='store_true', default=False)
-    parser.add_argument('--beta_ema_maghists', type=float, default=None)
     # Tensorboard-related args
     parser.add_argument('--comment', type=str, default=None,
                         help='Comment to add to tensorboard text')
@@ -237,22 +228,14 @@ def parse_args():
     # Params for gradient norm clipping
     parser.add_argument('--clip_grad', action='store_true', default=False)
     parser.add_argument('--max_norm', type=float, default=None)
-
     # Add noise or not
     parser.add_argument('--noise', dest='add_noise', action='store_true', default=False)
     parser.add_argument('--scale_noise_by_lr', dest='scale_noise_by_lr', action='store_true', default=False)
     parser.add_argument('--stop_noise_at', type=int, default=-1)
     parser.add_argument('--noise_only_prunable', action='store_true', default=False)
     parser.add_argument('--noise_scale_factor', type=float, default=1)
-    parser.add_argument('--global_noise', action='store_true', default=False)
     # SNIP params
     parser.add_argument('--snip_sparsity', type=float, required=False, default=0.)
-    # L0 params
-    parser.add_argument('--beta_ema', type=float, default=0.999)
-    parser.add_argument('--lambas', nargs='*', type=float, default=[1., 1., 1., 1.])
-    parser.add_argument('--local_rep', action='store_true')
-    parser.add_argument('--temperature', type=float, default=2./3.)
-    
     # Whether or not to save the model. Run-name will be comment name
     parser.add_argument('--save_model', type=str, default=None)
     parser.add_argument('--load_model', type=str, default=None)

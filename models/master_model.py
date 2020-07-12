@@ -61,9 +61,6 @@ def init_attrs(model, config):
     
     model.live_connections = None
     model.sparsity = 0
-    # for module in model.prunable_params:
-    #     print(module.size())
-    # sys.exit()
 
 class MasterModel(nn.Module):
     def __init__(self):
