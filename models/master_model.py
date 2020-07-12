@@ -220,7 +220,7 @@ class MasterModel(nn.Module):
             for layer, layer_mask, historical_layer in zip(self.prunable_params, self.mask, self.historical_magnitudes):
                 layer.data = layer * layer_mask
                 historical_layer.data = historical_layer * layer_mask
-        
+    
     def update_mask_global_magnitudes(self, rate):
         with torch.no_grad():
             flat_params = torch.cat([layer.view(-1) for layer in self.prunable_params])
@@ -306,6 +306,46 @@ class MasterModel(nn.Module):
             for layer, layer_mask in zip(self.prunable_params, self.mask):
                 layer.data = layer*layer_mask
     
+    def update_mask_weight_fourth_div_flips(self, rate):
+        with torch.no_grad():
+            flat_mask = torch.cat([layer_mask.view(-1) for layer_mask in self.mask])
+            flat_magnitudes = torch.cat([layer.view(-1) for layer in self.prunable_params])
+            flip_cts = torch.cat([layer_flips.view(-1) for layer_flips in self.flip_counts])
+
+            # Determine how many we need to prune
+            num_pruned = (flat_mask==0).sum().item()
+            num_to_prune = int((self.total_prunable-num_pruned)*rate)
+
+            # Do weight divided by number of flips
+            # add a 1 to denominator to avoid division by 0
+            criterion = flat_magnitudes.pow(4)/(flip_cts+1)
+            to_prune = criterion.argsort(descending=False)[:num_pruned+num_to_prune]
+            flat_mask[to_prune] = 0.
+            self.mask = self.unflatten_tensor(flat_mask, self.mask)
+
+            for layer, layer_mask in zip(self.prunable_params, self.mask):
+                layer.data = layer*layer_mask
+
+    def update_mask_weight_eighth_div_flips(self, rate):
+        with torch.no_grad():
+            flat_mask = torch.cat([layer_mask.view(-1) for layer_mask in self.mask])
+            flat_magnitudes = torch.cat([layer.view(-1) for layer in self.prunable_params])
+            flip_cts = torch.cat([layer_flips.view(-1) for layer_flips in self.flip_counts])
+
+            # Determine how many we need to prune
+            num_pruned = (flat_mask==0).sum().item()
+            num_to_prune = int((self.total_prunable-num_pruned)*rate)
+
+            # Do weight divided by number of flips
+            # add a 1 to denominator to avoid division by 0
+            criterion = flat_magnitudes.pow(8)/(flip_cts+1)
+            to_prune = criterion.argsort(descending=False)[:num_pruned+num_to_prune]
+            flat_mask[to_prune] = 0.
+            self.mask = self.unflatten_tensor(flat_mask, self.mask)
+
+            for layer, layer_mask in zip(self.prunable_params, self.mask):
+                layer.data = layer*layer_mask
+    
     def update_mask_weight_div_squared_flips(self, rate):
         with torch.no_grad():
             flat_mask = torch.cat([layer_mask.view(-1) for layer_mask in self.mask])
@@ -343,14 +383,6 @@ class MasterModel(nn.Module):
 
             for layer, layer_mask in zip(self.prunable_params, self.mask):
                 layer.data = layer*layer_mask
-            
-    def update_mask_sensitivity(self, sensitivity):
-        # Updates the mask, removing all parameters that are less than std(layer)*sensitivity
-        with torch.no_grad():
-            for layer, layer_mask in zip(self.prunable_params, self.mask):
-                threshold = sensitivity*layer.std()
-                layer_mask.data = ~(layer.abs() < threshold)
-                layer.data = layer*layer_mask
     
     def update_mask_threshold(self, threshold):
         # Prune all weights below a threshold
@@ -360,11 +392,6 @@ class MasterModel(nn.Module):
                 
                 num_nonzeros = (layer_mask.view(-1)==0).sum()
                 layer.data = layer*layer_mask
-    
-    def reset_flip_counts(self):
-        for layer_flips, layer_ema_flips in zip(self.flip_counts, self.ema_flip_counts):
-            layer_flips.data = torch.zeros_like(layer_flips)
-            layer_ema_flips.data = torch.zeros_like(layer_ema_flips)
     
     def store_flips_since_last(self):
     # Retrieves how many params have flipped compared to previously saved weights
@@ -379,49 +406,6 @@ class MasterModel(nn.Module):
                 layer_flips *= layer_mask
                 num_flips += flipped.sum()
         return num_flips
-
-
-    def store_ema_flip_counts(self, beta):
-        with torch.no_grad():
-            for layer_flips, layer_ema_flips, layer_mask in zip(self.flip_counts, self.ema_flip_counts, self.mask):
-                layer_ema_flips.data = beta*layer_ema_flips + (1-beta)*layer_flips
-                layer_ema_flips.data = layer_ema_flips*layer_mask
-    
-
-    def add_current_magnitudes(self, config):
-        with torch.no_grad():
-            # Normalize the history every time if it is the case
-            if config['normalize_magnitudes']:
-                params = torch.cat([layer.clone().view(-1).abs() for layer in self.prunable_params])
-                params = params/params.sum()
-                params_to_add = self.unflatten_tensor(params, self.prunable_params)
-            else:
-                params_to_add = self.prunable_params
-            
-
-            for layer, historical_layer in zip(params_to_add, 
-                                               self.historical_magnitudes):
-                if config['beta_ema_maghists'] is not None:
-                    historical_layer.data = historical_layer*config['beta_ema_maghists'] + layer.abs()
-                else:
-                    historical_layer.data = historical_layer*config['beta_ema_maghists'] + layer.abs()
-
-    
-    def get_flips_total(self):
-        # Get total number of flips
-        with torch.no_grad():
-            flips_total = 0
-            for layer_flips in self.flip_counts:
-                flips_total += layer_flips.sum().item()
-        return flips_total
-    
-    def get_total_flipped(self):
-        # Get number of weights that flipped at least once
-        with torch.no_grad():
-            total_flipped = 0
-            for layer_flips in self.flip_counts:
-                total_flipped += layer_flips[layer_flips >= 1].sum().item()
-        return total_flipped
 
     def inject_noise(self, config, epoch_num, curr_lr):
     # Inject Gaussian noise scaled by a factor into the gradients
@@ -463,20 +447,6 @@ class MasterModel(nn.Module):
                 prunable_layer.grad.data *= layer_mask
 
         return noise_per_layer
-
-    def get_sign_percentages(self):
-        # Get total num of weights
-        total_remaining_weights = 0
-        remaining_pos = 0
-        with torch.no_grad():
-            for layer in self.parameters():
-                flat_layer = layer.flatten()
-                remaining = flat_layer[flat_layer != 0]
-
-                total_remaining_weights += remaining.numel()
-                remaining_pos += remaining[remaining > 0].numel()
-    
-        return total_remaining_weights, remaining_pos
 
 
     @staticmethod

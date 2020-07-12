@@ -10,3 +10,4 @@ data/*
 runs/*/*
 out_files/
 runfiles/*
+misc/*

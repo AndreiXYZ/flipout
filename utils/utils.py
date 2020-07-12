@@ -32,6 +32,16 @@ def get_num_connections(module):
     sum_connections = module.weight.sum(dim=1)
     return (sum_connections!=0.).sum().item()
 
+def plot_stats(train_acc, train_loss, test_acc, test_loss, flop_reduction_rate, model, writer, epoch_num, config, cls_module):
+        writer.add_scalar('acc/train', train_acc, epoch_num)
+        writer.add_scalar('acc/test', test_acc, epoch_num)
+        writer.add_scalar('acc/generalization_err', train_acc-test_acc, epoch_num)
+        writer.add_scalar('flops/reduction_rate', flop_reduction_rate, epoch_num)
+        writer.add_scalar('loss/train', train_loss, epoch_num)
+        writer.add_scalar('loss/test', test_loss, epoch_num)
+        writer.add_scalar('sparsity/sparsity', model.sparsity, epoch_num)
+        writer.add_scalar('sparsity/remaining_connections', utils.get_num_connections(cls_module), epoch_num)
+
 def save_run(model, opt, config):
     import os
 
@@ -71,7 +81,6 @@ def print_nonzeros(model):
         nz_count0 = np.count_nonzero(dim0)
         nz_count1 = np.count_nonzero(dim1)
         print(f'{name:20} | dim0 = {nz_count0:7} / {len(dim0):7} ({100 * nz_count0 / len(dim0):6.2f}%) | dim1 = {nz_count1:7} / {len(dim1):7} ({100 * nz_count1 / len(dim1):6.2f}%)')
-    # print(f'alive: {nonzero}, pruned : {total - nonzero}, total: {total}, Compression rate : {total/nonzero:10.2f}x  ({100 * (total-nonzero) / total:6.2f}% pruned)')
 
 
 
