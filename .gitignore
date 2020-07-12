@@ -9,3 +9,4 @@ data/*
 *.swp
 runs/*/*
 out_files/
+runfiles/*
