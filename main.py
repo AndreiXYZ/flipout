@@ -113,7 +113,7 @@ def train(config, writer):
                     model.update_mask_flipout(config['prune_rate'], config['flipout_p'])
 
                 elif config['prune_criterion'] == 'threshold':
-                    model.update_mask_threshold(config['threshold'])
+                    model.update_mask_threshold(config['magnitude_threshold'])
                 # Always also print the nonzeros to see which layers get pruned
                 if config['prune_criterion'] != 'none':
                     utils.print_nonzeros(model)
