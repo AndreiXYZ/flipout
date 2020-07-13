@@ -99,14 +99,19 @@ def train(config, writer):
         # lower than the stopping point
         if config['stop_pruning_at'] == -1 or epoch_num < config['stop_pruning_at']:
             if epoch_num%config['prune_freq'] == 0 and epoch_num != config['epochs']:
+                
                 if config['prune_criterion'] == 'magnitude':
                     model.update_mask_magnitudes(config['prune_rate'])
+
                 elif config['prune_criterion'] == 'random':
                     model.update_mask_random(config['prune_rate'], config)
+
                 elif  config['prune_criterion'] == 'global_magnitude':
                     model.update_mask_global_magnitudes(config['prune_rate'])
+
                 elif config['prune_criterion'] == 'flipout':
                     model.update_mask_flipout(config['prune_rate'], config['flipout_p'])
+
                 elif config['prune_criterion'] == 'threshold':
                     model.update_mask_threshold(config['threshold'])
                 # Always also print the nonzeros to see which layers get pruned
