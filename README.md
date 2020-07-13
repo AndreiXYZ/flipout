@@ -2,17 +2,16 @@
 
 This is a repository of the code used to generate the experiments in **FlipOut : Uncovering redundant weights via sign flipping**. It contains the implementation of our proposed method as well as for the baselines. 
 ### Setup
-A Conda virtual environment can be created from ```environment.yml``` as follows:
+Create a Conda virtual environment from ```environment.yml``` as follows:
 ```
 conda env create -f environment.yml
 source activate flipout
 ```
-
-To download imagenette simply run:
+Then simply run:
 ```
 ./get_imagenette.sh
 ```
-which will download the dataset into a newly created ```data``` folder. For CIFAR10 or MNIST, PyTorch will automatically handle the download when first running a script.
+which will download the Imagenette dataset into a newly created ```data``` folder. For CIFAR10 or MNIST, PyTorch will automatically handle the download when first running a script.
 
 ### Reproduce experiments
 Some of the methods perform pruning periodically and can have their final sparsity determined by the pruning rate (how many parameters are removed each time, in percentages) and frequency (how often we prune, in epochs). Below we include a reference table for the sparsities we used in our experiments and the pruning frequencies, assuming 350 epochs of training and a pruning rate of 50%.
