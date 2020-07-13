@@ -95,7 +95,8 @@ def train(config, writer):
         if config['use_scheduler']:
             scheduler.step()
 
-        # Prune only if stop_pruning_at is not set or the current epoch is lower than the stopping point
+        # Prune only if stop_pruning_at is not set or the current epoch is 
+        # lower than the stopping point
         if config['stop_pruning_at'] == -1 or epoch_num < config['stop_pruning_at']:
             if epoch_num%config['prune_freq'] == 0 and epoch_num != config['epochs']:
                 if config['prune_criterion'] == 'magnitude':
@@ -104,16 +105,8 @@ def train(config, writer):
                     model.update_mask_random(config['prune_rate'], config)
                 elif  config['prune_criterion'] == 'global_magnitude':
                     model.update_mask_global_magnitudes(config['prune_rate'])
-                elif config['prune_criterion'] == 'weight_div_flips':
-                    model.update_mask_weight_div_flips(config['prune_rate'])
-                elif config['prune_criterion'] == 'weight_squared_div_flips':
-                    model.update_mask_weight_squared_div_flips(config['prune_rate'])
-                elif config['prune_criterion'] == 'weight_div_squared_flips':
-                    model.update_mask_weight_div_squared_flips(config['prune_rate'])
-                elif config['prune_criterion'] == 'weight_fourth_div_flips':
-                    model.update_mask_weight_fourth_div_flips(config['prune_rate'])
-                elif config['prune_criterion'] == 'weight_eighth_div_flips':
-                    model.update_mask_weight_eighth_div_flips(config['prune_rate'])
+                elif config['prune_criterion'] == 'flipout':
+                    model.update_mask_flipout(config['prune_rate'], config['flipout_p'])
                 elif config['prune_criterion'] == 'threshold':
                     model.update_mask_threshold(config['threshold'])
                 # Always also print the nonzeros to see which layers get pruned
@@ -174,12 +167,7 @@ def parse_args():
                      'resnet18', 'densenet121']
     
     pruning_choices = ['magnitude', 'random', 'snip', 'none', 
-                       'global_magnitude', 'weight_div_flips', 
-                       'weight_squared_div_flips',
-                       'weight_div_squared_flips', 
-                       'weight_fourth_div_flips',
-                       'weight_eighth_div_flips',
-                       'threshold']
+                       'global_magnitude', 'flipout', 'threshold']
     
     opt_choices = ['sgd', 'rmsprop', 'adam']
     reg_type_choices = ['wdecay', 'l1', 'l2']
@@ -201,12 +189,13 @@ def parse_args():
     # Pruning
     parser.add_argument('--prune_criterion', type=str, choices=pruning_choices, default='none')
     parser.add_argument('--prune_freq', type=int, default=1)
-    parser.add_argument('--prune_rate', type=float, default=0.2) # for magnitude pruning
-    parser.add_argument('--flip_threshold', type=int, default=1) # for flip pruning
+    parser.add_argument('--prune_rate', type=float, default=0.2)
     parser.add_argument('--magnitude_threshold', type=float, default=0)
     parser.add_argument('--stop_pruning_at', type=int, default=-1)
     parser.add_argument('--prune_bias', action='store_true', default=False)
     parser.add_argument('--prune_bnorm', action='store_true', default=False)
+    # Flipout p
+    parser.add_argument('--flipout_p', type=int, default=2)
     # Deep Hoyer regularizer
     parser.add_argument('--add_hs', action='store_true', default=False)
     parser.add_argument('--hoyer_lambda', type=float, default=0)
@@ -230,7 +219,6 @@ def parse_args():
     parser.add_argument('--max_norm', type=float, default=None)
     # Add noise or not
     parser.add_argument('--noise', dest='add_noise', action='store_true', default=False)
-    parser.add_argument('--scale_noise_by_lr', dest='scale_noise_by_lr', action='store_true', default=False)
     parser.add_argument('--stop_noise_at', type=int, default=-1)
     parser.add_argument('--noise_only_prunable', action='store_true', default=False)
     parser.add_argument('--noise_scale_factor', type=float, default=1)

@@ -116,8 +116,7 @@ def get_weight_penalty(model, config, epoch_num):
 def get_epoch_type(config):
     from utils.epoch_funcs import epoch_flips, regular_epoch
 
-    if config['prune_criterion'] in ['flip', 'topflip', 'topflip_layer',
-    'weight_div_flips', 'weight_squared_div_flips', 'weight_div_squared_flips']:
+    if config['prune_criterion'] == 'flipout':
         return epoch_flips
         
     return regular_epoch

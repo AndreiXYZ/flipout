@@ -55,7 +55,7 @@ def init_attrs(model, config):
     model.save_weights()
     model.instantiate_mask()
 
-    if 'flip' in config['prune_criterion']:
+    if config['prune_criterion'] == 'flipout':
         model.flip_counts = [torch.zeros_like(layer, dtype=torch.float).to('cuda') 
                             for layer in model.prunable_params]
     
@@ -146,26 +146,7 @@ class MasterModel(nn.Module):
             for layer, layer_mask in zip(self.prunable_params, self.mask):
                 layer.data = layer * layer_mask
     
-    def update_mask_weight_div_flips(self, rate):
-        with torch.no_grad():
-            flat_mask = torch.cat([layer_mask.view(-1) for layer_mask in self.mask])
-            flat_magnitudes = torch.cat([layer.view(-1) for layer in self.prunable_params])
-            flip_cts = torch.cat([layer_flips.view(-1) for layer_flips in self.flip_counts])
-
-            # Determine how many we need to prune
-            num_pruned = (flat_mask==0).sum().item()
-            num_to_prune = int((self.total_prunable-num_pruned)*rate)
-            # Do weight divided by number of flips
-            # add a 1 to denominator to avoid division by 0
-            criterion = flat_magnitudes.abs()/(flip_cts+1)
-            to_prune = criterion.argsort(descending=False)[:num_pruned+num_to_prune]
-            flat_mask[to_prune] = 0.
-            self.mask = self.unflatten_tensor(flat_mask, self.mask)
-
-            for layer, layer_mask in zip(self.prunable_params, self.mask):
-                layer.data = layer*layer_mask
-    
-    def update_mask_weight_squared_div_flips(self, rate):
+    def update_mask_flipout(self, rate, flipout_p):
         with torch.no_grad():
             flat_mask = torch.cat([layer_mask.view(-1) for layer_mask in self.mask])
             flat_magnitudes = torch.cat([layer.view(-1) for layer in self.prunable_params])
@@ -177,67 +158,7 @@ class MasterModel(nn.Module):
 
             # Do weight divided by number of flips
             # add a 1 to denominator to avoid division by 0
-            criterion = flat_magnitudes.pow(2)/(flip_cts+1)
-            to_prune = criterion.argsort(descending=False)[:num_pruned+num_to_prune]
-            flat_mask[to_prune] = 0.
-            self.mask = self.unflatten_tensor(flat_mask, self.mask)
-
-            for layer, layer_mask in zip(self.prunable_params, self.mask):
-                layer.data = layer*layer_mask
-    
-    def update_mask_weight_fourth_div_flips(self, rate):
-        with torch.no_grad():
-            flat_mask = torch.cat([layer_mask.view(-1) for layer_mask in self.mask])
-            flat_magnitudes = torch.cat([layer.view(-1) for layer in self.prunable_params])
-            flip_cts = torch.cat([layer_flips.view(-1) for layer_flips in self.flip_counts])
-
-            # Determine how many we need to prune
-            num_pruned = (flat_mask==0).sum().item()
-            num_to_prune = int((self.total_prunable-num_pruned)*rate)
-
-            # Do weight divided by number of flips
-            # add a 1 to denominator to avoid division by 0
-            criterion = flat_magnitudes.pow(4)/(flip_cts+1)
-            to_prune = criterion.argsort(descending=False)[:num_pruned+num_to_prune]
-            flat_mask[to_prune] = 0.
-            self.mask = self.unflatten_tensor(flat_mask, self.mask)
-
-            for layer, layer_mask in zip(self.prunable_params, self.mask):
-                layer.data = layer*layer_mask
-
-    def update_mask_weight_eighth_div_flips(self, rate):
-        with torch.no_grad():
-            flat_mask = torch.cat([layer_mask.view(-1) for layer_mask in self.mask])
-            flat_magnitudes = torch.cat([layer.view(-1) for layer in self.prunable_params])
-            flip_cts = torch.cat([layer_flips.view(-1) for layer_flips in self.flip_counts])
-
-            # Determine how many we need to prune
-            num_pruned = (flat_mask==0).sum().item()
-            num_to_prune = int((self.total_prunable-num_pruned)*rate)
-
-            # Do weight divided by number of flips
-            # add a 1 to denominator to avoid division by 0
-            criterion = flat_magnitudes.pow(8)/(flip_cts+1)
-            to_prune = criterion.argsort(descending=False)[:num_pruned+num_to_prune]
-            flat_mask[to_prune] = 0.
-            self.mask = self.unflatten_tensor(flat_mask, self.mask)
-
-            for layer, layer_mask in zip(self.prunable_params, self.mask):
-                layer.data = layer*layer_mask
-    
-    def update_mask_weight_div_squared_flips(self, rate):
-        with torch.no_grad():
-            flat_mask = torch.cat([layer_mask.view(-1) for layer_mask in self.mask])
-            flat_magnitudes = torch.cat([layer.view(-1) for layer in self.prunable_params])
-            flip_cts = torch.cat([layer_flips.view(-1) for layer_flips in self.flip_counts])
-
-            # Determine how many we need to prune
-            num_pruned = (flat_mask==0).sum().item()
-            num_to_prune = int((self.total_prunable-num_pruned)*rate)
-
-            # Do weight divided by number of flips
-            # add a 1 to denominator to avoid division by 0
-            criterion = flat_magnitudes/(flip_cts+1).pow(2)
+            criterion = flat_magnitudes.pow(flipout_p)/(flip_cts+1)
             to_prune = criterion.argsort(descending=False)[:num_pruned+num_to_prune]
             flat_mask[to_prune] = 0.
             self.mask = self.unflatten_tensor(flat_mask, self.mask)
@@ -263,15 +184,6 @@ class MasterModel(nn.Module):
             for layer, layer_mask in zip(self.prunable_params, self.mask):
                 layer.data = layer*layer_mask
     
-    def update_mask_threshold(self, threshold):
-        # Prune all weights below a threshold
-        with torch.no_grad():
-            for layer, layer_mask in zip(self.prunable_params, self.mask):
-                layer_mask.data = ~(layer.abs() < threshold)*layer_mask
-                
-                num_nonzeros = (layer_mask.view(-1)==0).sum()
-                layer.data = layer*layer_mask
-    
     def store_flips_since_last(self):
     # Retrieves how many params have flipped compared to previously saved weights
         with torch.no_grad():
@@ -290,43 +202,22 @@ class MasterModel(nn.Module):
     # Inject Gaussian noise scaled by a factor into the gradients
         with torch.no_grad():
             noise_per_layer = []
-            if config['global_noise']:
-                flat_grads = torch.cat([layer.grad.view(-1) 
-                                            for layer in self.noisy_params])
-                
-                scaling_factor = flat_grads.norm(p=2)/math.sqrt(flat_grads.numel())
-                # Scale noise by lr if it's the case
-                if config['scale_noise_by_lr']:
-                    scaling_factor *= config['lr']/curr_lr
-                # Multiply scaling factor by constant
-                scaling_factor = scaling_factor*config['noise_scale_factor']
-                
-                for layer in self.noisy_params:
-                    noise = torch.randn_like(layer)
-                    layer.grad.data += noise*scaling_factor
-                
-                noise_per_layer.append(scaling_factor)
 
-            else:
-                for layer in self.noisy_params:
-                    # Add noise equal to layer-wise l2 norm of params
-                    noise = torch.randn_like(layer)
-                    scaling_factor = layer.grad.norm(p=2)/math.sqrt(layer.numel())
-                    # Scale noise by LR
-                    if config['scale_noise_by_lr']:
-                        scaling_factor *= config['lr']/curr_lr
-                    # Multiply by constant scaling factor
-                    scaling_factor = scaling_factor*config['noise_scale_factor']
-                    layer.grad.data += noise*scaling_factor
-                    # Append to list for logging purposes
-                    noise_per_layer.append(scaling_factor)
+            for layer in self.noisy_params:
+                # Add noise equal to layer-wise l2 norm of params
+                noise = torch.randn_like(layer)
+                scaling_factor = layer.grad.norm(p=2)/math.sqrt(layer.numel())
+                # Multiply by constant scaling factor
+                scaling_factor = scaling_factor*config['noise_scale_factor']
+                layer.grad.data += noise*scaling_factor
+                # Append to list for logging purposes
+                noise_per_layer.append(scaling_factor)
             
             # Finally, mask gradient for pruned weights
             for prunable_layer, layer_mask in zip(self.prunable_params, self.mask):
                 prunable_layer.grad.data *= layer_mask
 
         return noise_per_layer
-
 
     @staticmethod
     def unflatten_tensor(flat_tensor, tensor_list):
