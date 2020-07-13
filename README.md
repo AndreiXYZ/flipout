@@ -1,6 +1,10 @@
 ## FlipOut : Uncovering redundant weights via sign-flipping
 
-This is a repository of the code used to generate the experiments in **FlipOut : Uncovering redundant weights via sign flipping**. It contains the implementation of our proposed method as well as for the baselines. A Conda virtual environment can be created from ```environment.yml```.
+This is a repository of the code used to generate the experiments in **FlipOut : Uncovering redundant weights via sign flipping**. It contains the implementation of our proposed method as well as for the baselines. A Conda virtual environment can be created from ```environment.yml``` as follows:
+```
+conda env create -f environment.yml
+source activate flipout
+```
 
 For the Imagenette experiments, please download the dataset (https://s3.amazonaws.com/fast-ai-imageclas/imagenette2.tgz) and place them in a folder named ```data``` in the root directory.
 Some of the methods perform pruning periodically and can have their final sparsity determined by the pruning rate (how many parameters are removed each time, in percentages) and frequency (how often we prune, in epochs). Below we include a reference table for the sparsities we used in our experiments and the pruning frequencies, assuming 350 epochs of training and a pruning rate of 50%.
