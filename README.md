@@ -2,6 +2,11 @@
 
 This is a repository of the code used to generate the experiments for [*FlipOut: Uncovering Redundant Weights via Sign Flipping*](https://arxiv.org/pdf/2009.02594.pdf). It contains the implementation of our proposed method as well as for the baselines. 
 
+      * [FlipOut : Uncovering redundant weights via sign-flipping](#flipout--uncovering-redundant-weights-via-sign-flipping)
+         * [Results](#results)
+         * [Setup](#setup)
+         * [Reproduce experiments](#reproduce-experiments)
+         
 ### Results
 We compare our method to:
 - global magnitude pruning ([magnitude pruning](https://arxiv.org/abs/1506.02626) modified to rank weights globally according to the observations by [Frankle & Carbin](https://arxiv.org/abs/1803.03635))
