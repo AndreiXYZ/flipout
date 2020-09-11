@@ -1,13 +1,15 @@
-## FlipOut : Uncovering redundant weights via sign-flipping
+FlipOut : Uncovering redundant weights via sign-flipping
+========================================================
 
 This is a repository of the code used to generate the experiments for [*FlipOut: Uncovering Redundant Weights via Sign Flipping*](https://arxiv.org/pdf/2009.02594.pdf). It contains the implementation of our proposed method as well as for the baselines. 
 
-      * [FlipOut : Uncovering redundant weights via sign-flipping](#flipout--uncovering-redundant-weights-via-sign-flipping)
          * [Results](#results)
          * [Setup](#setup)
          * [Reproduce experiments](#reproduce-experiments)
          
-### Results
+Results
+=======
+
 We compare our method to:
 - global magnitude pruning ([magnitude pruning](https://arxiv.org/abs/1506.02626) modified to rank weights globally according to the observations by [Frankle & Carbin](https://arxiv.org/abs/1803.03635))
 - [SNIP](https://arxiv.org/abs/1810.02340) 
@@ -52,7 +54,8 @@ Below, we provide the results from the paper, comparing our method to the baseli
 | SNIP | 99.9 | 9.09 ± 0 |
 | Hoyer-Square (λ=3e-4) | 99.95 | **78.44** |
 
-### Setup
+Setup
+=====
 Create a Conda virtual environment from ```environment.yml``` as follows:
 ```
 conda env create -f environment.yml
@@ -64,7 +67,8 @@ Then simply run:
 ```
 which will download the Imagenette dataset into a newly created ```data``` folder. For CIFAR10 or MNIST, PyTorch will automatically handle the download when first running a script.
 
-### Reproduce experiments
+Reproduce experiments
+=====================
 Some of the methods perform pruning periodically and can have their final sparsity determined by the pruning rate (how many parameters are removed each time, in percentages) and frequency (how often we prune, in epochs). Below we include a reference table for the sparsities we used in our experiments and the pruning frequencies, assuming 350 epochs of training and a pruning rate of 50%.
 
 | Sparsity | Prune frequency |
