@@ -12,6 +12,9 @@ We compare our method to:
 Below, we provide the results from the paper, comparing our method to the baselines. Results are averaged over 3 runs; standard deviations are also included.
 
 **VGG-19 on CIFAR10:**
+
+![vgg19](/imgs/vgg19_results.png)
+
 | Method | Sparsity (%)| Accuracy (%)|
 | --- | --- | --- |
 | FlipOut | 99.9 | **87.39 ± 0.23** |
@@ -21,6 +24,9 @@ Below, we provide the results from the paper, comparing our method to the baseli
 | Hoyer-Square (λ=6e-5) | 99.89 | 82.78 |
 
 **ResNet18 on CIFAR10:**
+
+![rn18](/imgs/resnet18_results.png)
+
 | Method | Sparsity (%)| Accuracy (%)|
 | --- | --- | --- |
 | FlipOut | 99.9 | **82.5 ± 0.11** |
@@ -30,6 +36,9 @@ Below, we provide the results from the paper, comparing our method to the baseli
 | Hoyer-Square (λ=1e-4) | 99.89 | 78.58 |
 
 **DesneNet-121 on Imagenette:**
+
+![densenet121](/imgs/densenet121_results.png)
+
 | Method | Sparsity (%)| Accuracy (%)|
 | --- | --- | --- |
 | FlipOut | 99.9 | 74.13 ± 1.4 |
