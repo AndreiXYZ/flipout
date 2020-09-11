@@ -1,6 +1,6 @@
 ## FlipOut : Uncovering redundant weights via sign-flipping
 
-This is a repository of the code used to generate the experiments for [*FlipOut: Uncovering Redundant Weights via Sign Flipping*](https://arxiv.org/abs/1506.02626). It contains the implementation of our proposed method as well as for the baselines. 
+This is a repository of the code used to generate the experiments for [*FlipOut: Uncovering Redundant Weights via Sign Flipping*](https://arxiv.org/pdf/2009.02594.pdf). It contains the implementation of our proposed method as well as for the baselines. 
 ### Setup
 Create a Conda virtual environment from ```environment.yml``` as follows:
 ```
