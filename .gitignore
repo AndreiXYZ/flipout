@@ -1,2 +1,5 @@
 data/
+chkpts/
+runs/
 *.tgz
+__pycache__
