@@ -39,23 +39,21 @@ def plot_stats(train_acc, train_loss, test_acc, test_loss, model, writer, epoch_
         writer.add_scalar('loss/test', test_loss, epoch_num)
         writer.add_scalar('sparsity/sparsity', model.sparsity, epoch_num)
 
-def save_run(model, opt, config):
+def save_run(model, opt, config, logdir):
     import os
 
     save_dict = {
                  'opt_state': opt.state_dict(),
                  'model_state': model.state_dict(),
                  'mask': model.mask,
+                 'config': config
                  }
     
-    save_fpath = './chkpts/' + config['logdir'] + '/' + config['save_model'] + '.pt'
+    if not os.path.exists(logdir):
+        os.makedirs(logdir, 0o777)
     
-    save_dir = '/'.join(save_fpath.split('/')[:-1])
-    
-    if not os.path.exists(save_dir):
-        os.makedirs(save_dir, 0o777)
-    
-    torch.save(save_dict, save_fpath)
+    model_path = os.path.join(logdir, 'model.pt')
+    torch.save(save_dict, model_path)
 
 def print_nonzeros(model):
     nonzero = total = 0

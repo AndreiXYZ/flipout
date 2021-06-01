@@ -24,9 +24,9 @@ def get_model(config):
         model = VGG('VGG13')
     else:
         model = model_dict[config['model']]()
-    
-    
-    if config['load_model'] is not None:
+
+    if config['load_model']:
+        raise NotImplementedError
         checkpoint = torch.load(config['load_model'], map_location='cuda')
         model.load_state_dict(checkpoint['model_state'])
     
@@ -65,7 +65,8 @@ def get_opt(config, model):
     
     opt = opt_dict[config['opt']](**kwargs)
 
-    if config['load_model'] is not None:
+    if config['load_model']:
+        raise NotImplementedError
         checkpoint = torch.load(config['load_model'], map_location='cuda')
         opt.load_state_dict(checkpoint['opt_state'])
     

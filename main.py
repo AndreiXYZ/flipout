@@ -52,7 +52,8 @@ def train(config, writer):
         init_attrs(model, config)
 
     # Init the mask from the loader if it is the case
-    if config['load_model'] is not None:
+    if config['load_model']:
+        raise NotImplementedError
         checkpoint = torch.load(config['load_model'], map_location='cuda')
         model.load_state_dict(checkpoint['model_state'])
         opt.load_state_dict(checkpoint['opt_state'])
@@ -164,7 +165,7 @@ def main():
     utils.print_nonzeros(model)
     
     if config['save_model'] is not None:
-        utils.save_run(model, opt, config)
+        utils.save_run(model, opt, config, logdir)
 
 
 def parse_args():
@@ -230,8 +231,9 @@ def parse_args():
     # SNIP params
     parser.add_argument('--snip_sparsity', type=float, required=False, default=0.)
     # Whether or not to save the model. Run-name will be comment name
-    parser.add_argument('--save_model', type=str, default=None)
-    parser.add_argument('--load_model', type=str, default=None)
+    parser.add_argument('--save_model', action='store_true', default=False)
+    parser.add_argument('--load_model', action='store_true', default=False)
+    parser.add_argument('--model_load_location', type=str, default=None)
     # Arg for parallelizing everything
     parser.add_argument('--parallel', action='store_true', default=False)
     config = vars(parser.parse_args())
