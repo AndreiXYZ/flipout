@@ -4,6 +4,8 @@ from utils import data_loaders
 from models.cifar10_models import *
 from models.mnist_models import *
 from models.imagenette_models import *
+from models.cifar10_models_quant import *
+
 
 def get_model(config):
     init_param = 'VGG19' if config['model'] == 'vgg19' else None
@@ -31,6 +33,12 @@ def get_model(config):
         model.load_state_dict(checkpoint['model_state'])
     
     return model
+
+def get_quant_model(config):
+    model_dict = {'vgg19quant' : VGGQuant('VGG19'),
+                  'resnet18quant' : ResNet18Quant()}
+    
+    return model_dict[config['model']]
 
 def get_dataloaders(config):
     if config['dataset'] == 'mnist':

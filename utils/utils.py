@@ -76,3 +76,7 @@ def print_nonzeros(model):
         nz_count0 = np.count_nonzero(dim0)
         nz_count1 = np.count_nonzero(dim1)
         print(f'{name:20} | dim0 = {nz_count0:7} / {len(dim0):7} ({100 * nz_count0 / len(dim0):6.2f}%) | dim1 = {nz_count1:7} / {len(dim1):7} ({100 * nz_count1 / len(dim1):6.2f}%)')
+
+def load_state_dict(fpath):
+    saved_dict = torch.load(fpath)
+    return saved_dict
