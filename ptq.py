@@ -11,6 +11,7 @@ from utils.utils import load_state_dict, accuracy
 from utils.getters import get_quant_model, get_epoch_type, get_opt
 from models.master_model import init_attrs
 
+activations = {}
 
 def load_weights_and_mask(model, model_state, mask):
     model.load_state_dict(model_state)
@@ -48,22 +49,34 @@ def print_size_of_model(model):
     os.remove('temp.p')
 
 
+def get_activation(name):
+    def hook(model, input, output):
+        activations[name] = output.detach()
+    return hook
+
+
 def prepare_model_for_quantization(model):
     model.eval()
-    # Move to cpu as there is no current support for quantized cuda kernels
     model.to('cpu')
-    quantization_config = torch.quantization.QConfig(activation=torch.quantization.MinMaxObserver.with_args(dtype=torch.quint8, qscheme=torch.per_tensor_symmetric), 
-                                                     weight=torch.quantization.MinMaxObserver.with_args(dtype=torch.qint8, qscheme=torch.per_tensor_symmetric))
-    model.qconfig = quantization_config
-    # QConfig for symmetric quantization
-    # model.qconfig = torch.quantization.get_default_qconfig('fbgemm')
 
-    # torch.backends.quantized.engine = 'fbgemm'
+    quantization_config = torch.quantization.QConfig(weight=torch.quantization.PerChannelMinMaxObserver.with_args(
+                                                            dtype=torch.qint8, 
+                                                            qscheme=torch.per_channel_symmetric,
+                                                            reduce_range=False
+                                                    ),
+                                                     activation=torch.quantization.MinMaxObserver.with_args(
+                                                            dtype=torch.quint8,
+                                                            qscheme=torch.per_tensor_affine,
+                                                            reduce_range=False
+                                                     ))
+
+    model.qconfig = quantization_config
 
     quant_model = torch.quantization.prepare(model)
 
     return quant_model
 
+    
 def fuse_model(model):
     named_modules = list(model.named_modules())
     
@@ -87,12 +100,12 @@ def main(config):
     init_attrs(model, training_cfg)
     # Load model weights and mask
     model = load_weights_and_mask(model, model_state, mask)
+
     # Switch to eval mode, move to cpu and prepare for quantization
     # do module fusion
     # fuse_model(model)
     quant_model = prepare_model_for_quantization(model)
 
-    
     # Grab all necessary objects
     epoch = get_epoch_type(training_cfg)
 
@@ -104,19 +117,17 @@ def main(config):
 
     opt = get_opt(training_cfg, quant_model)
 
-
     # Calibration (could possibly use more epochs)
     calib_acc, calib_loss = evaluate(quant_model, train_loader, batches_per_train_epoch)
-    # Do per-channel quantization & collect stats
-    torch.quantization.convert(quant_model, inplace=True)
 
+    torch.quantization.convert(quant_model, inplace=True)
     print('Quantized model size : {}'.format(print_size_of_model(quant_model)))
     train_acc, train_loss = evaluate(quant_model, train_loader, batches_per_train_epoch)
     test_acc, test_loss = evaluate(quant_model, test_loader, batches_per_test_epoch)
     
     print(train_acc, train_loss)
     print(test_acc, test_loss)
-
+    
     import pdb; pdb.set_trace()
 
 if __name__ == "__main__":
