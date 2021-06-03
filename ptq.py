@@ -52,12 +52,28 @@ def prepare_model_for_quantization(model):
     model.eval()
     # Move to cpu as there is no current support for quantized cuda kernels
     model.to('cpu')
-    model.qconfig = torch.quantization.get_default_qconfig('fbgemm')
-    torch.backends.quantized.engine = 'fbgemm'
+    quantization_config = torch.quantization.QConfig(activation=torch.quantization.MinMaxObserver.with_args(dtype=torch.quint8, qscheme=torch.per_tensor_symmetric), 
+                                                     weight=torch.quantization.MinMaxObserver.with_args(dtype=torch.qint8, qscheme=torch.per_tensor_symmetric))
+    model.qconfig = quantization_config
+    # QConfig for symmetric quantization
+    # model.qconfig = torch.quantization.get_default_qconfig('fbgemm')
+
+    # torch.backends.quantized.engine = 'fbgemm'
 
     quant_model = torch.quantization.prepare(model)
 
     return quant_model
+
+def fuse_model(model):
+    named_modules = list(model.named_modules())
+    
+    for idx, named_module in enumerate(named_modules):
+        conv_name, module = named_module
+        if isinstance(module, nn.Conv2d):
+            bnorm_name = named_modules[idx + 1][0]
+            relu_name = named_modules[idx + 2][0]
+            torch.quantization.fuse_modules(model, [conv_name, bnorm_name, relu_name], inplace=True)
+
 
 def main(config):
     state_dict = load_state_dict(fpath=config['saved_model_path'])
@@ -72,7 +88,8 @@ def main(config):
     # Load model weights and mask
     model = load_weights_and_mask(model, model_state, mask)
     # Switch to eval mode, move to cpu and prepare for quantization
-    # TODO module fusion
+    # do module fusion
+    # fuse_model(model)
     quant_model = prepare_model_for_quantization(model)
 
     
