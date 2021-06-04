@@ -4,6 +4,7 @@ import gc
 import torch.optim as optim
 import torch.nn.functional as F
 import numpy as np
+import json, os
 
 from datetime import datetime
 from models.cifar10_models import *
@@ -54,6 +55,35 @@ def save_run(model, opt, config, logdir):
     
     model_path = os.path.join(logdir, 'model.pt')
     torch.save(save_dict, model_path)
+
+
+def save_run_quant(model, save_fpath, quant_config, quant_train_acc, quant_test_acc):
+
+    postfix = '_wq={}-{}_aq={}-{}'.format(quant_config['weight_observer'], quant_config['weight_qscheme'],
+                                          quant_config['activation_observer'], quant_config['activation_qscheme'])
+    
+    save_dict = {
+                 'model_state' : model.state_dict(),
+                 'config' : quant_config
+                }
+    
+    model_path = os.path.join(save_fpath, 'quant_model' + postfix + '.pt')
+    torch.save(save_dict, model_path)
+
+    save_json = {
+                 'quant_train_acc' : quant_train_acc,
+                 'quant_test_acc' : quant_test_acc,
+                 'config': quant_config,
+                 'timestamp' : get_time_str()
+    }
+    json_path = os.path.join(save_fpath, 'quant_results' + postfix + '.json')
+
+    import pdb; pdb.set_trace()
+
+    with open(json_path, 'w') as f:
+        json.dump(save_json, f, indent=4)
+
+
 
 def print_nonzeros(model):
     nonzero = total = 0

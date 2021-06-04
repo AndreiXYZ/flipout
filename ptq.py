@@ -4,14 +4,17 @@ import math
 import argparse
 import torch.nn.functional as F
 import os
+import logging
+import utils.getters as getters
+import utils.utils as utils
 from models.cifar10_models_quant import ResNet18Quant
-from utils.data_loaders import cifar10_dataloaders
 from tqdm import tqdm
-from utils.utils import load_state_dict, accuracy
-from utils.getters import get_quant_model, get_epoch_type, get_opt
 from models.master_model import init_attrs
 
+
 activations = {}
+logging.basicConfig(level = logging.INFO)
+logger = logging.getLogger(name='ptq')
 
 def load_weights_and_mask(model, model_state, mask):
     model.load_state_dict(model_state)
@@ -32,7 +35,7 @@ def evaluate(model, dataloader, total_batches):
             out = model(x)
             # Note this does not take into account the weight penalty
             loss = F.cross_entropy(out, y)
-            total_acc += accuracy(out, y)
+            total_acc += utils.accuracy(out, y)
             # multiply batch loss by batch size since the loss is averaged
             total_loss += x.size(0)*loss.item()
             total_samples += x.size(0)
@@ -45,7 +48,7 @@ def evaluate(model, dataloader, total_batches):
 
 def print_size_of_model(model):
     torch.save(model.state_dict(), "temp.p")
-    print('Size (MB):', os.path.getsize("temp.p")/1e6)
+    logger.info('Size (MB): {}'.format(os.path.getsize('temp.p')/1e6))
     os.remove('temp.p')
 
 
@@ -55,28 +58,38 @@ def get_activation(name):
     return hook
 
 
-def prepare_model_for_quantization(model):
+def get_qconfig(config):
+    weight_observer, weight_qscheme = getters.get_observer(config['weight_observer'], config['weight_qscheme'])
+    activation_observer, activation_qscheme = getters.get_observer(config['activation_observer'], config['activation_qscheme'])
+
+    logger.info('Weight: observer={} qscheme={}'.format(weight_observer, weight_qscheme))
+    logger.info('Activation: observer={} qscheme={}'.format(activation_observer, activation_qscheme))
+
+    weight_observer = weight_observer.with_args(dtype=torch.qint8,
+                                                qscheme=weight_qscheme,
+                                                reduce_range=False)
+
+    activation_observer = activation_observer.with_args(dtype=torch.quint8,
+                                                        qscheme=activation_qscheme,
+                                                        reduce_range=False)
+    
+    return weight_observer, activation_observer
+
+
+def prepare_model_for_quantization(model, config):
     model.eval()
     model.to('cpu')
 
-    quantization_config = torch.quantization.QConfig(weight=torch.quantization.PerChannelMinMaxObserver.with_args(
-                                                            dtype=torch.qint8, 
-                                                            qscheme=torch.per_channel_symmetric,
-                                                            reduce_range=False
-                                                    ),
-                                                     activation=torch.quantization.MinMaxObserver.with_args(
-                                                            dtype=torch.quint8,
-                                                            qscheme=torch.per_tensor_affine,
-                                                            reduce_range=False
-                                                     ))
+    weight_observer, activation_observer = get_qconfig(config)
 
-    model.qconfig = quantization_config
+    model.qconfig = torch.quantization.QConfig(weight=weight_observer,
+                                               activation=activation_observer)
 
     quant_model = torch.quantization.prepare(model)
 
     return quant_model
 
-    
+
 def fuse_model(model):
     named_modules = list(model.named_modules())
     
@@ -89,59 +102,66 @@ def fuse_model(model):
 
 
 def main(config):
-    state_dict = load_state_dict(fpath=config['saved_model_path'])
-    opt_state = state_dict['opt_state']
+    state_dict = utils.load_state_dict(fpath=config['saved_model_path'])
     model_state = state_dict['model_state']
     mask = state_dict['mask']
     training_cfg = state_dict['config']
 
+    utils.set_seed(training_cfg['seed'])
     # Instantiate model & attributes, load state dict 
-    model = get_quant_model(config)
+    model = getters.get_quant_model(config)
     init_attrs(model, training_cfg)
     # Load model weights and mask
     model = load_weights_and_mask(model, model_state, mask)
-
+    print_size_of_model(model)
     # Switch to eval mode, move to cpu and prepare for quantization
     # do module fusion
     # fuse_model(model)
-    quant_model = prepare_model_for_quantization(model)
+    quant_model = prepare_model_for_quantization(model, config)
 
     # Grab all necessary objects
-    epoch = get_epoch_type(training_cfg)
-
-    loaders, sizes = cifar10_dataloaders(config)
+    loaders, sizes = getters.get_dataloaders(training_cfg)
     train_loader, _, test_loader = loaders
     train_size, _, test_size = sizes
-    batches_per_train_epoch = math.ceil(train_size / config['batch_size'])
-    batches_per_test_epoch = math.ceil(test_size / config['test_batch_size'])
-
-    opt = get_opt(training_cfg, quant_model)
+    batches_per_train_epoch = math.ceil(train_size / training_cfg['batch_size'])
+    batches_per_test_epoch = math.ceil(test_size / training_cfg['test_batch_size'])
 
     # Calibration (could possibly use more epochs)
     calib_acc, calib_loss = evaluate(quant_model, train_loader, batches_per_train_epoch)
 
     torch.quantization.convert(quant_model, inplace=True)
-    print('Quantized model size : {}'.format(print_size_of_model(quant_model)))
+    logger.info('Succesfully quantized model!')
+
+    print_size_of_model(quant_model)
+    logger.info('Evaluating...')
     train_acc, train_loss = evaluate(quant_model, train_loader, batches_per_train_epoch)
     test_acc, test_loss = evaluate(quant_model, test_loader, batches_per_test_epoch)
     
-    print(train_acc, train_loss)
-    print(test_acc, test_loss)
+    logger.info('train acc: {} train loss: {}'.format(train_acc, train_loss))
+    logger.info('test acc: {} test loss: {}'.format(test_acc, test_loss))
     
-    import pdb; pdb.set_trace()
+    # Save model in same folder
+    save_path = config['saved_model_path'].replace('model.pt', '')
+    utils.save_run_quant(quant_model, save_path, config, train_acc, test_acc)
+
 
 if __name__ == "__main__":
-    model_choices = ['vgg19quant', 'resnet18quant']
-    
+    model_choices = ['vgg19quant', 'resnet18quant', 'densenet121quant']
+    observer_choices = ['minmax', 'ma-minmax', 'pc-minmax', 'ma-pc-minmax', 'hist']
+    qscheme_choices = ['affine', 'symmetric']  
     parser = argparse.ArgumentParser()
     parser.add_argument('-m', '--model', type=str, choices=model_choices, required=True)
-    parser.add_argument('-bs', '--batch_size', type=int, required=True)
-    parser.add_argument('-tbs', '--test_batch_size', type=int, required=True)
+    # parser.add_argument('-bs', '--batch_size', type=int, required=True)
+    # parser.add_argument('-tbs', '--test_batch_size', type=int, required=True)
     parser.add_argument('--val', action='store_true', default=False)
     parser.add_argument('--prune_bias', action='store_true', default=False)
     parser.add_argument('--prune_bnorm', action='store_true', default=False)
     parser.add_argument('--noise_only_prunable', action='store_true', default=False)
     parser.add_argument('--saved_model_path', type=str, required=True)
+    parser.add_argument('--weight_observer', type=str, choices=observer_choices, required=True)
+    parser.add_argument('--weight_qscheme', type=str, choices=qscheme_choices, required=True)
+    parser.add_argument('--activation_observer', type=str, choices=observer_choices, required=True)
+    parser.add_argument('--activation_qscheme', type=str, choices=qscheme_choices, required=True)
 
     config = vars(parser.parse_args())
     main(config)

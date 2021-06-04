@@ -1,11 +1,11 @@
 import torch.optim as optim
 
 from utils import data_loaders
-from models.cifar10_models import *
 from models.mnist_models import *
-from models.imagenette_models import *
+from models.cifar10_models import *
 from models.cifar10_models_quant import *
-
+from models.imagenette_models import *
+from models.imagenette_models_quant import DenseNet121Quant
 
 def get_model(config):
     init_param = 'VGG19' if config['model'] == 'vgg19' else None
@@ -36,9 +36,43 @@ def get_model(config):
 
 def get_quant_model(config):
     model_dict = {'vgg19quant' : VGGQuant('VGG19'),
-                  'resnet18quant' : ResNet18Quant()}
+                  'resnet18quant' : ResNet18Quant(),
+                  'densenet121' : DenseNet121Quant()}
     
     return model_dict[config['model']]
+
+def get_observer(observer_type, qscheme_type):
+    observer, qscheme = None, None
+
+    assert observer_type in ('minmax', 'ma-minmax', 'pc-minmax', 'ma-pc-minmax', 'hist')
+    assert qscheme_type in ('affine', 'symmetric')
+
+    if observer_type == 'minmax':
+        observer = torch.quantization.MinMaxObserver
+    elif observer_type == 'ma-minmax':
+        observer = torch.quantization.MovingAverageMinMaxObserver
+    elif observer_type == 'pc-minmax':
+        observer = torch.quantization.PerChannelMinMaxObserver
+    elif observer_type == 'ma-pc-minmax':
+        observer = torch.quantization.MovingAveragePerChannelMinMaxObserver
+    elif observer_type == 'hist':
+        observer = torch.quantization.HistogramObserver
+    else:
+        raise ValueError('Please specify a valid observer')
+
+
+    if 'pc' in observer_type:
+        if qscheme_type == 'affine':
+            qscheme = torch.per_channel_affine
+        elif qscheme_type == 'symmetric':
+            qscheme = torch.per_channel_symmetric
+    else:
+        if qscheme_type == 'affine':
+            qscheme = torch.per_tensor_affine
+        elif qscheme_type == 'symmetric':
+            qscheme = torch.per_tensor_symmetric
+
+    return observer, qscheme
 
 def get_dataloaders(config):
     if config['dataset'] == 'mnist':
