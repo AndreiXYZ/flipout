@@ -37,7 +37,7 @@ def get_model(config):
 def get_quant_model(config):
     model_dict = {'vgg19quant' : VGGQuant('VGG19'),
                   'resnet18quant' : ResNet18Quant(),
-                  'densenet121' : DenseNet121Quant()}
+                  'densenet121quant' : DenseNet121Quant()}
     
     return model_dict[config['model']]
 

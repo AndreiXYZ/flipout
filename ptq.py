@@ -7,16 +7,19 @@ import os
 import logging
 import utils.getters as getters
 import utils.utils as utils
-from models.cifar10_models_quant import ResNet18Quant
 from tqdm import tqdm
-from models.master_model import init_attrs
-
+from models.master_model import init_attrs, CustomDataParallel
 
 activations = {}
 logging.basicConfig(level = logging.INFO)
 logger = logging.getLogger(name='ptq')
 
-def load_weights_and_mask(model, model_state, mask):
+def load_weights_and_mask(config, model, model_state, mask):
+    if config['model'] == 'densenet121quant':
+        # Remove 'module' part of keys, as model was wrapped with dataparallel
+        # when training
+        model_state = {key.replace('module.',''):value for key,value in model_state.items()}
+
     model.load_state_dict(model_state)
     model.mask = mask
     return model
@@ -110,9 +113,13 @@ def main(config):
     utils.set_seed(training_cfg['seed'])
     # Instantiate model & attributes, load state dict 
     model = getters.get_quant_model(config)
+
+    # Need to wrap model with data parallel for it to work it seems
+
     init_attrs(model, training_cfg)
+
     # Load model weights and mask
-    model = load_weights_and_mask(model, model_state, mask)
+    model = load_weights_and_mask(config, model, model_state, mask)
     print_size_of_model(model)
     # Switch to eval mode, move to cpu and prepare for quantization
     # do module fusion
@@ -148,7 +155,7 @@ def main(config):
 if __name__ == "__main__":
     model_choices = ['vgg19quant', 'resnet18quant', 'densenet121quant']
     observer_choices = ['minmax', 'ma-minmax', 'pc-minmax', 'ma-pc-minmax', 'hist']
-    qscheme_choices = ['affine', 'symmetric']  
+    qscheme_choices = ['affine', 'symmetric']
     parser = argparse.ArgumentParser()
     parser.add_argument('-m', '--model', type=str, choices=model_choices, required=True)
     # parser.add_argument('-bs', '--batch_size', type=int, required=True)
